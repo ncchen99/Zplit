@@ -1,4 +1,6 @@
 import { useTranslation } from 'react-i18next';
+import { useState } from 'react';
+import { Turnstile } from '@marsidev/react-turnstile';
 import { signInWithPopup, GoogleAuthProvider, signInAnonymously } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { logger } from '@/utils/logger';
@@ -7,6 +9,25 @@ import { useUIStore } from '@/store/uiStore';
 export function LoginPage() {
   const { t } = useTranslation();
   const showToast = useUIStore((s) => s.showToast);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [showTurnstile, setShowTurnstile] = useState(false);
+
+  const verifyTurnstile = async (token: string): Promise<boolean> => {
+    const workerUrl = import.meta.env.VITE_TURNSTILE_WORKER_URL;
+    if (!workerUrl) {
+      logger.error('auth.login', 'Turnstile Worker URL 未設定');
+      showToast('Turnstile Worker URL 未設定', 'error');
+      return false;
+    }
+
+    const res = await fetch(workerUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token }),
+    });
+
+    return res.ok;
+  };
 
   const handleGoogleLogin = async () => {
     try {
@@ -21,13 +42,29 @@ export function LoginPage() {
   };
 
   const handleAnonymousLogin = async () => {
+    if (!turnstileToken) {
+      setShowTurnstile(true);
+      return;
+    }
+
     try {
-      // TODO: Integrate Cloudflare Turnstile verification before anonymous login
+      const verified = await verifyTurnstile(turnstileToken);
+      if (!verified) {
+        showToast('人機驗證失敗，請再試一次', 'error');
+        setTurnstileToken(null);
+        setShowTurnstile(true);
+        return;
+      }
+
       await signInAnonymously(auth);
       logger.info('auth.login', '匿名登入成功');
+      setTurnstileToken(null);
+      setShowTurnstile(false);
     } catch (err) {
       logger.error('auth.login', '匿名登入失敗', err);
       showToast(t('common.error'), 'error');
+      setTurnstileToken(null);
+      setShowTurnstile(true);
     }
   };
 
@@ -53,6 +90,25 @@ export function LoginPage() {
           <button className="btn btn-ghost btn-block" onClick={handleAnonymousLogin}>
             {t('auth.login.anonymousLogin')}
           </button>
+
+          {showTurnstile && (
+            <div className="rounded-box border border-base-300 p-3">
+              <Turnstile
+                siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+                onSuccess={async (token) => {
+                  setTurnstileToken(token);
+                  setShowTurnstile(false);
+                  await handleAnonymousLogin();
+                }}
+                onError={() => {
+                  logger.error('auth.login', 'Turnstile 元件載入失敗');
+                  showToast('驗證元件載入失敗', 'error');
+                }}
+                options={{ theme: 'auto' }}
+              />
+            </div>
+          )}
+
           <p className="text-xs text-base-content/40">{t('auth.login.anonymousHint')}</p>
         </div>
       </div>

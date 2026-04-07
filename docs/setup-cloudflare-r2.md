@@ -40,7 +40,7 @@
 ```bash
 npm install -D wrangler
 npx wrangler login
-npx wrangler init workers/upload --no-git
+npx wrangler init workers/upload
 ```
 
 選項：
@@ -165,7 +165,7 @@ binding = "R2_BUCKET"
 bucket_name = "zplit-media"
 
 [vars]
-R2_PUBLIC_URL = "https://pub-xxxxxxxx.r2.dev"  # 替換為你的公開 URL
+R2_PUBLIC_URL = "填入你的 R2 Public URL"
 ```
 
 ### 設定 Secrets（不可寫入 wrangler.toml）

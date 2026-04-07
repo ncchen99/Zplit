@@ -1,0 +1,10 @@
+name = "zplit-upload"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[[r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "zplit-media"
+
+[vars]
+R2_PUBLIC_URL = "https://pub-a22a7d38b2194ff7a00b23a0cea8550d.r2.dev"

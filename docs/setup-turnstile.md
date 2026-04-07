@@ -39,6 +39,18 @@ Cloudflare Turnstile 是一個取代傳統 CAPTCHA 的人機驗證服務。Zplit
 
 ## 第二部分：建立 Turnstile Worker
 
+### 建立 Worker 專案
+
+在專案根目錄，執行：
+
+```bash
+npx wrangler init workers/turnstile
+```
+
+選項：
+- 「Would you like to use TypeScript?」→ Yes
+- 「Deploy your application?」→ No
+
 ### Worker 程式碼
 
 建立 `workers/turnstile/src/index.ts`：
@@ -152,7 +164,7 @@ npm install @marsidev/react-turnstile
 ### 填入 .env.local
 
 ```env
-VITE_TURNSTILE_SITE_KEY=0x4AAAAAAA...
+VITE_TURNSTILE_SITE_KEY=填入你的 Turnstile Site Key
 VITE_TURNSTILE_WORKER_URL=https://zplit-turnstile.your-account.workers.dev
 ```
 
