@@ -1,0 +1,146 @@
+{
+  "common": {
+    "button": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "delete": "Delete",
+      "edit": "Edit",
+      "back": "Back",
+      "add": "Add",
+      "done": "Done",
+      "close": "Close"
+    },
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "offline": "You are offline. Some features may not work.",
+    "online": "Back online"
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome to Zplit",
+      "subtitle": "Split bills with friends, effortlessly",
+      "googleLogin": "Sign in with Google",
+      "anonymousLogin": "Continue as Guest",
+      "anonymousHint": "Try it out without an account"
+    },
+    "onboarding": {
+      "title": "Set up your profile",
+      "nickname": "Nickname",
+      "nicknamePlaceholder": "Enter your nickname",
+      "avatar": "Avatar",
+      "avatarUpload": "Upload avatar",
+      "continue": "Get Started"
+    }
+  },
+  "home": {
+    "title": "Zplit",
+    "groups": "Groups",
+    "personal": "Personal",
+    "createGroup": "Create Group",
+    "noGroups": "No groups yet",
+    "noGroupsHint": "Create a group to start splitting bills with friends!"
+  },
+  "group": {
+    "create": {
+      "title": "Create Group",
+      "name": "Group Name",
+      "namePlaceholder": "e.g. Japan Trip 2026",
+      "cover": "Cover Photo",
+      "coverUpload": "Upload cover"
+    },
+    "summary": {
+      "title": "Summary",
+      "noExpenses": "No expenses yet",
+      "addFirst": "Add the first expense",
+      "owes": "{{from}} owes {{to}}",
+      "totalSpent": "Total spent"
+    },
+    "settle": {
+      "title": "Settle Up",
+      "noDebts": "All debts settled!",
+      "transfer": "{{from}} pays {{to}}",
+      "markDone": "Mark as done",
+      "markAllDone": "Mark all as done",
+      "completed": "Completed",
+      "progress": "Settlement progress"
+    },
+    "members": {
+      "title": "Members & Activity",
+      "members": "Members",
+      "activity": "Recent Activity",
+      "addMember": "Add Member",
+      "memberName": "Member name",
+      "unbound": "Not linked",
+      "invite": "Invite Link",
+      "copyLink": "Copy Link",
+      "linkCopied": "Invite link copied"
+    }
+  },
+  "expense": {
+    "add": "Add Expense",
+    "edit": "Edit Expense",
+    "title": "Item",
+    "titlePlaceholder": "e.g. Dinner, Transportation",
+    "amount": "Amount",
+    "amountPlaceholder": "0",
+    "paidBy": "Paid by",
+    "splitWith": "Split with",
+    "date": "Date & Time",
+    "details": "Details",
+    "description": "Note",
+    "descriptionPlaceholder": "Optional, e.g. Business dinner on 3/29",
+    "receipt": "Receipt photo",
+    "splitMode": {
+      "label": "Split Mode",
+      "equal": "Split Equally",
+      "amount": "Split by Amount",
+      "percent": "Split by Percent"
+    },
+    "repeat": {
+      "label": "Repeat",
+      "none": "None",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "custom": "Custom"
+    },
+    "paidFor": "{{name}} paid for"
+  },
+  "personal": {
+    "title": "Personal Ledger",
+    "youOwe": "You owe {{name}}",
+    "owesYou": "{{name}} owes you",
+    "settled": "Settled",
+    "noContacts": "No records yet",
+    "addExpense": "Add Record",
+    "optimalSplit": "Optimal Split"
+  },
+  "join": {
+    "title": "Join Group",
+    "loading": "Loading group info...",
+    "question": "Are you an existing member of this group?",
+    "selectMember": "Select your identity",
+    "newMember": "I'm a new member",
+    "updateName": "Update display name",
+    "joined": "Successfully joined the group!"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "logout": "Log out",
+    "profile": "Profile"
+  },
+  "nav": {
+    "home": "Home",
+    "groups": "Groups",
+    "add": "Add",
+    "personal": "Ledger",
+    "settings": "Settings"
+  }
+}

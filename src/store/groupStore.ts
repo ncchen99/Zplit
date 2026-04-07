@@ -1,0 +1,122 @@
+import { create } from 'zustand';
+import type { Timestamp } from 'firebase/firestore';
+
+export interface GroupMember {
+  memberId: string;
+  userId: string | null;
+  displayName: string;
+  avatarUrl: string | null;
+  isBound: boolean;
+  joinedAt: Timestamp | null;
+}
+
+export interface Group {
+  groupId: string;
+  name: string;
+  coverUrl: string | null;
+  inviteCode: string;
+  createdBy: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+  members: GroupMember[];
+}
+
+export interface ExpenseSplit {
+  memberId: string;
+  amount: number;
+}
+
+export interface EditLogEntry {
+  memberId: string;
+  action: 'created' | 'updated' | 'deleted';
+  description: string;
+  timestamp: Timestamp;
+}
+
+export interface Expense {
+  expenseId: string;
+  title: string;
+  amount: number;
+  paidBy: string;
+  splitMode: 'equal' | 'amount' | 'percent';
+  splits: ExpenseSplit[];
+  description: string | null;
+  imageUrl: string | null;
+  date: Timestamp;
+  repeat: null;
+  createdBy: string;
+  editLog: EditLogEntry[];
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export interface Settlement {
+  settlementId: string;
+  from: string;
+  to: string;
+  amount: number;
+  completed: boolean;
+  completedBy: string | null;
+  completedAt: Timestamp | null;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+interface GroupStore {
+  currentGroupId: string | null;
+  currentGroup: Group | null;
+  expenses: Expense[];
+  settlements: Settlement[];
+  isLoadingExpenses: boolean;
+
+  _unsubscribeExpenses: (() => void) | null;
+  _unsubscribeSettlements: (() => void) | null;
+  _unsubscribeGroup: (() => void) | null;
+
+  setCurrentGroup: (group: Group | null) => void;
+  setExpenses: (expenses: Expense[]) => void;
+  setSettlements: (settlements: Settlement[]) => void;
+  setIsLoadingExpenses: (loading: boolean) => void;
+  setUnsubscribeExpenses: (unsub: (() => void) | null) => void;
+  setUnsubscribeSettlements: (unsub: (() => void) | null) => void;
+  setUnsubscribeGroup: (unsub: (() => void) | null) => void;
+
+  clearCurrentGroup: () => void;
+}
+
+export const useGroupStore = create<GroupStore>((set, get) => ({
+  currentGroupId: null,
+  currentGroup: null,
+  expenses: [],
+  settlements: [],
+  isLoadingExpenses: false,
+
+  _unsubscribeExpenses: null,
+  _unsubscribeSettlements: null,
+  _unsubscribeGroup: null,
+
+  setCurrentGroup: (group) =>
+    set({ currentGroup: group, currentGroupId: group?.groupId ?? null }),
+  setExpenses: (expenses) => set({ expenses }),
+  setSettlements: (settlements) => set({ settlements }),
+  setIsLoadingExpenses: (loading) => set({ isLoadingExpenses: loading }),
+  setUnsubscribeExpenses: (unsub) => set({ _unsubscribeExpenses: unsub }),
+  setUnsubscribeSettlements: (unsub) => set({ _unsubscribeSettlements: unsub }),
+  setUnsubscribeGroup: (unsub) => set({ _unsubscribeGroup: unsub }),
+
+  clearCurrentGroup: () => {
+    const state = get();
+    state._unsubscribeExpenses?.();
+    state._unsubscribeSettlements?.();
+    state._unsubscribeGroup?.();
+    set({
+      currentGroupId: null,
+      currentGroup: null,
+      expenses: [],
+      settlements: [],
+      _unsubscribeExpenses: null,
+      _unsubscribeSettlements: null,
+      _unsubscribeGroup: null,
+    });
+  },
+}));

@@ -1,0 +1,146 @@
+{
+  "common": {
+    "button": {
+      "save": "儲存",
+      "cancel": "取消",
+      "confirm": "確認",
+      "delete": "刪除",
+      "edit": "編輯",
+      "back": "返回",
+      "add": "新增",
+      "done": "完成",
+      "close": "關閉"
+    },
+    "loading": "載入中...",
+    "error": "發生錯誤",
+    "retry": "重試",
+    "offline": "目前離線，部分功能可能無法使用",
+    "online": "已恢復連線"
+  },
+  "auth": {
+    "login": {
+      "title": "歡迎來到 Zplit",
+      "subtitle": "與朋友輕鬆分帳",
+      "googleLogin": "使用 Google 登入",
+      "anonymousLogin": "匿名登入",
+      "anonymousHint": "無需帳號即可快速體驗"
+    },
+    "onboarding": {
+      "title": "設定你的個人資料",
+      "nickname": "暱稱",
+      "nicknamePlaceholder": "輸入你的暱稱",
+      "avatar": "大頭貼",
+      "avatarUpload": "上傳大頭貼",
+      "continue": "開始使用"
+    }
+  },
+  "home": {
+    "title": "Zplit",
+    "groups": "群組",
+    "personal": "個人借貸",
+    "createGroup": "建立群組",
+    "noGroups": "還沒有任何群組",
+    "noGroupsHint": "建立一個群組，開始與朋友分帳吧！"
+  },
+  "group": {
+    "create": {
+      "title": "建立群組",
+      "name": "群組名稱",
+      "namePlaceholder": "例如：日本旅遊 2026",
+      "cover": "紀念封面圖",
+      "coverUpload": "上傳封面圖"
+    },
+    "summary": {
+      "title": "總覽",
+      "noExpenses": "目前還沒有任何帳務",
+      "addFirst": "新增第一筆帳務",
+      "owes": "{{from}} 欠 {{to}}",
+      "totalSpent": "總花費"
+    },
+    "settle": {
+      "title": "債務清算",
+      "noDebts": "所有債務已結清！",
+      "transfer": "{{from}} 轉帳給 {{to}}",
+      "markDone": "標記完成",
+      "markAllDone": "全部標記完成",
+      "completed": "已完成",
+      "progress": "清算進度"
+    },
+    "members": {
+      "title": "成員與動態",
+      "members": "成員",
+      "activity": "動態紀錄",
+      "addMember": "新增成員",
+      "memberName": "成員名稱",
+      "unbound": "未綁定帳號",
+      "invite": "邀請連結",
+      "copyLink": "複製連結",
+      "linkCopied": "已複製邀請連結"
+    }
+  },
+  "expense": {
+    "add": "新增帳務",
+    "edit": "編輯帳務",
+    "title": "品項名稱",
+    "titlePlaceholder": "例如：晚餐、交通費",
+    "amount": "金額",
+    "amountPlaceholder": "0",
+    "paidBy": "付款人",
+    "splitWith": "分帳對象",
+    "date": "日期與時間",
+    "details": "詳細資訊",
+    "description": "備註說明",
+    "descriptionPlaceholder": "選填，例如：3/29 南部出差晚餐",
+    "receipt": "收據圖片",
+    "splitMode": {
+      "label": "分帳模式",
+      "equal": "平均分帳",
+      "amount": "依金額分帳",
+      "percent": "依比例分帳"
+    },
+    "repeat": {
+      "label": "重複記帳",
+      "none": "不重複",
+      "daily": "每日",
+      "weekly": "每週",
+      "monthly": "每月",
+      "custom": "自訂"
+    },
+    "paidFor": "{{name}} paid for"
+  },
+  "personal": {
+    "title": "個人借貸",
+    "youOwe": "你欠 {{name}}",
+    "owesYou": "{{name}} 欠你",
+    "settled": "已結清",
+    "noContacts": "還沒有任何借貸紀錄",
+    "addExpense": "新增借貸",
+    "optimalSplit": "最佳分帳"
+  },
+  "join": {
+    "title": "加入群組",
+    "loading": "正在載入群組資訊...",
+    "question": "你是否是群組中現有的某位成員？",
+    "selectMember": "選擇你的身份",
+    "newMember": "我是新成員",
+    "updateName": "更新群組內顯示名稱",
+    "joined": "已成功加入群組！"
+  },
+  "settings": {
+    "title": "設定",
+    "language": "語言",
+    "theme": "主題",
+    "themeLight": "淺色",
+    "themeDark": "深色",
+    "themeSystem": "跟隨系統",
+    "logout": "登出",
+    "profile": "個人資料"
+  },
+  "nav": {
+    "home": "首頁",
+    "groups": "群組",
+    "add": "記帳",
+    "personal": "借貸",
+    "settings": "設定"
+  }
+}
