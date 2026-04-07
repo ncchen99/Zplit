@@ -16,6 +16,24 @@ import type { Group, GroupMember } from '@/store/groupStore';
 import { logger } from '@/utils/logger';
 import { ZplitError } from '@/utils/errors';
 
+/**
+ * 從 members 陣列中，提取所有 isBound=true 成員的 userId，
+ * 建立供 Firestore Security Rules 使用的 memberUids Map。
+ *
+ * 為什麼需要這個：
+ *   Firestore Rules 的 hasAny([{userId: uid}]) 是完整物件比對，
+ *   無法做部分欄位查詢。需要獨立的 Map 欄位才能正確驗證群組成員身份。
+ */
+function buildMemberUids(members: GroupMember[]): Record<string, true> {
+  const map: Record<string, true> = {};
+  for (const m of members) {
+    if (m.isBound && m.userId) {
+      map[m.userId] = true;
+    }
+  }
+  return map;
+}
+
 export async function createGroup(
   name: string,
   createdBy: string,
@@ -35,12 +53,14 @@ export async function createGroup(
     joinedAt: null, // will be server timestamp
   };
 
+  const initialMembers = [member];
   const groupData = {
     name,
     coverUrl,
     inviteCode,
     createdBy,
-    members: [member],
+    members: initialMembers,
+    memberUids: buildMemberUids(initialMembers),
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   };
@@ -73,10 +93,18 @@ export async function addMemberToGroup(
   member: GroupMember
 ): Promise<void> {
   const ref = doc(db, 'groups', groupId);
-  await updateDoc(ref, {
+
+  const updateData: Record<string, unknown> = {
     members: arrayUnion(member),
     updatedAt: serverTimestamp(),
-  });
+  };
+
+  // 若為已綁定帳號的成員，同步更新 memberUids Map（供 Security Rules 查詢）
+  if (member.isBound && member.userId) {
+    updateData[`memberUids.${member.userId}`] = true;
+  }
+
+  await updateDoc(ref, updateData);
   logger.info('groupService.addMember', '成員加入群組', { groupId, memberId: member.memberId });
 }
 
@@ -120,6 +148,10 @@ export async function bindMemberToUser(
 
   await updateDoc(doc(db, 'groups', groupId), {
     members: updatedMembers,
+    // 同步更新 memberUids，讓 Security Rules 可以驗證此使用者的成員身份
+    [`memberUids.${userId}`]: true,
     updatedAt: serverTimestamp(),
   });
+
+  logger.info('groupService.bindMember', '成員帳號綁定成功', { groupId, memberId, userId });
 }

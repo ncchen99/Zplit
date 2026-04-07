@@ -7,6 +7,7 @@ import { useUIStore } from '@/store/uiStore';
 import { addExpense } from '@/services/expenseService';
 import { recalculateSettlements } from '@/services/settlementService';
 import { logger } from '@/utils/logger';
+import { ChevronLeftIcon } from '@heroicons/react/24/outline';
 
 type SplitMode = 'equal' | 'amount' | 'percent';
 
@@ -112,20 +113,18 @@ export function AddExpensePage() {
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate(-1)}>
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
+          <ChevronLeftIcon className="h-5 w-5" />
         </button>
         <h1 className="text-xl font-bold">{t('expense.add')}</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {/* Title */}
-        <label className="form-control w-full">
-          <div className="label"><span className="label-text">{t('expense.title')}</span></div>
+        <fieldset className="fieldset w-full">
+          <legend className="fieldset-legend">{t('expense.title')}</legend>
           <input
             type="text"
-            className="input input-bordered w-full"
+            className="input w-full"
             placeholder={t('expense.titlePlaceholder')}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -133,12 +132,12 @@ export function AddExpensePage() {
             required
             autoFocus
           />
-        </label>
+        </fieldset>
 
         {/* Amount */}
-        <label className="form-control w-full">
-          <div className="label"><span className="label-text">{t('expense.amount')}</span></div>
-          <label className="input input-bordered flex items-center gap-2 w-full">
+        <fieldset className="fieldset w-full">
+          <legend className="fieldset-legend">{t('expense.amount')}</legend>
+          <div className="input flex items-center gap-2 w-full">
             <span className="text-base-content/50">NT$</span>
             <input
               type="number"
@@ -149,14 +148,14 @@ export function AddExpensePage() {
               min={1}
               required
             />
-          </label>
-        </label>
+          </div>
+        </fieldset>
 
         {/* Paid By */}
-        <label className="form-control w-full">
-          <div className="label"><span className="label-text">{t('expense.paidBy')}</span></div>
+        <fieldset className="fieldset w-full">
+          <legend className="fieldset-legend">{t('expense.paidBy')}</legend>
           <select
-            className="select select-bordered w-full"
+            className="select w-full"
             value={paidBy}
             onChange={(e) => setPaidBy(e.target.value)}
           >
@@ -166,13 +165,13 @@ export function AddExpensePage() {
               </option>
             ))}
           </select>
-        </label>
+        </fieldset>
 
         {/* Split Mode */}
-        <label className="form-control w-full">
-          <div className="label"><span className="label-text">{t('expense.splitMode.label')}</span></div>
+        <fieldset className="fieldset w-full">
+          <legend className="fieldset-legend">{t('expense.splitMode.label')}</legend>
           <select
-            className="select select-bordered w-full"
+            className="select w-full"
             value={splitMode}
             onChange={(e) => setSplitMode(e.target.value as SplitMode)}
           >
@@ -180,7 +179,7 @@ export function AddExpensePage() {
             <option value="amount">{t('expense.splitMode.amount')}</option>
             <option value="percent">{t('expense.splitMode.percent')}</option>
           </select>
-        </label>
+        </fieldset>
 
         {/* Split With */}
         <div>
@@ -202,7 +201,7 @@ export function AddExpensePage() {
                 {splitMode === 'amount' && selectedMembers.includes(m.memberId) && (
                   <input
                     type="number"
-                    className="input input-bordered input-sm w-24"
+                    className="input input-sm w-24"
                     placeholder="0"
                     value={customAmounts[m.memberId] ?? ''}
                     onChange={(e) =>
@@ -211,7 +210,7 @@ export function AddExpensePage() {
                   />
                 )}
                 {splitMode === 'percent' && selectedMembers.includes(m.memberId) && (
-                  <label className="input input-bordered input-sm flex items-center gap-1 w-24">
+                  <div className="input input-sm flex items-center gap-1 w-24">
                     <input
                       type="number"
                       className="grow w-full"
@@ -222,7 +221,7 @@ export function AddExpensePage() {
                       }
                     />
                     <span className="text-base-content/50">%</span>
-                  </label>
+                  </div>
                 )}
 
                 {/* Show split amount for equal mode */}
@@ -255,16 +254,16 @@ export function AddExpensePage() {
             {t('expense.details')}
           </div>
           <div className="collapse-content">
-            <label className="form-control w-full">
-              <div className="label"><span className="label-text">{t('expense.description')}</span></div>
+            <fieldset className="fieldset w-full">
+              <legend className="fieldset-legend">{t('expense.description')}</legend>
               <textarea
-                className="textarea textarea-bordered w-full"
+                className="textarea w-full"
                 placeholder={t('expense.descriptionPlaceholder')}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={2}
               />
-            </label>
+            </fieldset>
             {/* TODO: Image upload (M2-11) */}
           </div>
         </div>

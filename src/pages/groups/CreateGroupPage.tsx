@@ -42,13 +42,11 @@ export function CreateGroupPage() {
       <h1 className="text-2xl font-bold tracking-tight">{t('group.create.title')}</h1>
 
       <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
-        <label className="form-control w-full">
-          <div className="label">
-            <span className="label-text">{t('group.create.name')}</span>
-          </div>
+        <fieldset className="fieldset w-full">
+          <legend className="fieldset-legend">{t('group.create.name')}</legend>
           <input
             type="text"
-            className="input input-bordered w-full"
+            className="input w-full"
             placeholder={t('group.create.namePlaceholder')}
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -56,7 +54,7 @@ export function CreateGroupPage() {
             required
             autoFocus
           />
-        </label>
+        </fieldset>
 
         {/* TODO: Cover image upload (M2-3) */}
 

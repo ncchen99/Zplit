@@ -2,6 +2,8 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ── 工具函式 ──────────────────────────────────────────
+
     function isSignedIn() {
       return request.auth != null;
     }
@@ -10,29 +12,56 @@ service cloud.firestore {
       return request.auth.uid == uid;
     }
 
-    // ── users ──────────────────────────────────────────
+    // 使用 memberUids Map 做 O(1) 查詢
+    // ⚠️  注意：不能使用 members.hasAny([{userId: uid}]) 做部分物件比對
+    //     因為 Firestore Rules 的 hasAny 是完整物件相等比對，永遠不會匹配
+    //     正確做法：在 Group 文件中維護一個 memberUids: { [uid]: true } Map
+    function isGroupMember(groupId) {
+      let group = get(/databases/$(database)/documents/groups/$(groupId));
+      return group.data.memberUids[request.auth.uid] == true;
+    }
+
+    // ── users ──────────────────────────────────────────────
     match /users/{userId} {
+      // 已登入的使用者可查看其他人（顯示頭像、名稱用）
       allow read: if isSignedIn();
+      // 只能修改自己的資料
       allow write: if isOwner(userId);
     }
 
-    // ── groups ─────────────────────────────────────────
+    // ── groups ─────────────────────────────────────────────
     match /groups/{groupId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn();
-      allow update: if isSignedIn();
+      // 只有群組成員可讀取
+      allow read: if isGroupMember(groupId);
+
+      // 任何已登入使用者可建立新群組（建立者欄位必須是自己）
+      allow create: if isSignedIn()
+        && request.resource.data.createdBy == request.auth.uid;
+
+      // 群組成員可更新（新增成員、修改名稱、封面等）
+      allow update: if isGroupMember(groupId);
+
+      // 禁止直接刪除群組
       allow delete: if false;
 
+      // ── expenses 子集合 ─────────────────────────────────
       match /expenses/{expenseId} {
-        allow read, write: if isSignedIn();
+        allow read: if isGroupMember(groupId);
+        allow create: if isGroupMember(groupId)
+          && request.resource.data.createdBy == request.auth.uid;
+        allow update: if isGroupMember(groupId);
+        allow delete: if isGroupMember(groupId);
       }
 
+      // ── settlements 子集合 ───────────────────────────────
       match /settlements/{settlementId} {
-        allow read, write: if isSignedIn();
+        allow read: if isGroupMember(groupId);
+        allow write: if isGroupMember(groupId);
       }
     }
 
-    // ── personalLedger ─────────────────────────────────
+    // ── personalLedger ─────────────────────────────────────
+    // 個人借貸資料僅本人可存取
     match /personalLedger/{userId} {
       allow read, write: if isOwner(userId);
 

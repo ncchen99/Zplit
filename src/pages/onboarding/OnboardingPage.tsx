@@ -66,13 +66,11 @@ export function OnboardingPage() {
           </div>
 
           {/* Nickname */}
-          <label className="form-control w-full">
-            <div className="label">
-              <span className="label-text">{t('auth.onboarding.nickname')}</span>
-            </div>
+          <fieldset className="fieldset w-full">
+            <legend className="fieldset-legend">{t('auth.onboarding.nickname')}</legend>
             <input
               type="text"
-              className="input input-bordered w-full"
+              className="input w-full"
               placeholder={t('auth.onboarding.nicknamePlaceholder')}
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
@@ -80,7 +78,7 @@ export function OnboardingPage() {
               required
               autoFocus
             />
-          </label>
+          </fieldset>
 
           <button
             type="submit"

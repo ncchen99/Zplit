@@ -57,7 +57,7 @@ DaisyUI 官方提供 **LLM.txt**，供 AI 編輯器（如 Cursor、GitHub Copilo
 在開始開發任何 UI 元件前，AI 編輯器**必須先讀取以下資源**：
 
 ```
-https://daisyui.com/llm.txt
+.github/instructions/daisyui.instructions.md
 ```
 
 此步驟確保 AI 工具能正確使用 DaisyUI 元件名稱、Props 及 class 語法，避免幻覺輸出錯誤的 class。

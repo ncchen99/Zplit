@@ -14,6 +14,7 @@ import { logger } from '@/utils/logger';
 import { SummaryTab } from './tabs/SummaryTab';
 import { SettleTab } from './tabs/SettleTab';
 import { MembersTab } from './tabs/MembersTab';
+import { ChevronLeftIcon, PlusIcon } from '@heroicons/react/24/outline';
 
 type TabKey = 'summary' | 'settle' | 'members';
 
@@ -103,16 +104,14 @@ export function GroupDetailPage() {
       <div className="px-4 pt-4 pb-2">
         <div className="flex items-center gap-3">
           <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate('/home')}>
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+            <ChevronLeftIcon className="h-5 w-5" />
           </button>
           <h1 className="text-xl font-bold truncate">{currentGroup.name}</h1>
         </div>
       </div>
 
       {/* Tabs */}
-      <div role="tablist" className="tabs tabs-bordered px-4">
+      <div role="tablist" className="tabs tabs-border px-4">
         {tabs.map((tab) => (
           <button
             key={tab.key}
@@ -134,14 +133,15 @@ export function GroupDetailPage() {
 
       {/* FAB - Add Expense */}
       {activeTab === 'summary' && (
-        <button
-          className="btn btn-primary btn-circle fixed bottom-20 right-4 shadow-lg"
-          onClick={() => navigate(`/groups/${groupId}/expense/new`)}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-        </button>
+        <div className="fab fixed bottom-20 right-4 z-50">
+          <button
+            className="btn btn-primary btn-circle btn-lg shadow-xl"
+            onClick={() => navigate(`/groups/${groupId}/expense/new`)}
+            aria-label={t('expense.add')}
+          >
+            <PlusIcon className="h-6 w-6" />
+          </button>
+        </div>
       )}
     </div>
   );

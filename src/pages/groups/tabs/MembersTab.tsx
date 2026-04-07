@@ -86,17 +86,17 @@ export function MembersTab() {
       </div>
 
       {/* Add Member */}
-      <div className="mt-4 flex gap-2">
+      <div className="join mt-4 flex w-full">
         <input
           type="text"
-          className="input input-bordered input-sm flex-1"
+          className="input input-sm join-item flex-1"
           placeholder={t('group.members.memberName')}
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           maxLength={30}
         />
         <button
-          className="btn btn-primary btn-sm"
+          className="btn btn-primary btn-sm join-item"
           onClick={handleAddMember}
           disabled={!newName.trim() || adding}
         >
@@ -113,14 +113,14 @@ export function MembersTab() {
         <h3 className="font-semibold text-sm text-base-content/60 uppercase tracking-wider">
           {t('group.members.invite')}
         </h3>
-        <div className="mt-2 flex gap-2">
+        <div className="join mt-2 flex w-full">
           <input
             type="text"
-            className="input input-bordered input-sm flex-1 text-xs"
+            className="input input-sm join-item flex-1 text-xs"
             value={inviteUrl}
             readOnly
           />
-          <button className="btn btn-ghost btn-sm" onClick={handleCopyLink}>
+          <button className="btn btn-ghost btn-sm join-item" onClick={handleCopyLink}>
             {t('group.members.copyLink')}
           </button>
         </div>
