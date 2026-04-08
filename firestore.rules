@@ -29,10 +29,20 @@ service cloud.firestore {
       allow write: if isOwner(userId);
     }
 
+    // ── inviteCodes（公開查詢用，僅存 groupId）──────────────
+    match /inviteCodes/{code} {
+      allow read: if isSignedIn();
+      // 已登入使用者可建立邀請碼（建立群組時使用）
+      allow create: if isSignedIn();
+      allow update, delete: if false;
+    }
+
     // ── groups ─────────────────────────────────────────────
     match /groups/{groupId} {
-      // 只有群組成員可讀取
-      allow read: if isGroupMember(groupId);
+      // 已登入使用者可讀取單一群組文件（加入群組流程需要）
+      allow get: if isSignedIn();
+      // 列表查詢必須帶 memberUids 過濾條件，確保只回傳自己的群組
+      allow list: if resource.data.memberUids[request.auth.uid] == true;
 
       // 任何已登入使用者可建立新群組（建立者欄位必須是自己）
       allow create: if isSignedIn()
@@ -67,10 +77,11 @@ service cloud.firestore {
 
       match /contacts/{contactId} {
         allow read, write: if isOwner(userId);
-      }
 
-      match /expenses/{expenseId} {
-        allow read, write: if isOwner(userId);
+        // 個人帳務記錄（嵌套在聯絡人下）
+        match /expenses/{expenseId} {
+          allow read, write: if isOwner(userId);
+        }
       }
     }
   }

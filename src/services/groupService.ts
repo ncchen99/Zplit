@@ -3,9 +3,6 @@ import {
   collection,
   setDoc,
   getDoc,
-  getDocs,
-  query,
-  where,
   serverTimestamp,
   updateDoc,
   arrayUnion,
@@ -65,7 +62,9 @@ export async function createGroup(
     updatedAt: serverTimestamp(),
   };
 
+  // 同時寫入群組文件和 inviteCodes 查詢文件（batch 不需要，因為 inviteCodes 是輔助索引）
   await setDoc(ref, groupData);
+  await setDoc(doc(db, 'inviteCodes', inviteCode), { groupId: ref.id });
   logger.info('groupService.create', '群組建立成功', { groupId: ref.id, name });
 
   return {
@@ -81,11 +80,12 @@ export async function getGroupById(groupId: string): Promise<Group | null> {
 }
 
 export async function getGroupByInviteCode(code: string): Promise<Group | null> {
-  const q = query(collection(db, 'groups'), where('inviteCode', '==', code));
-  const snap = await getDocs(q);
-  if (snap.empty) return null;
-  const d = snap.docs[0];
-  return { groupId: d.id, ...d.data() } as Group;
+  // 先從 inviteCodes 查詢對應 groupId，再讀取群組文件
+  // 這樣非成員也能透過邀請碼找到群組（Security Rules 允許 get）
+  const codeSnap = await getDoc(doc(db, 'inviteCodes', code));
+  if (!codeSnap.exists()) return null;
+  const { groupId } = codeSnap.data() as { groupId: string };
+  return getGroupById(groupId);
 }
 
 export async function addMemberToGroup(

@@ -1,12 +1,19 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { collection, getDocs, query } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuthStore } from '@/store/authStore';
 import type { Group } from '@/store/groupStore';
+import {
+  getContacts,
+  getPersonalExpenses,
+  computePersonalNetAmount,
+  type PersonalContact,
+} from '@/services/personalLedgerService';
 import { logger } from '@/utils/logger';
-import { Cog8ToothIcon, BellIcon } from '@heroicons/react/24/outline';
+import { BellIcon } from '@heroicons/react/24/outline';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 
 export function HomePage() {
   const { t } = useTranslation();
@@ -14,20 +21,23 @@ export function HomePage() {
   const user = useAuthStore((s) => s.user);
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
+  const [personalContacts, setPersonalContacts] = useState<
+    (PersonalContact & { netAmount: number })[]
+  >([]);
 
   useEffect(() => {
     if (!user) return;
     const fetchGroups = async () => {
       try {
-        const q = query(collection(db, 'groups'));
-        const snap = await getDocs(q);
-        const allGroups = snap.docs.map((d) => {
-          const data = d.data();
-          return { ...data, groupId: d.id } as Group;
-        });
-        const myGroups = allGroups.filter((g) =>
-          g.members?.some((m) => m.userId === user.uid)
+        const q = query(
+          collection(db, 'groups'),
+          where(`memberUids.${user.uid}`, '==', true)
         );
+        const snap = await getDocs(q);
+        const myGroups = snap.docs.map((d) => ({
+          ...d.data(),
+          groupId: d.id,
+        })) as Group[];
         setGroups(myGroups);
       } catch (err) {
         logger.error('home.fetchGroups', '載入群組失敗', err);
@@ -36,6 +46,22 @@ export function HomePage() {
       }
     };
     fetchGroups();
+
+    const fetchPersonal = async () => {
+      try {
+        const contacts = await getContacts(user.uid);
+        const withNet = await Promise.all(
+          contacts.slice(0, 5).map(async (c) => {
+            const expenses = await getPersonalExpenses(user.uid, c.contactId);
+            return { ...c, netAmount: computePersonalNetAmount(expenses) };
+          })
+        );
+        setPersonalContacts(withNet.filter((c) => c.netAmount !== 0));
+      } catch (err) {
+        logger.error('home.fetchPersonal', '載入個人記錄失敗', err);
+      }
+    };
+    fetchPersonal();
   }, [user]);
 
   const topGroups = groups.slice(0, 3);
@@ -56,15 +82,12 @@ export function HomePage() {
             className="btn btn-ghost btn-sm btn-circle"
             onClick={() => navigate('/settings')}
           >
-            <div className="avatar placeholder">
-              <div className="w-8 rounded-full bg-neutral text-neutral-content">
-                {user?.avatarUrl ? (
-                  <img src={user.avatarUrl} alt="" />
-                ) : (
-                  <span className="text-xs">{user?.displayName?.charAt(0) ?? '?'}</span>
-                )}
-              </div>
-            </div>
+            <UserAvatar
+              src={user?.avatarUrl}
+              name={user?.displayName ?? '?'}
+              size="w-8"
+              textSize="text-xs"
+            />
           </button>
         </div>
       </div>
@@ -155,9 +178,47 @@ export function HomePage() {
           </button>
         </div>
 
-        <div className="mt-3 text-center text-base-content/40 py-4">
-          <p className="text-sm">{t('home.noContacts')}</p>
-        </div>
+        {personalContacts.length === 0 ? (
+          <div className="mt-3 text-center text-base-content/40 py-4">
+            <p className="text-sm">{t('home.noContacts')}</p>
+          </div>
+        ) : (
+          <div className="mt-3 flex flex-col gap-2">
+            {personalContacts.map((c) => (
+              <div
+                key={c.contactId}
+                className="card bg-base-200 cursor-pointer transition-colors active:bg-base-300"
+                onClick={() => navigate(`/personal/${c.contactId}`)}
+              >
+                <div className="card-body p-3 flex-row items-center gap-3">
+                  <div className="avatar placeholder">
+                    <div className="w-10 rounded-full bg-neutral text-neutral-content">
+                      {c.avatarUrl ? (
+                        <img src={c.avatarUrl} alt="" />
+                      ) : (
+                        <span className="text-sm">{c.displayName.charAt(0)}</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold truncate">{c.displayName}</p>
+                  </div>
+                  <div className="text-right">
+                    {c.netAmount > 0 ? (
+                      <p className="font-bold text-success text-sm">
+                        +NT${c.netAmount.toLocaleString()}
+                      </p>
+                    ) : (
+                      <p className="font-bold text-warning text-sm">
+                        -NT${Math.abs(c.netAmount).toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { collection, getDocs, query } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuthStore } from '@/store/authStore';
 import type { Group } from '@/store/groupStore';
@@ -21,15 +21,15 @@ export function GroupListPage() {
     if (!user) return;
     const fetchGroups = async () => {
       try {
-        const q = query(collection(db, 'groups'));
+        const q = query(
+          collection(db, 'groups'),
+          where(`memberUids.${user.uid}`, '==', true)
+        );
         const snap = await getDocs(q);
-        const allGroups = snap.docs.map((d) => ({
+        const myGroups = snap.docs.map((d) => ({
           ...d.data(),
           groupId: d.id,
         })) as Group[];
-        const myGroups = allGroups.filter((g) =>
-          g.members?.some((m) => m.userId === user.uid)
-        );
         setGroups(myGroups);
       } catch (err) {
         logger.error('groupList.fetch', '載入群組失敗', err);

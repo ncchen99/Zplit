@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useGroupStore } from '@/store/groupStore';
@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { addExpense } from '@/services/expenseService';
 import { recalculateSettlements } from '@/services/settlementService';
+import { getGroupById } from '@/services/groupService';
 import { logger } from '@/utils/logger';
 import { ImageUpload } from '@/components/ui/ImageUpload';
 import { XMarkIcon } from '@heroicons/react/24/outline';
@@ -19,16 +20,16 @@ export function AddExpensePage() {
   const navigate = useNavigate();
   const { groupId } = useParams<{ groupId: string }>();
   const currentGroup = useGroupStore((s) => s.currentGroup);
+  const setCurrentGroup = useGroupStore((s) => s.setCurrentGroup);
   const user = useAuthStore((s) => s.user);
   const showToast = useUIStore((s) => s.showToast);
 
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
-  const [paidBy, setPaidBy] = useState(user?.uid ?? '');
+  const [paidBy, setPaidBy] = useState('');
   const [splitMode, setSplitMode] = useState<SplitMode>('equal');
-  const [selectedMembers, setSelectedMembers] = useState<string[]>(
-    currentGroup?.members?.map((m) => m.memberId) ?? []
-  );
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [membersInitialized, setMembersInitialized] = useState(false);
   const [customAmounts, setCustomAmounts] = useState<Record<string, string>>({});
   const [customPercents, setCustomPercents] = useState<Record<string, string>>({});
   const [description, setDescription] = useState('');
@@ -43,6 +44,24 @@ export function AddExpensePage() {
   const [saving, setSaving] = useState(false);
 
   const members = currentGroup?.members ?? [];
+
+  // 若 currentGroup 不在 store（例如直接導航到此頁），從 Firestore 載入
+  useEffect(() => {
+    if (!groupId || currentGroup?.groupId === groupId) return;
+    getGroupById(groupId)
+      .then((group) => { if (group) setCurrentGroup(group); })
+      .catch((err) => logger.error('addExpense', '載入群組失敗', err));
+  }, [groupId]);
+
+  // 當成員列表第一次有資料時，初始化 paidBy（找到當前使用者的 memberId）和 selectedMembers
+  useEffect(() => {
+    if (membersInitialized || members.length === 0) return;
+    const myMember = members.find((m) => m.userId === user?.uid);
+    setPaidBy(myMember?.memberId ?? members[0]?.memberId ?? '');
+    setSelectedMembers(members.map((m) => m.memberId));
+    setMembersInitialized(true);
+  }, [members, membersInitialized, user?.uid]);
+
   const amountNum = parseInt(amount) || 0;
 
   // Calculate splits based on mode

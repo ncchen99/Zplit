@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
@@ -19,6 +19,14 @@ export function EditProfilePage() {
   const [displayName, setDisplayName] = useState(user?.displayName ?? '');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(user?.avatarUrl ?? null);
   const [saving, setSaving] = useState(false);
+
+  // 若 user 資料晚於頁面掛載才就緒，補同步一次初始值
+  useEffect(() => {
+    if (user && !displayName && !avatarUrl) {
+      setDisplayName(user.displayName ?? '');
+      setAvatarUrl(user.avatarUrl ?? null);
+    }
+  }, [user]);
 
   const hasChanges =
     displayName !== (user?.displayName ?? '') ||

@@ -1,28 +1,94 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { PlusIcon, MagnifyingGlassIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { BanknotesIcon, CheckCircleIcon } from '@heroicons/react/24/solid';
+import { useAuthStore } from '@/store/authStore';
+import { usePersonalStore } from '@/store/personalStore';
+import {
+  getContacts,
+  getPersonalExpenses,
+  computePersonalNetAmount,
+  createContact,
+  type PersonalContact,
+} from '@/services/personalLedgerService';
+import { useUIStore } from '@/store/uiStore';
+import { logger } from '@/utils/logger';
 
-// Placeholder types for personal ledger contacts
-interface PersonalContact {
-  contactId: string;
-  displayName: string;
-  avatarUrl: string | null;
-  netAmount: number; // positive = owed to you, negative = you owe
+interface ContactWithNet extends PersonalContact {
+  netAmount: number;
   lastInteraction: Date | null;
 }
 
 export function PersonalPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const user = useAuthStore((s) => s.user);
+  const showToast = useUIStore((s) => s.showToast);
+
+  const contacts = usePersonalStore((s) => s.contacts);
+  const setContacts = usePersonalStore((s) => s.setContacts);
+  const isLoading = usePersonalStore((s) => s.isLoadingContacts);
+  const setIsLoading = usePersonalStore((s) => s.setIsLoadingContacts);
+
   const [search, setSearch] = useState('');
   const [showSettled, setShowSettled] = useState(false);
+  const [contactsWithNet, setContactsWithNet] = useState<ContactWithNet[]>([]);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newContactName, setNewContactName] = useState('');
+  const [addingContact, setAddingContact] = useState(false);
 
-  // TODO: fetch from personalLedger Firestore collection
-  const contacts: PersonalContact[] = [];
+  const loadContacts = useCallback(async () => {
+    if (!user) return;
+    setIsLoading(true);
+    try {
+      const rawContacts = await getContacts(user.uid);
+      setContacts(rawContacts);
 
-  const filtered = contacts.filter((c) =>
+      // Compute net amounts for each contact
+      const withNet: ContactWithNet[] = await Promise.all(
+        rawContacts.map(async (c) => {
+          const expenses = await getPersonalExpenses(user.uid, c.contactId);
+          const netAmount = computePersonalNetAmount(expenses);
+          const lastDate = expenses.length > 0
+            ? new Date(
+                ((expenses[0].date as { seconds: number })?.seconds ?? 0) * 1000
+              )
+            : null;
+          return { ...c, netAmount, lastInteraction: lastDate };
+        })
+      );
+      setContactsWithNet(withNet);
+    } catch (err) {
+      logger.error('personal.load', '載入個人記錄失敗', err);
+      showToast(t('common.error'), 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    loadContacts();
+  }, [loadContacts]);
+
+  const handleAddContact = async () => {
+    if (!user || !newContactName.trim()) return;
+    setAddingContact(true);
+    try {
+      const contact = await createContact(user.uid, newContactName.trim());
+      setShowAddModal(false);
+      setNewContactName('');
+      // Navigate to the new contact detail page directly
+      navigate(`/personal/${contact.contactId}`);
+    } catch (err) {
+      logger.error('personal.addContact', '新增聯絡人失敗', err);
+      showToast(t('common.error'), 'error');
+    } finally {
+      setAddingContact(false);
+    }
+  };
+
+  const filtered = contactsWithNet.filter((c) =>
     c.displayName.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -43,9 +109,7 @@ export function PersonalPage() {
         <h1 className="text-2xl font-bold tracking-tight">{t('personal.title')}</h1>
         <button
           className="btn btn-primary btn-sm"
-          onClick={() => {
-            // TODO: open personal lending flow
-          }}
+          onClick={() => setShowAddModal(true)}
         >
           <PlusIcon className="h-4 w-4" />
           {t('common.button.add')}
@@ -67,7 +131,7 @@ export function PersonalPage() {
       </div>
 
       {/* Net Summary */}
-      {contacts.length > 0 && (
+      {contactsWithNet.length > 0 && (totalOwed > 0 || totalOwe > 0) && (
         <div className="mt-4 flex gap-3">
           <div className="flex-1 rounded-xl bg-success/10 p-3 text-center">
             <p className="text-xs text-success">{t('personal.owedToYouTotal')}</p>
@@ -80,8 +144,12 @@ export function PersonalPage() {
         </div>
       )}
 
-      {/* Contacts List */}
-      {contacts.length === 0 ? (
+      {/* Loading */}
+      {isLoading ? (
+        <div className="mt-12 flex justify-center">
+          <span className="loading loading-spinner loading-md" />
+        </div>
+      ) : contactsWithNet.length === 0 ? (
         <div className="mt-12 text-center text-base-content/40">
           <BanknotesIcon className="mx-auto mb-3 h-10 w-10 text-base-content/40" />
           <p>{t('personal.noContacts')}</p>
@@ -136,6 +204,95 @@ export function PersonalPage() {
           )}
         </>
       )}
+
+      {/* Add Contact Modal */}
+      {showAddModal && (
+        <dialog className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="text-lg font-bold">{t('personal.addExpense')}</h3>
+            <div className="mt-4">
+              <input
+                type="text"
+                className="input input-bordered w-full"
+                placeholder={t('personal.search')}
+                value={newContactName}
+                onChange={(e) => setNewContactName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddContact();
+                  }
+                }}
+                maxLength={30}
+                autoFocus
+              />
+            </div>
+
+            {/* Show existing contacts that match search */}
+            {newContactName.trim() && (
+              <div className="mt-3 flex flex-col gap-1">
+                {contactsWithNet
+                  .filter((c) =>
+                    c.displayName.toLowerCase().includes(newContactName.toLowerCase())
+                  )
+                  .slice(0, 5)
+                  .map((c) => (
+                    <button
+                      key={c.contactId}
+                      className="flex items-center gap-2 rounded-lg p-2 text-left hover:bg-base-200 active:bg-base-300"
+                      onClick={() => {
+                        setShowAddModal(false);
+                        setNewContactName('');
+                        navigate(`/personal/${c.contactId}`);
+                      }}
+                    >
+                      <div className="avatar placeholder">
+                        <div className="w-8 rounded-full bg-neutral text-neutral-content">
+                          {c.avatarUrl ? (
+                            <img src={c.avatarUrl} alt="" />
+                          ) : (
+                            <span className="text-xs">{c.displayName.charAt(0)}</span>
+                          )}
+                        </div>
+                      </div>
+                      <span className="text-sm font-medium">{c.displayName}</span>
+                    </button>
+                  ))}
+                {/* New contact option */}
+                {!contactsWithNet.some(
+                  (c) => c.displayName.toLowerCase() === newContactName.trim().toLowerCase()
+                ) && (
+                  <button
+                    className="flex items-center gap-2 rounded-lg p-2 text-left text-primary hover:bg-primary/10 active:bg-primary/20"
+                    onClick={handleAddContact}
+                    disabled={addingContact}
+                  >
+                    <PlusIcon className="h-5 w-5" />
+                    <span className="text-sm font-medium">
+                      {t('group.create.addAsMember', { name: newContactName.trim() })}
+                    </span>
+                  </button>
+                )}
+              </div>
+            )}
+
+            <div className="modal-action">
+              <button
+                className="btn btn-ghost"
+                onClick={() => {
+                  setShowAddModal(false);
+                  setNewContactName('');
+                }}
+              >
+                {t('common.button.cancel')}
+              </button>
+            </div>
+          </div>
+          <form method="dialog" className="modal-backdrop">
+            <button onClick={() => { setShowAddModal(false); setNewContactName(''); }}>close</button>
+          </form>
+        </dialog>
+      )}
     </div>
   );
 }
@@ -144,7 +301,7 @@ function ContactCard({
   contact,
   onClick,
 }: {
-  contact: PersonalContact;
+  contact: ContactWithNet;
   onClick: () => void;
 }) {
   const { t } = useTranslation();

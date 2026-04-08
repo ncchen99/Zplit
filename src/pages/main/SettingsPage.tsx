@@ -8,13 +8,13 @@ import { useUIStore } from '@/store/uiStore';
 import { logger } from '@/utils/logger';
 import {
   ChevronRightIcon,
-  UserIcon,
   GlobeAltIcon,
   SwatchIcon,
   ArrowRightStartOnRectangleIcon,
   TrashIcon,
   LinkIcon,
 } from '@heroicons/react/24/outline';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 
 export function SettingsPage() {
   const { t, i18n } = useTranslation();
@@ -81,15 +81,12 @@ export function SettingsPage() {
         >
           <div className="card-body p-4">
             <div className="flex items-center gap-3">
-              <div className="avatar placeholder">
-                <div className="w-14 rounded-full bg-neutral text-neutral-content">
-                  {user?.avatarUrl ? (
-                    <img src={user.avatarUrl} alt="avatar" />
-                  ) : (
-                    <span className="text-lg">{user?.displayName?.charAt(0) ?? '?'}</span>
-                  )}
-                </div>
-              </div>
+              <UserAvatar
+                src={user?.avatarUrl}
+                name={user?.displayName ?? '?'}
+                size="w-14"
+                textSize="text-lg"
+              />
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-lg">{user?.displayName}</p>
                 <p className="text-xs text-base-content/50">
