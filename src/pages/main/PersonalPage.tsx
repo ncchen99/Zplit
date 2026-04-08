@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { PlusIcon, MagnifyingGlassIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
-import { BanknotesIcon, CheckCircleIcon } from '@heroicons/react/24/solid';
+import { PlusIcon, MagnifyingGlassIcon, ChevronDownIcon, BanknotesIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import { useAuthStore } from '@/store/authStore';
 import { usePersonalStore } from '@/store/personalStore';
 import {
@@ -26,7 +26,6 @@ export function PersonalPage() {
   const user = useAuthStore((s) => s.user);
   const showToast = useUIStore((s) => s.showToast);
 
-  const contacts = usePersonalStore((s) => s.contacts);
   const setContacts = usePersonalStore((s) => s.setContacts);
   const isLoading = usePersonalStore((s) => s.isLoadingContacts);
   const setIsLoading = usePersonalStore((s) => s.setIsLoadingContacts);
@@ -150,8 +149,8 @@ export function PersonalPage() {
           <span className="loading loading-spinner loading-md" />
         </div>
       ) : contactsWithNet.length === 0 ? (
-        <div className="mt-12 text-center text-base-content/40">
-          <BanknotesIcon className="mx-auto mb-3 h-10 w-10 text-base-content/40" />
+        <div className="mt-16 text-center text-base-content/40">
+          <BanknotesIcon className="mx-auto mb-3 h-12 w-12" />
           <p>{t('personal.noContacts')}</p>
           <p className="text-sm mt-1">{t('personal.noContactsHint')}</p>
         </div>

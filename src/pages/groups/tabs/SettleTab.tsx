@@ -7,8 +7,7 @@ import { db } from '@/lib/firebase';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { logger } from '@/utils/logger';
-import { ArrowRightIcon } from '@heroicons/react/24/outline';
-import { SparklesIcon } from '@heroicons/react/24/solid';
+import { ArrowRightIcon, SparklesIcon } from '@heroicons/react/24/outline';
 
 export function SettleTab() {
   const { t } = useTranslation();
@@ -95,8 +94,8 @@ export function SettleTab() {
 
   if (computedDebts.length === 0 && settlements.length === 0) {
     return (
-      <div className="mt-8 text-center">
-        <SparklesIcon className="mx-auto h-10 w-10 text-success" />
+      <div className="mt-16 text-center text-base-content/40">
+        <SparklesIcon className="mx-auto mb-3 h-12 w-12" />
         <p className="mt-2 font-semibold">{t('group.settle.noDebts')}</p>
       </div>
     );

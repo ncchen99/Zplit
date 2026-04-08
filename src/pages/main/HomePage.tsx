@@ -12,7 +12,7 @@ import {
   type PersonalContact,
 } from '@/services/personalLedgerService';
 import { logger } from '@/utils/logger';
-import { BellIcon } from '@heroicons/react/24/outline';
+import { BellIcon, ChevronRightIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 
 export function HomePage() {
@@ -61,7 +61,7 @@ export function HomePage() {
         logger.error('home.fetchPersonal', '載入個人記錄失敗', err);
       }
     };
-    fetchPersonal();
+    Promise.all([fetchGroups(), fetchPersonal()]);
   }, [user]);
 
   const topGroups = groups.slice(0, 3);
@@ -104,122 +104,124 @@ export function HomePage() {
         </p>
       </div>
 
-      {/* My Groups Section */}
-      <div className="mt-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-base-content/60 uppercase tracking-wider">
-            {t('home.groups')}
-          </h2>
+      {/* Main Content */}
+      {loading ? (
+        <div className="mt-8 flex justify-center">
+          <span className="loading loading-spinner loading-md" />
+        </div>
+      ) : groups.length === 0 && personalContacts.length === 0 ? (
+        <div className="mt-16 text-center text-base-content/40 cursor-pointer" onClick={() => navigate('/groups/new')}>
+          <DocumentTextIcon className="mx-auto mb-3 h-12 w-12" />
+          <p>{t('home.noGroups')}</p>
+          <p className="text-sm mt-1">{t('home.noGroupsHint')}</p>
+        </div>
+      ) : (
+        <>
+          {/* My Groups Section */}
           {groups.length > 0 && (
-            <button
-              className="btn btn-ghost btn-xs"
-              onClick={() => navigate('/groups')}
-            >
-              {t('common.viewAll')} &gt;
-            </button>
-          )}
-        </div>
+            <div className="mt-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-base-content/60 uppercase tracking-wider">
+                  {t('home.groups')}
+                </h2>
+                <button
+                  className="btn btn-ghost btn-xs flex items-center gap-0.5"
+                  onClick={() => navigate('/groups')}
+                >
+                  {t('common.viewAll')}
+                  <ChevronRightIcon className="h-3 w-3" />
+                </button>
+              </div>
 
-        {loading ? (
-          <div className="mt-6 flex justify-center">
-            <span className="loading loading-spinner loading-md" />
-          </div>
-        ) : topGroups.length === 0 ? (
-          <div className="mt-6 text-center text-base-content/40">
-            <p>{t('home.noGroups')}</p>
-            <p className="text-sm mt-1">{t('home.noGroupsHint')}</p>
-          </div>
-        ) : (
-          <div className="mt-3 flex flex-col gap-2">
-            {topGroups.map((g) => (
-              <div
-                key={g.groupId}
-                className="card bg-base-200 cursor-pointer transition-colors active:bg-base-300"
-                onClick={() => navigate(`/groups/${g.groupId}`)}
-              >
-                <div className="card-body p-3">
-                  <div className="flex items-center gap-3">
-                    {g.coverUrl ? (
-                      <img
-                        src={g.coverUrl}
-                        alt=""
-                        className="h-12 w-16 rounded-lg object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-12 w-16 items-center justify-center rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 text-primary font-bold text-lg">
-                        {g.name.charAt(0)}
+              <div className="mt-3 flex flex-col gap-2">
+                {topGroups.map((g) => (
+                  <div
+                    key={g.groupId}
+                    className="card bg-base-200 cursor-pointer transition-colors active:bg-base-300"
+                    onClick={() => navigate(`/groups/${g.groupId}`)}
+                  >
+                    <div className="card-body p-3">
+                      <div className="flex items-center gap-3">
+                        {g.coverUrl ? (
+                          <img
+                            src={g.coverUrl}
+                            alt=""
+                            className="h-12 w-16 rounded-lg object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-12 w-16 items-center justify-center rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 text-primary font-bold text-lg">
+                            {g.name.charAt(0)}
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-semibold truncate">{g.name}</h3>
+                          <p className="text-xs text-base-content/50">
+                            {t('common.members_count', { count: g.members?.length ?? 0 })}
+                          </p>
+                        </div>
                       </div>
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <h3 className="font-semibold truncate">{g.name}</h3>
-                      <p className="text-xs text-base-content/50">
-                        {t('common.members_count', { count: g.members?.length ?? 0 })}
-                      </p>
                     </div>
                   </div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+            </div>
+          )}
 
-      {/* Personal Lending Section */}
-      <div className="mt-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-base-content/60 uppercase tracking-wider">
-            {t('home.personal')}
-          </h2>
-          <button
-            className="btn btn-ghost btn-xs"
-            onClick={() => navigate('/personal')}
-          >
-            {t('common.viewAll')} &gt;
-          </button>
-        </div>
+          {/* Personal Lending Section */}
+          {personalContacts.length > 0 && (
+            <div className="mt-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-base-content/60 uppercase tracking-wider">
+                  {t('home.personal')}
+                </h2>
+                <button
+                  className="btn btn-ghost btn-xs flex items-center gap-0.5"
+                  onClick={() => navigate('/personal')}
+                >
+                  {t('common.viewAll')}
+                  <ChevronRightIcon className="h-3 w-3" />
+                </button>
+              </div>
 
-        {personalContacts.length === 0 ? (
-          <div className="mt-3 text-center text-base-content/40 py-4">
-            <p className="text-sm">{t('home.noContacts')}</p>
-          </div>
-        ) : (
-          <div className="mt-3 flex flex-col gap-2">
-            {personalContacts.map((c) => (
-              <div
-                key={c.contactId}
-                className="card bg-base-200 cursor-pointer transition-colors active:bg-base-300"
-                onClick={() => navigate(`/personal/${c.contactId}`)}
-              >
-                <div className="card-body p-3 flex-row items-center gap-3">
-                  <div className="avatar placeholder">
-                    <div className="w-10 rounded-full bg-neutral text-neutral-content">
-                      {c.avatarUrl ? (
-                        <img src={c.avatarUrl} alt="" />
-                      ) : (
-                        <span className="text-sm">{c.displayName.charAt(0)}</span>
-                      )}
+              <div className="mt-3 flex flex-col gap-2">
+                {personalContacts.map((c) => (
+                  <div
+                    key={c.contactId}
+                    className="card bg-base-200 cursor-pointer transition-colors active:bg-base-300"
+                    onClick={() => navigate(`/personal/${c.contactId}`)}
+                  >
+                    <div className="card-body p-3 flex-row items-center gap-3">
+                      <div className="avatar placeholder">
+                        <div className="w-10 rounded-full bg-neutral text-neutral-content">
+                          {c.avatarUrl ? (
+                            <img src={c.avatarUrl} alt="" />
+                          ) : (
+                            <span className="text-sm">{c.displayName.charAt(0)}</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold truncate">{c.displayName}</p>
+                      </div>
+                      <div className="text-right">
+                        {c.netAmount > 0 ? (
+                          <p className="font-bold text-success text-sm">
+                            +NT${c.netAmount.toLocaleString()}
+                          </p>
+                        ) : (
+                          <p className="font-bold text-warning text-sm">
+                            -NT${Math.abs(c.netAmount).toLocaleString()}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold truncate">{c.displayName}</p>
-                  </div>
-                  <div className="text-right">
-                    {c.netAmount > 0 ? (
-                      <p className="font-bold text-success text-sm">
-                        +NT${c.netAmount.toLocaleString()}
-                      </p>
-                    ) : (
-                      <p className="font-bold text-warning text-sm">
-                        -NT${Math.abs(c.netAmount).toLocaleString()}
-                      </p>
-                    )}
-                  </div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

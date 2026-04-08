@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useGroupStore } from '@/store/groupStore';
 import { useAuthStore } from '@/store/authStore';
 import { computeBalances, computeSettlements } from '@/lib/algorithm/settlement';
-import { ArrowPathIcon, ArrowRightIcon, DocumentTextIcon } from '@heroicons/react/24/solid';
+import { ArrowPathIcon, ArrowRightIcon } from '@heroicons/react/24/solid';
+import { DocumentTextIcon } from '@heroicons/react/24/outline';
 
 export function SummaryTab() {
   const { t } = useTranslation();
@@ -115,8 +116,8 @@ export function SummaryTab() {
 
       {/* Expense List */}
       {expenses.length === 0 ? (
-        <div className="mt-8 text-center text-base-content/40">
-          <DocumentTextIcon className="mx-auto mb-2 h-10 w-10 text-base-content/40" />
+        <div className="mt-16 text-center text-base-content/40">
+          <DocumentTextIcon className="mx-auto mb-3 h-12 w-12 text-base-content/40" />
           <p>{t('group.summary.noExpenses')}</p>
           <p className="text-sm mt-1">{t('group.summary.addFirst')}</p>
         </div>

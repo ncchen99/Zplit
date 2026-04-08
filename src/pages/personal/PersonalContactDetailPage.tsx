@@ -6,6 +6,7 @@ import {
   EllipsisVerticalIcon,
   PlusIcon,
   TrashIcon,
+  DocumentTextIcon,
 } from '@heroicons/react/24/outline';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import { useAuthStore } from '@/store/authStore';
@@ -282,7 +283,8 @@ export function PersonalContactDetailPage() {
             <span className="loading loading-spinner loading-md" />
           </div>
         ) : currentExpenses.length === 0 ? (
-          <div className="mt-3 text-center text-base-content/40 py-8">
+          <div className="mt-8 text-center text-base-content/40 py-8">
+            <DocumentTextIcon className="mx-auto mb-3 h-12 w-12" />
             <p>{t('personal.noContacts')}</p>
           </div>
         ) : (

@@ -6,7 +6,7 @@ import { db } from '@/lib/firebase';
 import { useAuthStore } from '@/store/authStore';
 import type { Group } from '@/store/groupStore';
 import { logger } from '@/utils/logger';
-import { PlusIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, MagnifyingGlassIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
 
 export function GroupListPage() {
@@ -85,7 +85,8 @@ export function GroupListPage() {
           <p>{t('group.list.noResults')}</p>
         </div>
       ) : groups.length === 0 ? (
-        <div className="mt-8 text-center text-base-content/40">
+        <div className="mt-16 text-center text-base-content/40">
+          <UserGroupIcon className="mx-auto mb-3 h-12 w-12" />
           <p>{t('group.list.noGroups')}</p>
           <p className="text-sm mt-1">{t('group.list.noGroupsHint')}</p>
         </div>
