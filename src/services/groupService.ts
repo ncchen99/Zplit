@@ -3,6 +3,9 @@ import {
   collection,
   setDoc,
   getDoc,
+  getDocs,
+  query,
+  where,
   serverTimestamp,
   updateDoc,
   arrayUnion,
@@ -86,6 +89,35 @@ export async function getGroupByInviteCode(code: string): Promise<Group | null> 
   if (!codeSnap.exists()) return null;
   const { groupId } = codeSnap.data() as { groupId: string };
   return getGroupById(groupId);
+}
+
+export async function getUserGroups(userId: string): Promise<Group[]> {
+  const q = query(
+    collection(db, 'groups'),
+    where(`memberUids.${userId}`, '==', true)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ ...d.data(), groupId: d.id }) as Group);
+}
+
+// One-time migration: ensure every group has a matching inviteCodes lookup doc.
+// Run at startup; independent per-group checks run in parallel.
+export async function backfillInviteCodes(groups: Group[]): Promise<void> {
+  await Promise.all(
+    groups
+      .filter((g) => g.inviteCode)
+      .map(async (g) => {
+        const codeRef = doc(db, 'inviteCodes', g.inviteCode);
+        const codeSnap = await getDoc(codeRef);
+        if (!codeSnap.exists()) {
+          await setDoc(codeRef, { groupId: g.groupId });
+          logger.info('groupService.backfill', '補建 inviteCode', {
+            groupId: g.groupId,
+            inviteCode: g.inviteCode,
+          });
+        }
+      })
+  );
 }
 
 export async function addMemberToGroup(

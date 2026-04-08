@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { PlusIcon, MagnifyingGlassIcon, ChevronDownIcon, BanknotesIcon } from '@heroicons/react/24/outline';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 import { useAuthStore } from '@/store/authStore';
 import { usePersonalStore } from '@/store/personalStore';
 import {
@@ -77,7 +78,6 @@ export function PersonalPage() {
       const contact = await createContact(user.uid, newContactName.trim());
       setShowAddModal(false);
       setNewContactName('');
-      // Navigate to the new contact detail page directly
       navigate(`/personal/${contact.contactId}`);
     } catch (err) {
       logger.error('personal.addContact', '新增聯絡人失敗', err);
@@ -162,7 +162,7 @@ export function PersonalPage() {
               <h2 className="text-xs font-semibold text-base-content/50 uppercase tracking-wider">
                 {t('personal.unsettled')}
               </h2>
-              <div className="mt-2 flex flex-col gap-2">
+              <div className="mt-2 flex flex-col md:gap-2">
                 {unsettled
                   .sort((a, b) => Math.abs(b.netAmount) - Math.abs(a.netAmount))
                   .map((c) => (
@@ -189,7 +189,7 @@ export function PersonalPage() {
                 />
               </button>
               {showSettled && (
-                <div className="mt-2 flex flex-col gap-2">
+                <div className="mt-2 flex flex-col md:gap-2">
                   {settled.map((c) => (
                     <ContactCard
                       key={c.contactId}
@@ -245,15 +245,7 @@ export function PersonalPage() {
                         navigate(`/personal/${c.contactId}`);
                       }}
                     >
-                      <div className="avatar placeholder">
-                        <div className="w-8 rounded-full bg-neutral text-neutral-content">
-                          {c.avatarUrl ? (
-                            <img src={c.avatarUrl} alt="" />
-                          ) : (
-                            <span className="text-xs">{c.displayName.charAt(0)}</span>
-                          )}
-                        </div>
-                      </div>
+                      <UserAvatar src={c.avatarUrl} name={c.displayName} size="w-8" textSize="text-xs" />
                       <span className="text-sm font-medium">{c.displayName}</span>
                     </button>
                   ))}
@@ -309,19 +301,11 @@ function ContactCard({
 
   return (
     <div
-      className="card bg-base-200 cursor-pointer transition-colors active:bg-base-300"
+      className="flex items-center gap-3 -mx-4 px-4 py-3 cursor-pointer active:bg-base-200/50 transition-colors border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:border-0 md:active:bg-base-300"
       onClick={onClick}
     >
-      <div className="card-body p-3 flex-row items-center gap-3">
-        <div className="avatar placeholder">
-          <div className="w-10 rounded-full bg-neutral text-neutral-content">
-            {contact.avatarUrl ? (
-              <img src={contact.avatarUrl} alt="" />
-            ) : (
-              <span className="text-sm">{contact.displayName.charAt(0)}</span>
-            )}
-          </div>
-        </div>
+      <div className="flex items-center gap-3 w-full md:card-body md:p-3">
+        <UserAvatar src={contact.avatarUrl} name={contact.displayName} />
         <div className="flex-1 min-w-0">
           <p className="font-semibold truncate">{contact.displayName}</p>
           {contact.lastInteraction && (

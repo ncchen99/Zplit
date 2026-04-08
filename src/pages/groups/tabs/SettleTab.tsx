@@ -8,6 +8,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { logger } from '@/utils/logger';
 import { ArrowRightIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 
 export function SettleTab() {
   const { t } = useTranslation();
@@ -36,7 +37,6 @@ export function SettleTab() {
   const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 100;
 
   const getName = (memberId: string) => memberMap.get(memberId) ?? memberId;
-  const getInitial = (memberId: string) => getName(memberId).charAt(0);
 
   const handleMarkDone = async (settlementId: string) => {
     if (!currentGroup || !user) return;
@@ -139,25 +139,15 @@ export function SettleTab() {
           return (
             <div
               key={i}
-              className={`card bg-base-200 ${isCompleted ? 'opacity-60' : ''}`}
+              className={`-mx-4 px-4 py-3 border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-2 md:border-0 ${isCompleted ? 'opacity-60' : ''}`}
             >
-              <div className="card-body p-3">
+              <div className="w-full md:card-body md:p-3">
                 <div className="flex items-center gap-3">
-                  {/* From avatar */}
-                  <div className="avatar placeholder">
-                    <div className="w-9 rounded-full bg-neutral text-neutral-content">
-                      <span className="text-sm">{getInitial(debt.from)}</span>
-                    </div>
-                  </div>
+                  <UserAvatar src={null} name={getName(debt.from)} size="w-9" />
 
                   <ArrowRightIcon className="h-4 w-4 text-base-content/40" />
 
-                  {/* To avatar */}
-                  <div className="avatar placeholder">
-                    <div className="w-9 rounded-full bg-neutral text-neutral-content">
-                      <span className="text-sm">{getInitial(debt.to)}</span>
-                    </div>
-                  </div>
+                  <UserAvatar src={null} name={getName(debt.to)} size="w-9" />
 
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold truncate">
