@@ -132,7 +132,7 @@ export function GroupDetailPage() {
             alt=""
             className="h-full w-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-base-100/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-base-200/80 to-transparent" />
         </div>
       )}
 
