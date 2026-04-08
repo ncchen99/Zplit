@@ -288,7 +288,7 @@ export function PersonalContactDetailPage() {
             <p>{t('personal.noContacts')}</p>
           </div>
         ) : (
-          <div className="mt-3 flex flex-col gap-2">
+          <div className="mt-3 flex flex-col">
             {currentExpenses.map((expense) => (
               <ExpenseCard
                 key={expense.expenseId}
@@ -342,8 +342,8 @@ function ExpenseCard({
     : '';
 
   return (
-    <div className="card bg-base-200">
-      <div className="card-body p-3 flex-row items-center gap-3">
+    <div className="flex items-center gap-3 -mx-4 px-4 py-3 border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-2 md:border-0">
+      <div className="flex items-center gap-3 w-full md:card-body md:p-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
             <p className="font-semibold truncate">{expense.title}</p>
