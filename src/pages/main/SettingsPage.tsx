@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { GoogleAuthProvider, linkWithPopup, deleteUser } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { logger } from '@/utils/logger';
@@ -120,7 +119,7 @@ export function SettingsPage() {
         <div className="divider my-0 md:hidden" />
 
         {/* Language Row */}
-        <div className="flex items-center gap-3 -mx-4 px-4 py-4 border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-4 md:border-0">
+        <div className="-mx-4 px-4 py-4 border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-4 md:border-0">
           <div className="flex flex-col gap-3 w-full md:card-body md:p-4">
             <div className="flex items-center gap-3">
               <GlobeAltIcon className="h-5 w-5 text-base-content/60" />
@@ -144,7 +143,7 @@ export function SettingsPage() {
         </div>
 
         {/* Theme Row */}
-        <div className="flex items-center gap-3 -mx-4 px-4 py-4 border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-4 md:border-0">
+        <div className="-mx-4 px-4 py-4 border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-4 md:border-0">
           <div className="flex flex-col gap-3 w-full md:card-body md:p-4">
             <div className="flex items-center gap-3">
               <SwatchIcon className="h-5 w-5 text-base-content/60" />

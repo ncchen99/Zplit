@@ -13,6 +13,7 @@ import {
 import { logger } from '@/utils/logger';
 import { BellIcon, ChevronRightIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
 import { UserAvatar } from '@/components/ui/UserAvatar';
+import { GroupListItem } from '@/components/ui/GroupListItem';
 
 export function HomePage() {
   const { t } = useTranslation();
@@ -182,15 +183,7 @@ export function HomePage() {
                     onClick={() => navigate(`/personal/${c.contactId}`)}
                   >
                     <div className="flex items-center gap-3 w-full md:card-body md:p-3">
-                      <div className="avatar placeholder">
-                        <div className="w-10 rounded-full bg-neutral text-neutral-content">
-                          {c.avatarUrl ? (
-                            <img src={c.avatarUrl} alt="" />
-                          ) : (
-                            <span className="text-sm">{c.displayName.charAt(0)}</span>
-                          )}
-                        </div>
-                      </div>
+                      <UserAvatar src={c.avatarUrl} name={c.displayName} size="w-10" textSize="text-sm" />
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold truncate">{c.displayName}</p>
                       </div>
