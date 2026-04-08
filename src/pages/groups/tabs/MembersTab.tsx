@@ -6,7 +6,7 @@ import { useUIStore } from '@/store/uiStore';
 import { addPlaceholderMember } from '@/services/groupService';
 import { logger } from '@/utils/logger';
 import { LinkIcon, PlusIcon } from '@heroicons/react/24/outline';
-import { CrownIcon } from '@heroicons/react/24/solid';
+import { StarIcon } from '@heroicons/react/24/solid';
 
 export function MembersTab() {
   const { t } = useTranslation();
@@ -89,7 +89,7 @@ export function MembersTab() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
                   <p className="font-semibold truncate">{m.displayName}</p>
-                  {isMemberCreator && <CrownIcon className="h-3.5 w-3.5 text-warning" />}
+                  {isMemberCreator && <StarIcon className="h-3.5 w-3.5 text-warning" />}
                 </div>
                 <div className="flex items-center gap-1 mt-0.5">
                   {m.isBound ? (

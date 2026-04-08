@@ -7,6 +7,13 @@ import {
   WalletIcon,
   Cog8ToothIcon,
 } from '@heroicons/react/24/outline';
+import {
+  HomeIcon as HomeIconSolid,
+  UserGroupIcon as UserGroupIconSolid,
+  PlusIcon as PlusIconSolid,
+  WalletIcon as WalletIconSolid,
+  Cog8ToothIcon as Cog8ToothIconSolid,
+} from '@heroicons/react/24/solid';
 
 const navItems = [
   { key: 'home', path: '/home', icon: 'home' },
@@ -21,15 +28,17 @@ function NavIcon({ icon, active }: { icon: string; active: boolean }) {
 
   switch (icon) {
     case 'home':
-      return <HomeIcon className={`h-6 w-6 ${cls}`} />;
+      return active ? <HomeIconSolid className={`h-6 w-6 ${cls}`} /> : <HomeIcon className={`h-6 w-6 ${cls}`} />;
     case 'groups':
-      return <UserGroupIcon className={`h-6 w-6 ${cls}`} />;
+      return active ? <UserGroupIconSolid className={`h-6 w-6 ${cls}`} /> : <UserGroupIcon className={`h-6 w-6 ${cls}`} />;
     case 'add':
-      return <PlusIcon className="h-6 w-6 text-primary-content" />;
+      return active
+        ? <PlusIconSolid className="h-6 w-6 text-primary-content" />
+        : <PlusIcon className="h-6 w-6 text-primary-content" />;
     case 'personal':
-      return <WalletIcon className={`h-6 w-6 ${cls}`} />;
+      return active ? <WalletIconSolid className={`h-6 w-6 ${cls}`} /> : <WalletIcon className={`h-6 w-6 ${cls}`} />;
     case 'settings':
-      return <Cog8ToothIcon className={`h-6 w-6 ${cls}`} />;
+      return active ? <Cog8ToothIconSolid className={`h-6 w-6 ${cls}`} /> : <Cog8ToothIcon className={`h-6 w-6 ${cls}`} />;
     default:
       return null;
   }
@@ -69,7 +78,6 @@ export function BottomNav() {
         return (
           <button
             key={item.key}
-            className={active ? 'dock-active' : ''}
             onClick={() => navigate(item.path)}
           >
             <NavIcon icon={item.icon} active={active} />

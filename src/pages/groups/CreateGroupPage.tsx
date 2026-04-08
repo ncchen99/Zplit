@@ -7,7 +7,7 @@ import { createGroup, addPlaceholderMember } from '@/services/groupService';
 import { logger } from '@/utils/logger';
 import { ImageUpload } from '@/components/ui/ImageUpload';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import { CrownIcon, PlusIcon } from '@heroicons/react/24/solid';
+import { StarIcon, PlusIcon } from '@heroicons/react/24/solid';
 
 interface PreAddMember {
   id: string;
@@ -157,7 +157,7 @@ export function CreateGroupPage() {
                 </div>
                 <span className="text-sm">{m.name}</span>
                 {m.isCreator ? (
-                  <CrownIcon className="h-3.5 w-3.5 text-warning" />
+                  <StarIcon className="h-3.5 w-3.5 text-warning" />
                 ) : (
                   <button
                     type="button"
