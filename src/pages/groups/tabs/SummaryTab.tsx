@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/authStore';
 import { computeBalances, computeSettlements } from '@/lib/algorithm/settlement';
 import { ArrowPathIcon, ArrowRightIcon } from '@heroicons/react/24/solid';
 import { DocumentTextIcon } from '@heroicons/react/24/outline';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 
 export function SummaryTab() {
   const { t } = useTranslation();
@@ -40,9 +41,7 @@ export function SummaryTab() {
   );
 
   const getName = (memberId: string) => memberMap.get(memberId) ?? memberId;
-  const getInitial = (memberId: string) => getName(memberId).charAt(0);
 
-  // Group expenses by date
   const groupedByDate = useMemo(() => {
     const groups = new Map<string, typeof expenses>();
     expenses.forEach((e) => {
@@ -78,17 +77,9 @@ export function SummaryTab() {
                   className="flex items-center justify-between rounded-xl bg-base-200 px-3 py-2.5"
                 >
                   <div className="flex items-center gap-2">
-                    <div className="avatar placeholder">
-                      <div className="w-7 rounded-full bg-neutral text-neutral-content">
-                        <span className="text-xs">{getInitial(d.from)}</span>
-                      </div>
-                    </div>
+                    <UserAvatar src={null} name={getName(d.from)} size="w-7" textSize="text-xs" />
                     <ArrowRightIcon className="h-3.5 w-3.5 text-base-content/60" />
-                    <div className="avatar placeholder">
-                      <div className="w-7 rounded-full bg-neutral text-neutral-content">
-                        <span className="text-xs">{getInitial(d.to)}</span>
-                      </div>
-                    </div>
+                    <UserAvatar src={null} name={getName(d.to)} size="w-7" textSize="text-xs" />
                     <span className="text-sm text-base-content/70">
                       {t('group.summary.owes', {
                         from: getName(d.from),
@@ -125,7 +116,6 @@ export function SummaryTab() {
         <div className="flex flex-col gap-1">
           {[...groupedByDate.entries()].map(([date, dateExpenses]) => (
             <div key={date}>
-              {/* Date header */}
               <p className="text-xs text-base-content/40 font-semibold mt-3 mb-1.5 px-1">
                 {date}
               </p>
@@ -143,18 +133,8 @@ export function SummaryTab() {
                     className="flex items-center gap-3 -mx-4 px-4 py-3 border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-2 md:border-0"
                   >
                     <div className="flex items-center gap-3 w-full md:card-body md:p-3">
-                      {/* Payer avatar */}
-                      <div className="avatar placeholder">
-                        <div className="w-10 rounded-full bg-neutral text-neutral-content">
-                          {payerAvatar ? (
-                            <img src={payerAvatar} alt="" />
-                          ) : (
-                            <span className="text-sm">{payer.charAt(0)}</span>
-                          )}
-                        </div>
-                      </div>
+                      <UserAvatar src={payerAvatar} name={payer} />
 
-                      {/* Info */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1">
                           <p className="font-semibold truncate">{expense.title}</p>
@@ -165,7 +145,6 @@ export function SummaryTab() {
                         </p>
                       </div>
 
-                      {/* Amount & split avatars */}
                       <div className="text-right flex-shrink-0">
                         <p className="font-bold text-warning">
                           NT${expense.amount.toLocaleString()}

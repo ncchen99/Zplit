@@ -129,31 +129,11 @@ export function HomePage() {
 
               <div className="mt-2 flex flex-col md:gap-2">
                 {topGroups.map((g) => (
-                  <div
+                  <GroupListItem
                     key={g.groupId}
-                    className="flex items-center gap-3 -mx-4 px-4 py-3 cursor-pointer active:bg-base-200/50 transition-colors border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-2 md:border-0 md:active:bg-base-300"
+                    group={g}
                     onClick={() => navigate(`/groups/${g.groupId}`)}
-                  >
-                    <div className="flex items-center gap-3 w-full md:card-body md:p-3">
-                      {g.coverUrl ? (
-                        <img
-                          src={g.coverUrl}
-                          alt=""
-                          className="h-12 w-16 rounded-lg object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-12 w-16 items-center justify-center rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 text-primary font-bold text-lg">
-                          {g.name.charAt(0)}
-                        </div>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <h3 className="font-semibold truncate">{g.name}</h3>
-                        <p className="text-xs text-base-content/50">
-                          {t('common.members_count', { count: g.members?.length ?? 0 })}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                  />
                 ))}
               </div>
             </div>

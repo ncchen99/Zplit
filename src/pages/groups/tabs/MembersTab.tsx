@@ -1,24 +1,21 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useGroupStore } from '@/store/groupStore';
-import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { addPlaceholderMember } from '@/services/groupService';
 import { logger } from '@/utils/logger';
 import { LinkIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { StarIcon } from '@heroicons/react/24/solid';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 
 export function MembersTab() {
   const { t } = useTranslation();
   const currentGroup = useGroupStore((s) => s.currentGroup);
   const expenses = useGroupStore((s) => s.expenses);
-  const user = useAuthStore((s) => s.user);
   const showToast = useUIStore((s) => s.showToast);
 
   const [newName, setNewName] = useState('');
   const [adding, setAdding] = useState(false);
-
-  const isCreator = currentGroup?.createdBy === user?.uid;
 
   const handleAddMember = async () => {
     if (!currentGroup || !newName.trim()) return;
@@ -35,7 +32,6 @@ export function MembersTab() {
     }
   };
 
-  // Invite link
   const inviteUrl = `${window.location.origin}/join/${currentGroup?.inviteCode ?? ''}`;
 
   const handleCopyLink = () => {
@@ -43,7 +39,6 @@ export function MembersTab() {
     showToast(t('group.members.linkCopied'), 'success');
   };
 
-  // Build activity log from expenses' editLog
   const activityLog = expenses
     .flatMap((e) =>
       e.editLog?.map((log) => ({
@@ -72,20 +67,16 @@ export function MembersTab() {
         </h3>
       </div>
 
-      <div className="mt-3 flex flex-col gap-2">
+      <div className="mt-3 flex flex-col md:gap-2">
         {currentGroup?.members?.map((m) => {
           const isMemberCreator = m.userId === currentGroup.createdBy;
           return (
             <div key={m.memberId} className="flex items-center gap-3 -mx-4 px-4 py-3 border-b border-base-200 last:border-b-0 md:mx-0 md:rounded-xl md:bg-base-200 md:px-3 md:py-3 md:mb-0 md:border-0">
-              <div className="avatar placeholder">
-                <div className={`w-10 rounded-full ${m.isBound ? 'bg-neutral' : 'bg-base-300'} text-neutral-content`}>
-                  {m.avatarUrl ? (
-                    <img src={m.avatarUrl} alt="" />
-                  ) : (
-                    <span className="text-sm">{m.displayName.charAt(0)}</span>
-                  )}
-                </div>
-              </div>
+              <UserAvatar
+                src={m.avatarUrl}
+                name={m.displayName}
+                bgClass={m.isBound ? 'bg-neutral text-neutral-content' : 'bg-base-300 text-neutral-content'}
+              />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
                   <p className="font-semibold truncate">{m.displayName}</p>
@@ -164,7 +155,7 @@ export function MembersTab() {
         {activityLog.length === 0 ? (
           <p className="mt-2 text-sm text-base-content/40">No activity yet</p>
         ) : (
-          <div className="mt-2 flex flex-col gap-1.5">
+          <div className="mt-2 flex flex-col md:gap-1.5">
             {activityLog.map((log, i) => {
               const actorName = memberMap.get(log.memberId) ?? log.memberId;
               const time = log.timestamp?.seconds
