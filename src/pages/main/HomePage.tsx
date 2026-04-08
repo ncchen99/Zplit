@@ -44,7 +44,10 @@ export function HomePage() {
     <div className="px-4 pt-4 pb-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold tracking-tight text-primary">Zplit</h1>
+        <div className="flex items-center gap-2">
+          <img src="/favicon.svg" alt="Zplit Logo" className="w-8 h-8" />
+          <h1 className="text-xl font-bold tracking-tight text-primary">Zplit</h1>
+        </div>
         <div className="flex items-center gap-2">
           <button className="btn btn-ghost btn-sm btn-circle">
             <BellIcon className="h-5 w-5" />

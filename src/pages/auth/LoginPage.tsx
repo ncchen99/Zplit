@@ -78,7 +78,8 @@ export function LoginPage() {
     <div className="flex min-h-screen flex-col items-center justify-center px-6">
       <div className="w-full max-w-sm text-center">
         {/* Logo & Tagline - upper area */}
-        <div className="mb-12">
+        <div className="mb-12 flex flex-col items-center">
+          <img src="/favicon.svg" alt="Zplit Logo" className="w-24 h-24 mb-4" />
           <h1 className="text-5xl font-bold tracking-tight text-primary">Zplit</h1>
           <p className="mt-3 text-lg text-base-content/60">{t('auth.login.tagline')}</p>
         </div>

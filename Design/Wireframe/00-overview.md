@@ -10,7 +10,7 @@
 
 | 編號 | 頁面名稱 | 檔案 | 說明 |
 |------|---------|------|------|
-| 01 | 登入頁 | [01-login-page.md](./01-login-page.md) | Google 登入 / 匿名快速體驗 |
+| 01 | 登入頁 | [01-login-page.md](./01-login-page.md) | Google 登入 / 免登入開始 |
 | 02 | 新使用者資料填寫 | [02-onboarding-page.md](./02-onboarding-page.md) | 設定暱稱與大頭貼（首次使用）|
 | 03 | 首頁 | [03-home-page.md](./03-home-page.md) | 群組與個人分帳快速摘要 |
 | 04 | 群組列表 | [04-group-list-page.md](./04-group-list-page.md) | 所有群組的完整列表 |
