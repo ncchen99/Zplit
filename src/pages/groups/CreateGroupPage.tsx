@@ -3,8 +3,17 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
-import { createGroup } from '@/services/groupService';
+import { createGroup, addPlaceholderMember } from '@/services/groupService';
 import { logger } from '@/utils/logger';
+import { ImageUpload } from '@/components/ui/ImageUpload';
+import { XMarkIcon } from '@heroicons/react/24/outline';
+import { CrownIcon, PlusIcon } from '@heroicons/react/24/solid';
+
+interface PreAddMember {
+  id: string;
+  name: string;
+  isCreator: boolean;
+}
 
 export function CreateGroupPage() {
   const { t } = useTranslation();
@@ -13,7 +22,39 @@ export function CreateGroupPage() {
   const showToast = useUIStore((s) => s.showToast);
 
   const [name, setName] = useState('');
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
+  const [memberSearch, setMemberSearch] = useState('');
+  const [preMembers, setPreMembers] = useState<PreAddMember[]>([
+    {
+      id: user?.uid ?? 'creator',
+      name: user?.displayName ?? '',
+      isCreator: true,
+    },
+  ]);
   const [saving, setSaving] = useState(false);
+
+  const handleAddMember = () => {
+    const trimmed = memberSearch.trim();
+    if (!trimmed) return;
+    if (preMembers.some((m) => m.name === trimmed)) return;
+
+    setPreMembers((prev) => [
+      ...prev,
+      { id: `pre_${Date.now()}`, name: trimmed, isCreator: false },
+    ]);
+    setMemberSearch('');
+  };
+
+  const handleRemoveMember = (id: string) => {
+    setPreMembers((prev) => prev.filter((m) => m.id !== id));
+  };
+
+  const handleCancel = () => {
+    if (name.trim() || coverUrl || preMembers.length > 1) {
+      if (!window.confirm(t('common.button.cancel') + '?')) return;
+    }
+    navigate(-1);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,9 +66,18 @@ export function CreateGroupPage() {
         name.trim(),
         user.uid,
         user.displayName,
-        user.avatarUrl
+        user.avatarUrl,
+        coverUrl
       );
+
+      // Add pre-added members as placeholders
+      const newMembers = preMembers.filter((m) => !m.isCreator);
+      for (const m of newMembers) {
+        await addPlaceholderMember(group.groupId, m.name);
+      }
+
       logger.info('group.create', '群組建立成功', { groupId: group.groupId });
+      showToast(t('common.button.done'), 'success');
       navigate(`/groups/${group.groupId}`, { replace: true });
     } catch (err) {
       logger.error('group.create', '群組建立失敗', err);
@@ -38,10 +88,41 @@ export function CreateGroupPage() {
   };
 
   return (
-    <div className="px-4 pt-6">
-      <h1 className="text-2xl font-bold tracking-tight">{t('group.create.title')}</h1>
+    <div className="flex min-h-screen flex-col">
+      {/* Top Action Bar */}
+      <div className="flex items-center justify-between px-4 pt-4 pb-2">
+        <button className="btn btn-ghost btn-sm" onClick={handleCancel}>
+          {t('common.button.cancel')}
+        </button>
+        <h1 className="text-lg font-bold">{t('group.create.title')}</h1>
+        <button
+          className="btn btn-primary btn-sm"
+          onClick={handleSubmit}
+          disabled={!name.trim() || saving}
+        >
+          {saving && <span className="loading loading-spinner loading-xs" />}
+          {t('common.button.done')}
+        </button>
+      </div>
 
-      <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="flex-1 px-4 pb-8 flex flex-col gap-5">
+        {/* Cover Image Upload */}
+        <div>
+          <label className="text-sm font-medium text-base-content/60">
+            {t('group.create.cover')}
+          </label>
+          <p className="text-xs text-base-content/40 mb-2">{t('group.create.coverHint')}</p>
+          <ImageUpload
+            currentUrl={coverUrl}
+            onUpload={setCoverUrl}
+            onRemove={() => setCoverUrl(null)}
+            shape="rect"
+            label={t('group.create.coverUpload')}
+            className="w-full"
+          />
+        </div>
+
+        {/* Group Name */}
         <fieldset className="fieldset w-full">
           <legend className="fieldset-legend">{t('group.create.name')}</legend>
           <input
@@ -56,24 +137,67 @@ export function CreateGroupPage() {
           />
         </fieldset>
 
-        {/* TODO: Cover image upload (M2-3) */}
+        {/* Members Section */}
+        <div>
+          <label className="text-sm font-medium text-base-content/60">
+            {t('group.create.membersSection')}
+          </label>
 
-        <button
-          type="submit"
-          className="btn btn-primary btn-block mt-4"
-          disabled={!name.trim() || saving}
-        >
-          {saving && <span className="loading loading-spinner loading-sm" />}
-          {t('group.create.title')}
-        </button>
+          {/* Member list (horizontal) */}
+          <div className="mt-2 flex flex-wrap gap-2">
+            {preMembers.map((m) => (
+              <div
+                key={m.id}
+                className="badge badge-lg gap-1 pr-1"
+              >
+                <div className="avatar placeholder">
+                  <div className="w-5 rounded-full bg-neutral text-neutral-content">
+                    <span className="text-[10px]">{m.name.charAt(0)}</span>
+                  </div>
+                </div>
+                <span className="text-sm">{m.name}</span>
+                {m.isCreator ? (
+                  <CrownIcon className="h-3.5 w-3.5 text-warning" />
+                ) : (
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-xs btn-circle"
+                    onClick={() => handleRemoveMember(m.id)}
+                  >
+                    <XMarkIcon className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
 
-        <button
-          type="button"
-          className="btn btn-ghost btn-block"
-          onClick={() => navigate(-1)}
-        >
-          {t('common.button.cancel')}
-        </button>
+          {/* Search / Add */}
+          <div className="mt-3">
+            <input
+              type="text"
+              className="input w-full"
+              placeholder={t('group.create.searchMembers')}
+              value={memberSearch}
+              onChange={(e) => setMemberSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddMember();
+                }
+              }}
+            />
+            {memberSearch.trim() && (
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm mt-2 text-primary w-full justify-start"
+                onClick={handleAddMember}
+              >
+                <PlusIcon className="h-4 w-4" />
+                {t('group.create.addAsMember', { name: memberSearch.trim() })}
+              </button>
+            )}
+          </div>
+        </div>
       </form>
     </div>
   );

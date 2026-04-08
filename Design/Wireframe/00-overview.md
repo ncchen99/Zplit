@@ -12,13 +12,13 @@
 |------|---------|------|------|
 | 01 | 登入頁 | [01-login-page.md](./01-login-page.md) | Google 登入 / 匿名快速體驗 |
 | 02 | 新使用者資料填寫 | [02-onboarding-page.md](./02-onboarding-page.md) | 設定暱稱與大頭貼（首次使用）|
-| 03 | 首頁 | [03-home-page.md](./03-home-page.md) | 群組與個人借貸快速摘要 |
+| 03 | 首頁 | [03-home-page.md](./03-home-page.md) | 群組與個人分帳快速摘要 |
 | 04 | 群組列表 | [04-group-list-page.md](./04-group-list-page.md) | 所有群組的完整列表 |
 | 05 | 建立群組 | [05-create-group-page.md](./05-create-group-page.md) | 設定名稱、封面、預加成員 |
 | 06 | 群組詳情 | [06-group-detail-page.md](./06-group-detail-page.md) | 總覽 / 清算 / 成員動態（3 Tabs）|
 | 07 | 新增帳務 | [07-add-expense-page.md](./07-add-expense-page.md) | 多種分帳模式、重複記帳 |
-| 08 | 個人借貸總覽 | [08-personal-ledger-page.md](./08-personal-ledger-page.md) | 所有一對一借貸淨額 |
-| 09 | 個人借貸詳情 | [09-personal-contact-detail-page.md](./09-personal-contact-detail-page.md) | 與特定對象的借貸記錄、Optimal Split |
+| 08 | 個人分帳總覽 | [08-personal-ledger-page.md](./08-personal-ledger-page.md) | 所有一對一分帳淨額 |
+| 09 | 個人分帳詳情 | [09-personal-contact-detail-page.md](./09-personal-contact-detail-page.md) | 與特定對象的分帳記錄、Optimal Split |
 | 10 | 加入群組 | [10-join-group-page.md](./10-join-group-page.md) | 邀請連結加入流程（3 步驟）|
 | 11 | 設定 | [11-settings-page.md](./11-settings-page.md) | 個人資料、外觀、語言、帳號操作 |
 
@@ -41,9 +41,9 @@
                     │               │
                     │               └─ 新增帳務（07）
                     │
-                    ├─ 個人借貸總覽（08）
+                    ├─ 個人分帳總覽（08）
                     │       │
-                    │       └─ 個人借貸詳情（09）
+                    │       └─ 個人分帳詳情（09）
                     │               │
                     │               └─ 新增帳務（07）
                     │

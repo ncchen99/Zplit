@@ -9,94 +9,159 @@
       "back": "返回",
       "add": "新增",
       "done": "完成",
-      "close": "關閉"
+      "close": "關閉",
+      "selectAll": "全選",
+      "clearAll": "清除全部"
     },
     "loading": "載入中...",
     "error": "發生錯誤",
     "retry": "重試",
     "offline": "目前離線，部分功能可能無法使用",
-    "online": "已恢復連線"
+    "online": "已恢復連線",
+    "viewAll": "全部",
+    "search": "搜尋",
+    "or": "或",
+    "members_count": "{{count}} 位成員",
+    "lastInteraction": "上次互動：{{time}}",
+    "daysAgo": "{{count}} 天前",
+    "weeksAgo": "{{count}} 週前"
   },
   "auth": {
     "login": {
-      "title": "歡迎來到 Zplit",
+      "title": "Zplit",
       "subtitle": "與朋友輕鬆分帳",
-      "googleLogin": "使用 Google 登入",
-      "anonymousLogin": "匿名登入",
-      "anonymousHint": "無需帳號即可快速體驗"
+      "tagline": "輕鬆分帳，長期使用",
+      "googleLogin": "使用 Google 帳號登入",
+      "anonymousLogin": "匿名快速體驗",
+      "anonymousHint": "不需帳號，快速試用所有功能",
+      "termsLink": "使用條款",
+      "privacyLink": "隱私政策",
+      "termsNotice": "繼續使用即表示你同意我們的"
     },
     "onboarding": {
       "title": "設定你的個人資料",
+      "welcome": "歡迎加入 Zplit！",
+      "welcomeSubtitle": "請先設定你的個人資料",
       "nickname": "暱稱",
       "nicknamePlaceholder": "輸入你的暱稱",
+      "nicknameMax": "最多 20 個字元",
       "avatar": "大頭貼",
-      "avatarUpload": "上傳大頭貼",
-      "continue": "開始使用"
+      "avatarUpload": "點擊上傳大頭貼",
+      "continue": "完成，開始使用！",
+      "backConfirm": "確定要離開嗎？資料將不會被儲存"
     }
   },
   "home": {
     "title": "Zplit",
-    "groups": "群組",
-    "personal": "個人借貸",
+    "welcome": "嗨，{{name}}",
+    "pendingCount": "你目前有 {{count}} 筆待結清",
+    "noPending": "目前沒有待結清帳款！",
+    "groups": "我的群組",
+    "personal": "個人記錄",
     "createGroup": "建立群組",
     "noGroups": "還沒有任何群組",
-    "noGroupsHint": "建立一個群組，開始與朋友分帳吧！"
+    "noGroupsHint": "建立一個群組，開始與朋友分帳吧！",
+    "noContacts": "還沒有任何個人記錄",
+    "addGroupExpense": "新增群組帳務",
+    "addPersonalLending": "新增個人分帳"
   },
   "group": {
     "create": {
       "title": "建立群組",
       "name": "群組名稱",
-      "namePlaceholder": "例如：日本旅遊 2026",
+      "namePlaceholder": "例如：墾丁旅遊 2026",
       "cover": "紀念封面圖",
-      "coverUpload": "上傳封面圖"
+      "coverHint": "推薦 16:9 比例",
+      "coverUpload": "上傳封面圖",
+      "membersSection": "成員",
+      "searchMembers": "搜尋或輸入朋友名字...",
+      "addAsMember": "新增「{{name}}」作為成員",
+      "creatorBadge": "建立者"
+    },
+    "list": {
+      "title": "群組",
+      "search": "搜尋群組名稱...",
+      "inProgress": "進行中",
+      "settled": "已結清",
+      "noGroups": "你還沒有任何群組",
+      "noGroupsHint": "點擊新增按鈕建立第一個！",
+      "noResults": "找不到符合的群組",
+      "shareInvite": "分享邀請連結",
+      "deleteGroup": "刪除群組"
+    },
+    "detail": {
+      "more": "更多",
+      "shareInvite": "分享邀請連結",
+      "editGroup": "編輯群組資料",
+      "leaveGroup": "離開群組",
+      "deleteGroup": "刪除群組",
+      "leaveConfirm": "確定要離開這個群組嗎？",
+      "leaveWithDebt": "你目前還有 NT${{amount}} 未結清，確定要離開？",
+      "deleteConfirm": "刪除後所有帳務記錄將無法復原，確定要刪除嗎？"
     },
     "summary": {
       "title": "總覽",
       "noExpenses": "目前還沒有任何帳務",
       "addFirst": "新增第一筆帳務",
       "owes": "{{from}} 欠 {{to}}",
-      "totalSpent": "總花費"
+      "totalSpent": "總花費",
+      "expandDetails": "展開詳情"
     },
     "settle": {
-      "title": "債務清算",
+      "title": "清算",
       "noDebts": "所有債務已結清！",
       "transfer": "{{from}} 轉帳給 {{to}}",
       "markDone": "標記完成",
-      "markAllDone": "全部標記完成",
+      "markAllDone": "一鍵全部標記完成",
+      "undoComplete": "撤銷完成",
       "completed": "已完成",
-      "progress": "清算進度"
+      "progress": "清算進度",
+      "progressDetail": "{{completed}} 筆完成 / 共 {{total}} 筆"
     },
     "members": {
       "title": "成員與動態",
       "members": "成員",
-      "activity": "動態紀錄",
+      "activity": "近期動態",
       "addMember": "新增成員",
       "memberName": "成員名稱",
       "unbound": "未綁定帳號",
+      "bound": "已連結",
+      "creator": "建立者",
       "invite": "邀請連結",
+      "inviteMembers": "邀請成員",
       "copyLink": "複製連結",
-      "linkCopied": "已複製邀請連結"
+      "linkCopied": "已複製邀請連結",
+      "editName": "編輯名稱",
+      "removeMember": "移除成員"
     }
   },
   "expense": {
     "add": "新增帳務",
     "edit": "編輯帳務",
     "title": "品項名稱",
-    "titlePlaceholder": "例如：晚餐、交通費",
+    "titlePlaceholder": "例如：梅啤、計程車...",
     "amount": "金額",
     "amountPlaceholder": "0",
     "paidBy": "付款人",
     "splitWith": "分帳對象",
     "date": "日期與時間",
-    "details": "詳細資訊",
+    "details": "詳細資訊（備注、圖片）",
+    "detailsExpand": "展開詳細資料",
     "description": "備註說明",
-    "descriptionPlaceholder": "選填，例如：3/29 南部出差晚餐",
+    "descriptionPlaceholder": "例如：3/29 南部出差晚餐...",
     "receipt": "收據圖片",
+    "receiptUpload": "上傳收據圖片",
     "splitMode": {
       "label": "分帳模式",
       "equal": "平均分帳",
       "amount": "依金額分帳",
       "percent": "依比例分帳"
+    },
+    "splitValidation": {
+      "total": "總計：NT${{total}}",
+      "remaining": "剩餘：NT${{remaining}}",
+      "percentTotal": "總計：{{percent}}%",
+      "mismatch": "金額不符"
     },
     "repeat": {
       "label": "重複記帳",
@@ -104,43 +169,99 @@
       "daily": "每日",
       "weekly": "每週",
       "monthly": "每月",
-      "custom": "自訂"
+      "custom": "自訂",
+      "endDate": "結束日期",
+      "enabled": "開啟",
+      "disabled": "關閉"
     },
-    "paidFor": "{{name}} paid for"
+    "paidFor": "{{name}} 代墊",
+    "deleteConfirm": "確定要刪除這筆帳務嗎？",
+    "recurring": "重複記帳"
   },
   "personal": {
-    "title": "個人借貸",
+    "title": "個人記錄",
+    "search": "搜尋朋友名字...",
+    "netSummary": "總計",
     "youOwe": "你欠 {{name}}",
     "owesYou": "{{name}} 欠你",
+    "youOweTotal": "你欠別人",
+    "owedToYouTotal": "別人欠你",
     "settled": "已結清",
-    "noContacts": "還沒有任何借貸紀錄",
-    "addExpense": "新增借貸",
-    "optimalSplit": "最佳分帳"
+    "unsettled": "待結清",
+    "settledSection": "已結清",
+    "noContacts": "還沒有任何個人記錄",
+    "noContactsHint": "點擊新增按鈕開始記錄！",
+    "addExpense": "新增分帳",
+    "optimalSplit": "最佳分帳",
+    "optimalSplitDesc": "系統將整合共同群組進行優化",
+    "optimalSplitFound": "已找到共同群組：{{groups}}",
+    "optimalSplitNotFound": "目前未找到共同群組，維持一對一計算",
+    "settleAll": "結清所有帳款",
+    "settleAllConfirm": "確定要結清與 {{name}} 的所有帳款嗎？",
+    "editContactName": "編輯對象名稱",
+    "deleteContact": "刪除聯絡人",
+    "deleteContactConfirm": "確定要刪除與 {{name}} 的所有記錄嗎？",
+    "lendingHistory": "往來記錄",
+    "linked": "已連結",
+    "paidFor": "你替 {{name}} 付款",
+    "settledRecord": "已還款"
   },
   "join": {
     "title": "加入群組",
     "loading": "正在載入群組資訊...",
-    "question": "你是否是群組中現有的某位成員？",
+    "invitedToJoin": "你被邀請加入",
+    "loginFirst": "請先登入以加入群組",
+    "question": "你是否已在成員列表中？",
     "selectMember": "選擇你的身份",
-    "newMember": "我是新成員",
+    "newMember": "以上都不是，以新成員加入",
+    "boundMember": "已綁定",
+    "unboundMember": "未綁定",
+    "confirmName": "確認你在群組內的名稱",
+    "nameHint": "也可以保留群組創建者設定的名字，或改成自己喜歡的名稱",
+    "displayAs": "在此群組內顯示為：",
+    "confirmJoin": "確認並加入群組",
     "updateName": "更新群組內顯示名稱",
-    "joined": "已成功加入群組！"
+    "joined": "已成功加入群組！",
+    "invalidLink": "此邀請連結已失效或群組不存在",
+    "backToHome": "返回首頁"
   },
   "settings": {
     "title": "設定",
+    "profile": "個人資料",
+    "editProfile": "編輯",
+    "appearance": "外觀",
     "language": "語言",
     "theme": "主題",
     "themeLight": "淺色",
     "themeDark": "深色",
     "themeSystem": "跟隨系統",
+    "account": "帳號",
+    "bindGoogle": "綁定 Google 帳號",
+    "bindGoogleHint": "綁定後可保留所有資料",
+    "bindSuccess": "Google 帳號綁定成功！",
     "logout": "登出",
-    "profile": "個人資料"
+    "logoutConfirm": "確定要登出嗎？",
+    "deleteAccount": "刪除帳號",
+    "deleteAccountWarning": "這個動作無法復原，確定要刪除帳號嗎？",
+    "deleteAccountConfirm": "請輸入「刪除」以確認",
+    "deleteAccountPlaceholder": "輸入「刪除」",
+    "deleteAccountSuccess": "帳號已刪除",
+    "about": "關於",
+    "version": "版本",
+    "terms": "使用條款",
+    "privacy": "隱私政策",
+    "guest": "訪客帳號",
+    "googleAccount": "Google 帳號",
+    "anonymous": "匿名使用者",
+    "anonymousHint": "綁定 Google 可保留所有資料",
+    "editProfileTitle": "編輯個人資料",
+    "changeAvatar": "點擊更換照片"
   },
   "nav": {
     "home": "首頁",
     "groups": "群組",
     "add": "記帳",
-    "personal": "借貸",
+    "personal": "個人",
     "settings": "設定"
   }
 }

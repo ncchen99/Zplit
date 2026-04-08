@@ -1,18 +1,24 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useGroupStore } from '@/store/groupStore';
+import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { addPlaceholderMember } from '@/services/groupService';
 import { logger } from '@/utils/logger';
+import { LinkIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { CrownIcon } from '@heroicons/react/24/solid';
 
 export function MembersTab() {
   const { t } = useTranslation();
   const currentGroup = useGroupStore((s) => s.currentGroup);
   const expenses = useGroupStore((s) => s.expenses);
+  const user = useAuthStore((s) => s.user);
   const showToast = useUIStore((s) => s.showToast);
 
   const [newName, setNewName] = useState('');
   const [adding, setAdding] = useState(false);
+
+  const isCreator = currentGroup?.createdBy === user?.uid;
 
   const handleAddMember = async () => {
     if (!currentGroup || !newName.trim()) return;
@@ -43,6 +49,7 @@ export function MembersTab() {
       e.editLog?.map((log) => ({
         ...log,
         expenseTitle: e.title,
+        expenseAmount: e.amount,
       })) ?? []
     )
     .sort((a, b) => {
@@ -59,53 +66,81 @@ export function MembersTab() {
   return (
     <div>
       {/* Members Section */}
-      <h3 className="font-semibold text-sm text-base-content/60 uppercase tracking-wider">
-        {t('group.members.members')}
-      </h3>
+      <div className="flex items-center justify-between">
+        <h3 className="font-semibold text-sm text-base-content/60 uppercase tracking-wider">
+          {t('group.members.members')}（{currentGroup?.members?.length ?? 0}）
+        </h3>
+      </div>
 
       <div className="mt-3 flex flex-col gap-2">
-        {currentGroup?.members?.map((m) => (
-          <div key={m.memberId} className="flex items-center gap-3 rounded-lg bg-base-200 p-3">
-            <div className="avatar placeholder">
-              <div className="w-9 rounded-full bg-neutral text-neutral-content">
-                {m.avatarUrl ? (
-                  <img src={m.avatarUrl} alt="" />
-                ) : (
-                  <span className="text-sm">{m.displayName.charAt(0)}</span>
-                )}
+        {currentGroup?.members?.map((m) => {
+          const isMemberCreator = m.userId === currentGroup.createdBy;
+          return (
+            <div key={m.memberId} className="flex items-center gap-3 rounded-xl bg-base-200 p-3">
+              <div className="avatar placeholder">
+                <div className={`w-10 rounded-full ${m.isBound ? 'bg-neutral' : 'bg-base-300'} text-neutral-content`}>
+                  {m.avatarUrl ? (
+                    <img src={m.avatarUrl} alt="" />
+                  ) : (
+                    <span className="text-sm">{m.displayName.charAt(0)}</span>
+                  )}
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <p className="font-semibold truncate">{m.displayName}</p>
+                  {isMemberCreator && <CrownIcon className="h-3.5 w-3.5 text-warning" />}
+                </div>
+                <div className="flex items-center gap-1 mt-0.5">
+                  {m.isBound ? (
+                    <span className="badge badge-success badge-xs gap-0.5">
+                      <LinkIcon className="h-2.5 w-2.5" />
+                      {t('group.members.bound')}
+                    </span>
+                  ) : (
+                    <span className="badge badge-ghost badge-xs">
+                      {t('group.members.unbound')}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold truncate">{m.displayName}</p>
-              {!m.isBound && (
-                <span className="badge badge-ghost badge-xs">{t('group.members.unbound')}</span>
-              )}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Add Member */}
-      <div className="join mt-4 flex w-full">
-        <input
-          type="text"
-          className="input input-sm join-item flex-1"
-          placeholder={t('group.members.memberName')}
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          maxLength={30}
-        />
-        <button
-          className="btn btn-primary btn-sm join-item"
-          onClick={handleAddMember}
-          disabled={!newName.trim() || adding}
-        >
-          {adding ? (
-            <span className="loading loading-spinner loading-xs" />
-          ) : (
-            t('group.members.addMember')
-          )}
-        </button>
+      <div className="mt-4">
+        <div className="join flex w-full">
+          <input
+            type="text"
+            className="input input-sm join-item flex-1"
+            placeholder={t('group.members.memberName')}
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleAddMember();
+              }
+            }}
+            maxLength={30}
+          />
+          <button
+            className="btn btn-primary btn-sm join-item"
+            onClick={handleAddMember}
+            disabled={!newName.trim() || adding}
+          >
+            {adding ? (
+              <span className="loading loading-spinner loading-xs" />
+            ) : (
+              <>
+                <PlusIcon className="h-4 w-4" />
+                {t('group.members.addMember')}
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Invite Link */}
@@ -113,14 +148,9 @@ export function MembersTab() {
         <h3 className="font-semibold text-sm text-base-content/60 uppercase tracking-wider">
           {t('group.members.invite')}
         </h3>
-        <div className="join mt-2 flex w-full">
-          <input
-            type="text"
-            className="input input-sm join-item flex-1 text-xs"
-            value={inviteUrl}
-            readOnly
-          />
-          <button className="btn btn-ghost btn-sm join-item" onClick={handleCopyLink}>
+        <div className="mt-2 rounded-xl bg-base-200 p-3">
+          <p className="text-xs text-base-content/50 truncate mb-2">{inviteUrl}</p>
+          <button className="btn btn-primary btn-sm btn-block" onClick={handleCopyLink}>
             {t('group.members.copyLink')}
           </button>
         </div>
@@ -134,15 +164,25 @@ export function MembersTab() {
         {activityLog.length === 0 ? (
           <p className="mt-2 text-sm text-base-content/40">No activity yet</p>
         ) : (
-          <div className="mt-2 flex flex-col gap-1">
-            {activityLog.map((log, i) => (
-              <div key={i} className="text-xs text-base-content/60 py-1">
-                <span className="font-semibold">
-                  {memberMap.get(log.memberId) ?? log.memberId}
-                </span>{' '}
-                {log.description}
-              </div>
-            ))}
+          <div className="mt-2 flex flex-col gap-1.5">
+            {activityLog.map((log, i) => {
+              const actorName = memberMap.get(log.memberId) ?? log.memberId;
+              const time = log.timestamp?.seconds
+                ? new Date(log.timestamp.seconds * 1000).toLocaleString()
+                : '';
+              return (
+                <div
+                  key={i}
+                  className="rounded-lg bg-base-200 px-3 py-2 text-xs text-base-content/60"
+                >
+                  <span className="font-semibold">{actorName}</span>{' '}
+                  {log.description}
+                  {time && (
+                    <span className="text-base-content/30 ml-2">{time}</span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

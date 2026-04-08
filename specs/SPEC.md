@@ -318,7 +318,7 @@ subscribeExpenses: (groupId) => {
 | 群組 Settle | `groups/{id}/settlements` | 進入 Settle Tab |
 | 群組 Members | `groups/{id}` (document) | 進入 Members Tab |
 | 個人首頁 | `personalLedger/{uid}/contacts` | App 啟動後 |
-| 個人借貸詳情 | `personalLedger/{uid}/expenses`（條件篩選） | 進入對象詳情 |
+| 個人分帳詳情 | `personalLedger/{uid}/expenses`（條件篩選） | 進入對象詳情 |
 
 **離開頁面時必須 unsubscribe**，統一在 `useEffect` cleanup 或 Zustand `unsubscribe` action 中執行。
 
@@ -343,7 +343,7 @@ interface UIStore {
 
 不使用 EventBus 傳遞 Modal 開關等局部 UI 狀態，保持元件職責清晰。
 
-#### 場景三：雙向同步觸發（個人借貸資料連動）
+#### 場景三：雙向同步觸發（個人分帳資料連動）
 
 雙向同步**不使用 Event Bus**，而是依賴 Firestore 結構設計：
 

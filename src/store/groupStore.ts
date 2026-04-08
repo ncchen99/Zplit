@@ -23,7 +23,7 @@ export interface Group {
    * Firestore Security Rules 查詢用的 Map。
    * 結構：{ [userId]: true }，只包含 isBound=true 的成員。
    *
-   * ⚠️  不能只靠 members array 做 Rules 查詢——
+  * 注意：不能只靠 members array 做 Rules 查詢——
    *    hasAny([{userId: uid}]) 是完整物件比對，永遠不會匹配部分欄位。
    *    此 Map 讓 Rules 可以用 memberUids[uid] == true 做 O(1) 查詢。
    */

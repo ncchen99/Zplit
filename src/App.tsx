@@ -18,10 +18,13 @@ import { OnboardingPage } from '@/pages/onboarding/OnboardingPage';
 import { HomePage } from '@/pages/main/HomePage';
 import { SettingsPage } from '@/pages/main/SettingsPage';
 import { PersonalPage } from '@/pages/main/PersonalPage';
+import { GroupListPage } from '@/pages/groups/GroupListPage';
 import { CreateGroupPage } from '@/pages/groups/CreateGroupPage';
 import { GroupDetailPage } from '@/pages/groups/GroupDetailPage';
 import { AddExpensePage } from '@/pages/groups/AddExpensePage';
 import { JoinPage } from '@/pages/join/JoinPage';
+import { PersonalContactDetailPage } from '@/pages/personal/PersonalContactDetailPage';
+import { EditProfilePage } from '@/pages/settings/EditProfilePage';
 
 function AuthInitializer({ children }: { children: React.ReactNode }) {
   const setFirebaseUser = useAuthStore((s) => s.setFirebaseUser);
@@ -124,6 +127,7 @@ export default function App() {
               {/* Protected routes with bottom nav */}
               <Route element={<AuthGuard><MainLayout /></AuthGuard>}>
                 <Route path="/home" element={<HomePage />} />
+                <Route path="/groups" element={<GroupListPage />} />
                 <Route path="/personal" element={<PersonalPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
               </Route>
@@ -132,6 +136,8 @@ export default function App() {
               <Route path="/groups/new" element={<AuthGuard><CreateGroupPage /></AuthGuard>} />
               <Route path="/groups/:groupId" element={<AuthGuard><GroupDetailPage /></AuthGuard>} />
               <Route path="/groups/:groupId/expense/new" element={<AuthGuard><AddExpensePage /></AuthGuard>} />
+              <Route path="/personal/:contactId" element={<AuthGuard><PersonalContactDetailPage /></AuthGuard>} />
+              <Route path="/settings/profile" element={<AuthGuard><EditProfilePage /></AuthGuard>} />
 
               {/* Fallback */}
               <Route path="/" element={<Navigate to="/home" replace />} />

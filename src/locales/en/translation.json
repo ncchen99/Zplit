@@ -9,62 +9,114 @@
       "back": "Back",
       "add": "Add",
       "done": "Done",
-      "close": "Close"
+      "close": "Close",
+      "selectAll": "Select All",
+      "clearAll": "Clear All"
     },
     "loading": "Loading...",
     "error": "An error occurred",
     "retry": "Retry",
     "offline": "You are offline. Some features may not work.",
-    "online": "Back online"
+    "online": "Back online",
+    "viewAll": "All",
+    "search": "Search",
+    "or": "or",
+    "members_count": "{{count}} members",
+    "lastInteraction": "Last: {{time}}",
+    "daysAgo": "{{count}}d ago",
+    "weeksAgo": "{{count}}w ago"
   },
   "auth": {
     "login": {
-      "title": "Welcome to Zplit",
+      "title": "Zplit",
       "subtitle": "Split bills with friends, effortlessly",
+      "tagline": "Split smarter, stay connected",
       "googleLogin": "Sign in with Google",
-      "anonymousLogin": "Continue as Guest",
-      "anonymousHint": "Try it out without an account"
+      "anonymousLogin": "Quick Experience",
+      "anonymousHint": "No account needed, try all features instantly",
+      "termsLink": "Terms of Service",
+      "privacyLink": "Privacy Policy",
+      "termsNotice": "By continuing, you agree to our"
     },
     "onboarding": {
       "title": "Set up your profile",
+      "welcome": "Welcome to Zplit!",
+      "welcomeSubtitle": "Let's set up your profile first",
       "nickname": "Nickname",
       "nicknamePlaceholder": "Enter your nickname",
+      "nicknameMax": "Max 20 characters",
       "avatar": "Avatar",
-      "avatarUpload": "Upload avatar",
-      "continue": "Get Started"
+      "avatarUpload": "Tap to upload avatar",
+      "continue": "Done, let's go!",
+      "backConfirm": "Are you sure? Your data won't be saved."
     }
   },
   "home": {
     "title": "Zplit",
-    "groups": "Groups",
-    "personal": "Personal",
+    "welcome": "Hi, {{name}}",
+    "pendingCount": "You have {{count}} pending settlements",
+    "noPending": "All settled up!",
+    "groups": "My Groups",
+    "personal": "Personal Lending",
     "createGroup": "Create Group",
     "noGroups": "No groups yet",
-    "noGroupsHint": "Create a group to start splitting bills with friends!"
+    "noGroupsHint": "Create a group with the Add button to start splitting bills!",
+    "noContacts": "No lending records yet",
+    "addGroupExpense": "Add Group Expense",
+    "addPersonalLending": "Add Personal Lending"
   },
   "group": {
     "create": {
       "title": "Create Group",
       "name": "Group Name",
-      "namePlaceholder": "e.g. Japan Trip 2026",
+      "namePlaceholder": "e.g. Kenting Trip 2026",
       "cover": "Cover Photo",
-      "coverUpload": "Upload cover"
+      "coverHint": "16:9 ratio recommended",
+      "coverUpload": "Upload cover",
+      "membersSection": "Members",
+      "searchMembers": "Search or enter a friend's name...",
+      "addAsMember": "Add \"{{name}}\" as member",
+      "creatorBadge": "Creator"
+    },
+    "list": {
+      "title": "Groups",
+      "search": "Search group name...",
+      "inProgress": "In Progress",
+      "settled": "Settled",
+      "noGroups": "No groups yet",
+      "noGroupsHint": "Tap + to create your first!",
+      "noResults": "No matching groups",
+      "shareInvite": "Share Invite Link",
+      "deleteGroup": "Delete Group"
+    },
+    "detail": {
+      "more": "More",
+      "shareInvite": "Share Invite Link",
+      "editGroup": "Edit Group",
+      "leaveGroup": "Leave Group",
+      "deleteGroup": "Delete Group",
+      "leaveConfirm": "Are you sure you want to leave?",
+      "leaveWithDebt": "You still have NT${{amount}} unsettled. Leave anyway?",
+      "deleteConfirm": "This cannot be undone. Delete this group?"
     },
     "summary": {
       "title": "Summary",
       "noExpenses": "No expenses yet",
       "addFirst": "Add the first expense",
       "owes": "{{from}} owes {{to}}",
-      "totalSpent": "Total spent"
+      "totalSpent": "Total spent",
+      "expandDetails": "Expand details"
     },
     "settle": {
       "title": "Settle Up",
       "noDebts": "All debts settled!",
       "transfer": "{{from}} pays {{to}}",
-      "markDone": "Mark as done",
-      "markAllDone": "Mark all as done",
+      "markDone": "Mark Done",
+      "markAllDone": "Mark All Complete",
+      "undoComplete": "Undo",
       "completed": "Completed",
-      "progress": "Settlement progress"
+      "progress": "Settlement Progress",
+      "progressDetail": "{{completed}} done / {{total}} total"
     },
     "members": {
       "title": "Members & Activity",
@@ -73,30 +125,43 @@
       "addMember": "Add Member",
       "memberName": "Member name",
       "unbound": "Not linked",
+      "bound": "Linked",
+      "creator": "Creator",
       "invite": "Invite Link",
+      "inviteMembers": "Invite Members",
       "copyLink": "Copy Link",
-      "linkCopied": "Invite link copied"
+      "linkCopied": "Invite link copied",
+      "editName": "Edit Name",
+      "removeMember": "Remove Member"
     }
   },
   "expense": {
     "add": "Add Expense",
     "edit": "Edit Expense",
     "title": "Item",
-    "titlePlaceholder": "e.g. Dinner, Transportation",
+    "titlePlaceholder": "e.g. Beer, Taxi...",
     "amount": "Amount",
     "amountPlaceholder": "0",
     "paidBy": "Paid by",
     "splitWith": "Split with",
     "date": "Date & Time",
-    "details": "Details",
+    "details": "Details (notes, photos)",
+    "detailsExpand": "Expand details",
     "description": "Note",
-    "descriptionPlaceholder": "Optional, e.g. Business dinner on 3/29",
+    "descriptionPlaceholder": "Optional, e.g. Business dinner on 3/29...",
     "receipt": "Receipt photo",
+    "receiptUpload": "Upload receipt",
     "splitMode": {
       "label": "Split Mode",
       "equal": "Split Equally",
       "amount": "Split by Amount",
       "percent": "Split by Percent"
+    },
+    "splitValidation": {
+      "total": "Total: NT${{total}}",
+      "remaining": "Remaining: NT${{remaining}}",
+      "percentTotal": "Total: {{percent}}%",
+      "mismatch": "Amount mismatch"
     },
     "repeat": {
       "label": "Repeat",
@@ -104,37 +169,93 @@
       "daily": "Daily",
       "weekly": "Weekly",
       "monthly": "Monthly",
-      "custom": "Custom"
+      "custom": "Custom",
+      "endDate": "End date",
+      "enabled": "On",
+      "disabled": "Off"
     },
-    "paidFor": "{{name}} paid for"
+    "paidFor": "{{name}} paid for",
+    "deleteConfirm": "Delete this expense?",
+    "recurring": "Recurring"
   },
   "personal": {
     "title": "Personal Ledger",
+    "search": "Search by name...",
+    "netSummary": "Summary",
     "youOwe": "You owe {{name}}",
     "owesYou": "{{name}} owes you",
+    "youOweTotal": "You owe",
+    "owedToYouTotal": "Owed to you",
     "settled": "Settled",
-    "noContacts": "No records yet",
+    "unsettled": "Unsettled",
+    "settledSection": "Settled",
+    "noContacts": "No personal lending yet",
+    "noContactsHint": "Tap the Add button to start recording!",
     "addExpense": "Add Record",
-    "optimalSplit": "Optimal Split"
+    "optimalSplit": "Optimal Split",
+    "optimalSplitDesc": "System will optimize across shared groups",
+    "optimalSplitFound": "Shared group found: {{groups}}",
+    "optimalSplitNotFound": "No shared groups found, using 1-on-1 calculation",
+    "settleAll": "Settle All",
+    "settleAllConfirm": "Settle all debts with {{name}}?",
+    "editContactName": "Edit Contact Name",
+    "deleteContact": "Delete Contact",
+    "deleteContactConfirm": "Delete all records with {{name}}?",
+    "lendingHistory": "Lending History",
+    "linked": "Linked",
+    "paidFor": "You paid for {{name}}",
+    "settledRecord": "Settled"
   },
   "join": {
     "title": "Join Group",
     "loading": "Loading group info...",
-    "question": "Are you an existing member of this group?",
+    "invitedToJoin": "You're invited to join",
+    "loginFirst": "Please log in to join",
+    "question": "Are you already in the member list?",
     "selectMember": "Select your identity",
-    "newMember": "I'm a new member",
+    "newMember": "None of the above, join as new member",
+    "boundMember": "Linked",
+    "unboundMember": "Not linked",
+    "confirmName": "Confirm your name in this group",
+    "nameHint": "You can keep the name set by the creator, or change it",
+    "displayAs": "Display as:",
+    "confirmJoin": "Confirm & Join Group",
     "updateName": "Update display name",
-    "joined": "Successfully joined the group!"
+    "joined": "Successfully joined!",
+    "invalidLink": "This invite link is invalid or the group doesn't exist",
+    "backToHome": "Back to Home"
   },
   "settings": {
     "title": "Settings",
+    "profile": "Profile",
+    "editProfile": "Edit",
+    "appearance": "Appearance",
     "language": "Language",
     "theme": "Theme",
     "themeLight": "Light",
     "themeDark": "Dark",
     "themeSystem": "System",
-    "logout": "Log out",
-    "profile": "Profile"
+    "account": "Account",
+    "bindGoogle": "Link Google Account",
+    "bindGoogleHint": "Link to keep all your data",
+    "bindSuccess": "Google account linked!",
+    "logout": "Log Out",
+    "logoutConfirm": "Are you sure you want to log out?",
+    "deleteAccount": "Delete Account",
+    "deleteAccountWarning": "This action cannot be undone. Are you sure?",
+    "deleteAccountConfirm": "Type \"DELETE\" to confirm",
+    "deleteAccountPlaceholder": "Type DELETE",
+    "deleteAccountSuccess": "Account deleted",
+    "about": "About",
+    "version": "Version",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "guest": "Guest Account",
+    "googleAccount": "Google Account",
+    "anonymous": "Anonymous User",
+    "anonymousHint": "Link Google to keep your data",
+    "editProfileTitle": "Edit Profile",
+    "changeAvatar": "Tap to change photo"
   },
   "nav": {
     "home": "Home",

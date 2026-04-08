@@ -179,7 +179,7 @@ service cloud.firestore {
     }
 
     // ── personalLedger ─────────────────────────────────────
-    // 個人借貸資料僅本人可存取
+    // 個人分帳資料僅本人可存取
     match /personalLedger/{userId} {
       allow read, write: if isOwner(userId);
 
@@ -204,7 +204,7 @@ service cloud.firestore {
 | 群組讀取 | `isGroupMember`（但 hasAny 失效）| 任何登入者 ✗ | `isGroupMember`（memberUids）✅ |
 | 群組建立 | `isSignedIn` | `isSignedIn` | `isSignedIn` + `createdBy == uid` ✅ |
 | 帳務讀寫 | `isGroupMember`（失效）| 任何登入者 ✗ | `isGroupMember` ✅ |
-| 個人借貸 | `isOwner` ✅ | `isOwner` ✅ | `isOwner` ✅ |
+| 個人分帳 | `isOwner` ✅ | `isOwner` ✅ | `isOwner` ✅ |
 | `isGroupMember` 原理 | `hasAny` 部分比對 ✗ | 無 | Map key 存取 ✅ |
 
 ---
@@ -272,4 +272,4 @@ function isGroupMember(groupId) {
 1. 模擬「非成員讀取群組」→ 應被拒絕
 2. 模擬「成員讀取自己所屬群組」→ 應通過
 3. 模擬「成員讀取他人群組」→ 應被拒絕
-4. 模擬「使用者讀取他人個人借貸」→ 應被拒絕
+4. 模擬「使用者讀取他人個人分帳」→ 應被拒絕

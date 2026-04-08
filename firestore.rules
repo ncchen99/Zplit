@@ -61,7 +61,7 @@ service cloud.firestore {
     }
 
     // ── personalLedger ─────────────────────────────────────
-    // 個人借貸資料僅本人可存取
+    // 個人分帳資料僅本人可存取
     match /personalLedger/{userId} {
       allow read, write: if isOwner(userId);
 
