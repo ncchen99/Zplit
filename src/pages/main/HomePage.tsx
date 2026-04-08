@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 import { useAuthStore } from '@/store/authStore';
 import type { Group } from '@/store/groupStore';
+import { getUserGroups, backfillInviteCodes } from '@/services/groupService';
 import {
   getContacts,
   getPersonalExpenses,
@@ -29,23 +28,17 @@ export function HomePage() {
     if (!user) return;
     const fetchGroups = async () => {
       try {
-        const q = query(
-          collection(db, 'groups'),
-          where(`memberUids.${user.uid}`, '==', true)
-        );
-        const snap = await getDocs(q);
-        const myGroups = snap.docs.map((d) => ({
-          ...d.data(),
-          groupId: d.id,
-        })) as Group[];
+        const myGroups = await getUserGroups(user.uid);
         setGroups(myGroups);
+        backfillInviteCodes(myGroups).catch((err) => {
+          logger.error('home.backfill', '補建 inviteCode 失敗', err);
+        });
       } catch (err) {
         logger.error('home.fetchGroups', '載入群組失敗', err);
       } finally {
         setLoading(false);
       }
     };
-    fetchGroups();
 
     const fetchPersonal = async () => {
       try {
@@ -133,32 +126,30 @@ export function HomePage() {
                 </button>
               </div>
 
-              <div className="mt-3 flex flex-col gap-2">
+              <div className="mt-2 flex flex-col md:gap-2">
                 {topGroups.map((g) => (
                   <div
                     key={g.groupId}
-                    className="card bg-base-200 cursor-pointer transition-colors active:bg-base-300"
+                    className="flex items-center gap-3 -mx-4 px-4 py-3 cursor-pointer active:bg-base-200/50 transition-colors border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-2 md:border-0 md:active:bg-base-300"
                     onClick={() => navigate(`/groups/${g.groupId}`)}
                   >
-                    <div className="card-body p-3">
-                      <div className="flex items-center gap-3">
-                        {g.coverUrl ? (
-                          <img
-                            src={g.coverUrl}
-                            alt=""
-                            className="h-12 w-16 rounded-lg object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-12 w-16 items-center justify-center rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 text-primary font-bold text-lg">
-                            {g.name.charAt(0)}
-                          </div>
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <h3 className="font-semibold truncate">{g.name}</h3>
-                          <p className="text-xs text-base-content/50">
-                            {t('common.members_count', { count: g.members?.length ?? 0 })}
-                          </p>
+                    <div className="flex items-center gap-3 w-full md:card-body md:p-3">
+                      {g.coverUrl ? (
+                        <img
+                          src={g.coverUrl}
+                          alt=""
+                          className="h-12 w-16 rounded-lg object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-12 w-16 items-center justify-center rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 text-primary font-bold text-lg">
+                          {g.name.charAt(0)}
                         </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-semibold truncate">{g.name}</h3>
+                        <p className="text-xs text-base-content/50">
+                          {t('common.members_count', { count: g.members?.length ?? 0 })}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -183,14 +174,14 @@ export function HomePage() {
                 </button>
               </div>
 
-              <div className="mt-3 flex flex-col gap-2">
+              <div className="mt-2 flex flex-col md:gap-2">
                 {personalContacts.map((c) => (
                   <div
                     key={c.contactId}
-                    className="card bg-base-200 cursor-pointer transition-colors active:bg-base-300"
+                    className="flex items-center gap-3 -mx-4 px-4 py-3 cursor-pointer active:bg-base-200/50 transition-colors border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-2 md:border-0 md:active:bg-base-300"
                     onClick={() => navigate(`/personal/${c.contactId}`)}
                   >
-                    <div className="card-body p-3 flex-row items-center gap-3">
+                    <div className="flex items-center gap-3 w-full md:card-body md:p-3">
                       <div className="avatar placeholder">
                         <div className="w-10 rounded-full bg-neutral text-neutral-content">
                           {c.avatarUrl ? (

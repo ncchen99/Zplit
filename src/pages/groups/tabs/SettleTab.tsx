@@ -139,9 +139,9 @@ export function SettleTab() {
           return (
             <div
               key={i}
-              className={`card bg-base-200 ${isCompleted ? 'opacity-60' : ''}`}
+              className={`-mx-4 px-4 py-3 border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-2 md:border-0 ${isCompleted ? 'opacity-60' : ''}`}
             >
-              <div className="card-body p-3">
+              <div className="w-full md:card-body md:p-3">
                 <div className="flex items-center gap-3">
                   {/* From avatar */}
                   <div className="avatar placeholder">
