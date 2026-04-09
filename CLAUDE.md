@@ -1,6 +1,4 @@
-# Zplit Project - Claude Code Guidelines (Condensed)
-
-本文件只保留工作指導。專案架構、路由、資料模型、關鍵檔案與技術堆疊請以 `README.md` 為唯一來源。
+# Zplit Project - Claude Code Guidelines
 
 ## Core Rules
 
