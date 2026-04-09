@@ -7,7 +7,7 @@ import { createOrUpdateUser } from '@/services/userService';
 import { ImageUpload } from '@/components/ui/ImageUpload';
 import { PageHeader, HeaderIconButton } from '@/components/ui/PageHeader';
 import { logger } from '@/utils/logger';
-import { CheckIcon } from '@heroicons/react/24/outline';
+import { Check as CheckIcon } from 'lucide-react';
 
 export function EditProfilePage() {
   const { t } = useTranslation();
@@ -67,7 +67,7 @@ export function EditProfilePage() {
             loading={saving}
             tone="primary"
           >
-            <CheckIcon className="h-6 w-6" />
+            <CheckIcon className="h-5 w-5" />
           </HeaderIconButton>
         )}
       />

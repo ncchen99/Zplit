@@ -23,9 +23,12 @@ import { CreateGroupPage } from '@/pages/groups/CreateGroupPage';
 import { GroupDetailPage } from '@/pages/groups/GroupDetailPage';
 import { AddExpensePage } from '@/pages/groups/AddExpensePage';
 import { ExpenseDetailPage } from '@/pages/groups/ExpenseDetailPage';
+import { EditExpensePage } from '@/pages/groups/EditExpensePage';
 import { JoinPage } from '@/pages/join/JoinPage';
 import { PersonalContactDetailPage } from '@/pages/personal/PersonalContactDetailPage';
 import { AddPersonalExpensePage } from '@/pages/personal/AddPersonalExpensePage';
+import { PersonalExpenseDetailPage } from '@/pages/personal/PersonalExpenseDetailPage';
+import { EditPersonalExpensePage } from '@/pages/personal/EditPersonalExpensePage';
 import { EditProfilePage } from '@/pages/settings/EditProfilePage';
 
 function AuthInitializer({ children }: { children: React.ReactNode }) {
@@ -139,9 +142,12 @@ export default function App() {
               <Route path="/groups/:groupId" element={<AuthGuard><GroupDetailPage /></AuthGuard>} />
               <Route path="/groups/:groupId/expense/new" element={<AuthGuard><AddExpensePage /></AuthGuard>} />
               <Route path="/groups/:groupId/expenses/:expenseId" element={<AuthGuard><ExpenseDetailPage /></AuthGuard>} />
+              <Route path="/groups/:groupId/expense/:expenseId/edit" element={<AuthGuard><EditExpensePage /></AuthGuard>} />
               <Route path="/personal/expense/new" element={<AuthGuard><AddPersonalExpensePage /></AuthGuard>} />
               <Route path="/personal/:contactId" element={<AuthGuard><PersonalContactDetailPage /></AuthGuard>} />
               <Route path="/personal/:contactId/expense/new" element={<AuthGuard><AddPersonalExpensePage /></AuthGuard>} />
+              <Route path="/personal/:contactId/expenses/:expenseId" element={<AuthGuard><PersonalExpenseDetailPage /></AuthGuard>} />
+              <Route path="/personal/:contactId/expenses/:expenseId/edit" element={<AuthGuard><EditPersonalExpensePage /></AuthGuard>} />
               <Route path="/settings/profile" element={<AuthGuard><EditProfilePage /></AuthGuard>} />
 
               {/* Fallback */}

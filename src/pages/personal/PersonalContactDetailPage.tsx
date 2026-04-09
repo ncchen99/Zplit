@@ -2,14 +2,14 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-  EllipsisVerticalIcon,
-  PlusIcon,
-  TrashIcon,
-  DocumentTextIcon,
-} from '@heroicons/react/24/outline';
-import { CheckCircleIcon } from '@heroicons/react/24/solid';
+  EllipsisVertical as EllipsisVerticalIcon,
+  Plus as PlusIcon,
+  FileText as DocumentTextIcon,
+  CircleCheck as CheckCircleIcon,
+} from 'lucide-react';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { PageHeader, HeaderIconButton } from '@/components/ui/PageHeader';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 import { useAuthStore } from '@/store/authStore';
 import { usePersonalStore } from '@/store/personalStore';
 import { useUIStore } from '@/store/uiStore';
@@ -18,7 +18,6 @@ import {
   getPersonalExpenses,
   computePersonalNetAmount,
   settleAllWithContact,
-  deletePersonalExpense,
   deleteContact,
   updateContact,
   type PersonalExpense,
@@ -107,27 +106,6 @@ export function PersonalContactDetailPage() {
     });
   };
 
-  const handleDeleteExpense = (expenseId: string) => {
-    if (!user || !contactId) return;
-    setConfirmModal({
-      open: true,
-      message: t('expense.deleteConfirm'),
-      confirmLabel: t('common.button.delete'),
-      confirmVariant: 'btn-error',
-      onConfirm: async () => {
-        closeConfirm();
-        try {
-          await deletePersonalExpense(user.uid, contactId, expenseId);
-          showToast(t('common.button.done'), 'success');
-          loadData();
-        } catch (err) {
-          logger.error('personal.deleteExpense', '刪除帳務失敗', err);
-          showToast(t('common.error'), 'error');
-        }
-      },
-    });
-  };
-
   const handleDeleteContact = () => {
     if (!user || !contactId) return;
     const contactName = currentContact?.displayName ?? '';
@@ -181,7 +159,7 @@ export function PersonalContactDetailPage() {
           onBack={() => navigate('/personal')}
           rightAction={(
             <HeaderIconButton onClick={() => {}} disabled>
-              <EllipsisVerticalIcon className="h-6 w-6" />
+              <EllipsisVerticalIcon className="h-5 w-5" />
             </HeaderIconButton>
           )}
         />
@@ -254,7 +232,7 @@ export function PersonalContactDetailPage() {
         rightAction={(
           <span className="dropdown dropdown-end">
             <HeaderIconButton onClick={() => setShowMenu(!showMenu)}>
-              <EllipsisVerticalIcon className="h-6 w-6" />
+              <EllipsisVerticalIcon className="h-5 w-5" />
             </HeaderIconButton>
             {showMenu && (
               <ul className="dropdown-content menu bg-base-200 rounded-box z-50 w-48 p-2 shadow-lg">
@@ -338,7 +316,8 @@ export function PersonalContactDetailPage() {
                 key={expense.expenseId}
                 expense={expense}
                 contactName={displayName}
-                onDelete={() => handleDeleteExpense(expense.expenseId)}
+                contactAvatarUrl={currentContact?.avatarUrl}
+                onClick={() => navigate(`/personal/${contactId}/expenses/${expense.expenseId}`)}
               />
             ))}
           </div>
@@ -380,11 +359,13 @@ export function PersonalContactDetailPage() {
 function ExpenseCard({
   expense,
   contactName,
-  onDelete,
+  contactAvatarUrl,
+  onClick,
 }: {
   expense: PersonalExpense;
   contactName: string;
-  onDelete: () => void;
+  contactAvatarUrl?: string | null;
+  onClick: () => void;
 }) {
   const { t } = useTranslation();
   const isSelfPaid = expense.paidBy === 'self';
@@ -394,48 +375,60 @@ function ExpenseCard({
         ((expense.date as { seconds: number })?.seconds ?? 0) * 1000
       ).toLocaleDateString()
     : '';
+  const user = useAuthStore((s) => s.user);
 
   return (
-    <div className="flex items-center gap-3 py-3 border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-2 md:border-0">
-      <div className="flex items-center gap-3 w-full md:card-body md:p-3">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <p className="font-semibold truncate">{expense.title}</p>
-            {isSettlement && (
-              <span className="badge badge-success badge-xs">{t('personal.settledRecord')}</span>
-            )}
-          </div>
-          <p className="text-xs text-base-content/50">
-            {isSelfPaid
-              ? t('personal.paidFor', { name: contactName })
-              : `${contactName} ${t('expense.paidFor', { name: '' }).trim()}`}
-            {dateStr && <span className="ml-1 text-base-content/30">{dateStr}</span>}
-          </p>
-          {expense.description && (
-            <p className="text-xs text-base-content/40 mt-0.5 truncate">
-              {expense.description}
-            </p>
+    <button
+      className="flex items-center gap-3 py-3 border-b border-base-200 last:border-b-0 text-left active:bg-base-200 transition-colors w-full"
+      onClick={onClick}
+    >
+      <UserAvatar
+        src={isSelfPaid ? (user?.avatarUrl ?? null) : contactAvatarUrl ?? null}
+        name={isSelfPaid ? (user?.displayName ?? '?') : contactName}
+      />
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5">
+          <p className="font-semibold truncate">{expense.title}</p>
+          {isSettlement && (
+            <span className="badge badge-success badge-xs">{t('personal.settledRecord')}</span>
           )}
         </div>
-        <div className="flex items-center gap-2">
-          <span
-            className={`font-bold ${isSelfPaid ? 'text-success' : 'text-warning'}`}
-          >
-            {isSelfPaid ? '+' : '-'}NT${expense.amount.toLocaleString()}
-          </span>
-          {!isSettlement && (
-            <button
-              className="btn btn-ghost btn-xs btn-circle"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete();
-              }}
-            >
-              <TrashIcon className="h-3.5 w-3.5 text-error" />
-            </button>
-          )}
+        <p className="text-xs text-base-content/50">
+          {dateStr && <span className="mr-1">{dateStr}</span>}
+        </p>
+        <p className="text-xs text-base-content/50">
+          {isSelfPaid
+            ? t('personal.paidFor', { name: contactName })
+            : t('personal.contactPaidByName', { name: contactName })}
+        </p>
+      </div>
+      <div className="flex flex-col items-end gap-1 flex-shrink-0">
+        <span
+          className={`font-bold ${isSelfPaid ? 'text-success' : 'text-warning'}`}
+        >
+          {isSelfPaid ? '+' : '-'}NT${expense.amount.toLocaleString()}
+        </span>
+        <div className="avatar-group -space-x-3">
+          <div className="avatar placeholder">
+            <div className="w-6 rounded-full bg-base-300 text-base-content">
+              {user?.avatarUrl ? (
+                <img src={user.avatarUrl} alt="" />
+              ) : (
+                <span className="text-[8px]">{user?.displayName?.charAt(0) ?? '?'}</span>
+              )}
+            </div>
+          </div>
+          <div className="avatar placeholder">
+            <div className="w-6 rounded-full bg-base-300 text-base-content">
+              {contactAvatarUrl ? (
+                <img src={contactAvatarUrl} alt="" />
+              ) : (
+                <span className="text-[8px]">{contactName.charAt(0)}</span>
+              )}
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </button>
   );
 }

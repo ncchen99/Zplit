@@ -194,6 +194,25 @@ export async function addPersonalExpense(
   }
 }
 
+export async function updatePersonalExpense(
+  userId: string,
+  contactId: string,
+  expenseId: string,
+  data: Partial<PersonalExpenseInput>
+): Promise<void> {
+  try {
+    const ref = doc(db, `personalLedger/${userId}/contacts/${contactId}/expenses/${expenseId}`);
+    await updateDoc(ref, {
+      ...data,
+      updatedAt: serverTimestamp(),
+    });
+    logger.info('personal.updateExpense', '個人帳務更新成功', { userId, contactId, expenseId });
+  } catch (err) {
+    logger.error('personal.updateExpense', '個人帳務更新失敗', err);
+    throw new ZplitError('EXPENSE_SAVE_FAILED', '更新個人帳務時發生錯誤', err);
+  }
+}
+
 export async function deletePersonalExpense(
   userId: string,
   contactId: string,

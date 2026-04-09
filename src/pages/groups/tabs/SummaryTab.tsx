@@ -4,12 +4,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useGroupStore } from '@/store/groupStore';
 import { computeBalances } from '@/lib/algorithm/settlement';
 import {
-  ChevronDownIcon,
-  DocumentTextIcon,
-} from '@heroicons/react/24/outline';
-import { ArrowPathIcon } from '@heroicons/react/24/solid';
+  ChevronDown as ChevronDownIcon,
+  FileText as DocumentTextIcon,
+  RotateCw as ArrowPathIcon,
+} from 'lucide-react';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { DebtTreemap, type DebtEntry } from '@/components/ui/DebtTreemap';
+import type { GroupMember } from '@/store/groupStore';
 
 interface SummaryTabProps {
   onNavigateSettle?: () => void;
@@ -31,6 +32,12 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
   const memberAvatarMap = useMemo(() => {
     const map = new Map<string, string | null>();
     currentGroup?.members?.forEach((m) => map.set(m.memberId, m.avatarUrl));
+    return map;
+  }, [currentGroup]);
+
+  const memberFullMap = useMemo(() => {
+    const map = new Map<string, GroupMember>();
+    currentGroup?.members?.forEach((m) => map.set(m.memberId, m));
     return map;
   }, [currentGroup]);
 
@@ -90,6 +97,12 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
               const isRepeat =
                 expense.repeat &&
                 (expense.repeat as { type?: string }).type !== 'none';
+              const dateStr = expense.date?.seconds
+                ? new Date(expense.date.seconds * 1000).toLocaleDateString()
+                : '';
+              const splitMembers = expense.splits
+                .map((s) => memberFullMap.get(s.memberId))
+                .filter(Boolean) as GroupMember[];
 
               return (
                 <button
@@ -108,12 +121,38 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
                       )}
                     </div>
                     <p className="text-xs text-base-content/50">
+                      {dateStr && <span className="mr-1">{dateStr}</span>}
+                    </p>
+                    <p className="text-xs text-base-content/50">
                       {t('expense.paidFor', { name: payer })}
                     </p>
                   </div>
-                  <span className="font-bold text-warning flex-shrink-0">
-                    NT${expense.amount.toLocaleString()}
-                  </span>
+                  <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                    <span className="font-bold text-warning">
+                      NT${expense.amount.toLocaleString()}
+                    </span>
+                    {splitMembers.length > 0 && (
+                      <div className="avatar-group -space-x-3">
+                        {splitMembers.slice(0, 4).map((m) => (
+                          <UserAvatar
+                            key={m.memberId}
+                            src={m.avatarUrl}
+                            name={m.displayName}
+                            size="w-6"
+                            textSize="text-[10px]"
+                            bgClass="bg-base-300 text-base-content/50"
+                          />
+                        ))}
+                        {splitMembers.length > 4 && (
+                          <div className="avatar placeholder flex-shrink-0">
+                            <div className="w-6 rounded-full bg-base-300 text-base-content/50 overflow-hidden flex items-center justify-center">
+                              <span className="text-[10px] font-semibold leading-none select-none">+{splitMembers.length - 4}</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </button>
               );
             })}

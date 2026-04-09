@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useGroupStore } from '@/store/groupStore';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
-import { addExpense } from '@/services/expenseService';
+import { updateExpense, deleteExpense } from '@/services/expenseService';
 import { recalculateSettlements } from '@/services/settlementService';
 import { getGroupById } from '@/services/groupService';
 import { logger } from '@/utils/logger';
@@ -12,63 +12,83 @@ import { getTaipeiDateTimeLocalString, parseTaipeiDateTimeLocalString } from '@/
 import { ImageUpload } from '@/components/ui/ImageUpload';
 import { PageHeader, HeaderIconButton } from '@/components/ui/PageHeader';
 import { UserAvatar } from '@/components/ui/UserAvatar';
-import { Check as CheckIcon, CircleCheck as CheckCircleIcon } from 'lucide-react';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { Check as CheckIcon, Trash2 as TrashIcon, CircleCheck as CheckCircleIcon } from 'lucide-react';
 
 type SplitMode = 'equal' | 'amount' | 'percent';
-type RepeatType = 'none' | 'daily' | 'weekly' | 'monthly';
 
-export function AddExpensePage() {
+export function EditExpensePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { groupId } = useParams<{ groupId: string }>();
+  const { groupId, expenseId } = useParams<{ groupId: string; expenseId: string }>();
   const currentGroup = useGroupStore((s) => s.currentGroup);
   const setCurrentGroup = useGroupStore((s) => s.setCurrentGroup);
+  const expenses = useGroupStore((s) => s.expenses);
   const user = useAuthStore((s) => s.user);
   const showToast = useUIStore((s) => s.showToast);
+
+  const expense = expenses.find((e) => e.expenseId === expenseId);
 
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
   const [paidBy, setPaidBy] = useState('');
   const [splitMode, setSplitMode] = useState<SplitMode>('equal');
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
-  const [membersInitialized, setMembersInitialized] = useState(false);
+  const [initialized, setInitialized] = useState(false);
   const [customAmounts, setCustomAmounts] = useState<Record<string, string>>({});
   const [customPercents, setCustomPercents] = useState<Record<string, string>>({});
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
-  const [showRepeat, setShowRepeat] = useState(false);
-  const [repeatType, setRepeatType] = useState<RepeatType>('none');
-  const [repeatEndDate, setRepeatEndDate] = useState('');
-  const [expenseDate, setExpenseDate] = useState(() => getTaipeiDateTimeLocalString());
+  const [expenseDate, setExpenseDate] = useState('');
   const [saving, setSaving] = useState(false);
   const [showDiscardModal, setShowDiscardModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const members = currentGroup?.members ?? [];
 
-  // 若 currentGroup 不在 store（例如直接導航到此頁），從 Firestore 載入
   useEffect(() => {
     if (!groupId || currentGroup?.groupId === groupId) return;
     getGroupById(groupId)
       .then((group) => { if (group) setCurrentGroup(group); })
-      .catch((err) => logger.error('addExpense', '載入群組失敗', err));
+      .catch((err) => logger.error('editExpense', 'Failed to load group', err));
   }, [groupId]);
 
-  // 當成員列表第一次有資料時，初始化 paidBy（找到當前使用者的 memberId）和 selectedMembers
+  // Initialize form from existing expense
   useEffect(() => {
-    if (membersInitialized || members.length === 0) return;
-    const myMember = members.find((m) => m.userId === user?.uid);
-    setPaidBy(myMember?.memberId ?? members[0]?.memberId ?? '');
-    setSelectedMembers(members.map((m) => m.memberId));
-    setMembersInitialized(true);
-  }, [members, membersInitialized, user?.uid]);
+    if (initialized || !expense) return;
+    setTitle(expense.title);
+    setAmount(String(expense.amount));
+    setPaidBy(expense.paidBy);
+    setSplitMode(expense.splitMode);
+    setSelectedMembers(expense.splits.map((s) => s.memberId));
+    setDescription(expense.description ?? '');
+    setImageUrl(expense.imageUrl ?? null);
+    if (expense.description || expense.imageUrl) setShowDetails(true);
+
+    if (expense.splitMode === 'amount') {
+      const amounts: Record<string, string> = {};
+      expense.splits.forEach((s) => { amounts[s.memberId] = String(s.amount); });
+      setCustomAmounts(amounts);
+    }
+    if (expense.splitMode === 'percent') {
+      const percents: Record<string, string> = {};
+      expense.splits.forEach((s) => {
+        percents[s.memberId] = String(Math.round((s.amount / expense.amount) * 100));
+      });
+      setCustomPercents(percents);
+    }
+
+    if (expense.date?.seconds) {
+      setExpenseDate(getTaipeiDateTimeLocalString(new Date(expense.date.seconds * 1000)));
+    }
+    setInitialized(true);
+  }, [expense, initialized]);
 
   const amountNum = parseInt(amount) || 0;
 
-  // Calculate splits based on mode
   const splits = useMemo(() => {
     if (!amountNum || selectedMembers.length === 0) return [];
-
     switch (splitMode) {
       case 'equal': {
         const perPerson = Math.floor(amountNum / selectedMembers.length);
@@ -86,10 +106,7 @@ export function AddExpensePage() {
       case 'percent':
         return selectedMembers.map((memberId) => {
           const pct = parseFloat(customPercents[memberId] ?? '0') || 0;
-          return {
-            memberId,
-            amount: Math.round((amountNum * pct) / 100),
-          };
+          return { memberId, amount: Math.round((amountNum * pct) / 100) };
         });
       default:
         return [];
@@ -109,9 +126,7 @@ export function AddExpensePage() {
 
   const toggleMember = (memberId: string) => {
     setSelectedMembers((prev) =>
-      prev.includes(memberId)
-        ? prev.filter((id) => id !== memberId)
-        : [...prev, memberId]
+      prev.includes(memberId) ? prev.filter((id) => id !== memberId) : [...prev, memberId]
     );
   };
 
@@ -128,19 +143,16 @@ export function AddExpensePage() {
   };
 
   const handleBack = () => {
-    if (title.trim() || amount) {
-      setShowDiscardModal(true);
-      return;
-    }
-    navigate(-1);
+    setShowDiscardModal(true);
   };
 
-  const submitExpense = async () => {
-    if (!groupId || !user || !isValid) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!groupId || !expenseId || !user || !isValid) return;
 
     setSaving(true);
     try {
-      await addExpense(groupId, {
+      await updateExpense(groupId, expenseId, {
         title: title.trim(),
         amount: amountNum,
         paidBy,
@@ -149,35 +161,59 @@ export function AddExpensePage() {
         description: description.trim() || null,
         imageUrl,
         date: parseTaipeiDateTimeLocalString(expenseDate),
-        createdBy: user.uid,
-      });
+      }, user.uid);
 
       await recalculateSettlements(groupId);
-
-      showToast(t('common.toast.expenseAdded'), 'success');
-      navigate(`/groups/${groupId}`, { replace: true });
+      showToast(t('common.toast.saved'), 'success');
+      navigate(`/groups/${groupId}/expenses/${expenseId}`, { replace: true });
     } catch (err) {
-      logger.error('expense.add', '新增帳務失敗', err);
+      logger.error('expense.edit', 'Failed to update expense', err);
       showToast(t('common.error'), 'error');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await submitExpense();
+  const handleDelete = async () => {
+    if (!groupId || !expenseId) return;
+    setSaving(true);
+    try {
+      await deleteExpense(groupId, expenseId);
+      await recalculateSettlements(groupId);
+      showToast(t('common.button.done'), 'success');
+      navigate(`/groups/${groupId}`, { replace: true });
+    } catch (err) {
+      logger.error('expense.delete', 'Failed to delete expense', err);
+      showToast(t('common.error'), 'error');
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (!expense) {
+    return (
+      <div className="px-4 pt-4 pb-10 space-y-5">
+        <div className="flex items-center justify-between">
+          <div className="skeleton h-8 w-8 rounded-full" />
+          <div className="skeleton h-6 w-24" />
+          <div className="skeleton h-8 w-8 rounded-full" />
+        </div>
+        <div className="skeleton h-12 w-full rounded-xl" />
+        <div className="skeleton h-12 w-full rounded-xl" />
+        <div className="skeleton h-12 w-full rounded-xl" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
       <PageHeader
-        title={t('expense.add')}
+        title={t('expense.edit')}
         onBack={handleBack}
         sticky
         rightAction={(
           <HeaderIconButton
-            onClick={submitExpense}
+            onClick={() => handleSubmit({ preventDefault: () => {} } as React.FormEvent)}
             disabled={!isValid || saving}
             loading={saving}
             tone="primary"
@@ -199,7 +235,6 @@ export function AddExpensePage() {
             onChange={(e) => setTitle(e.target.value)}
             maxLength={50}
             required
-            autoFocus
           />
         </fieldset>
 
@@ -267,19 +302,11 @@ export function AddExpensePage() {
             <span className="text-sm font-medium">{t('expense.splitWith')}</span>
             {splitMode === 'equal' && (
               <div className="flex gap-2">
-                <button
-                  type="button"
-                  className="btn btn-ghost btn-xs"
-                  onClick={selectAll}
-                >
+                <button type="button" className="btn btn-ghost btn-xs" onClick={selectAll}>
                   {t('common.button.selectAll')}
                 </button>
                 <span className="text-base-content/20">|</span>
-                <button
-                  type="button"
-                  className="btn btn-ghost btn-xs"
-                  onClick={clearAll}
-                >
+                <button type="button" className="btn btn-ghost btn-xs" onClick={clearAll}>
                   {t('common.button.clearAll')}
                 </button>
               </div>
@@ -326,7 +353,6 @@ export function AddExpensePage() {
             </form>
           )}
 
-          {/* 平均分帳改由上方 filter 直接控制，不再顯示重複名單 */}
           {splitMode !== 'equal' && (
             <div className="flex flex-col gap-2">
               {members.map((m) => {
@@ -427,8 +453,6 @@ export function AddExpensePage() {
                 rows={2}
               />
             </fieldset>
-
-            {/* Image Upload */}
             <div>
               <label className="text-sm font-medium text-base-content/60 mb-2 block">
                 {t('expense.receipt')}
@@ -445,49 +469,18 @@ export function AddExpensePage() {
           </div>
         </div>
 
-        {/* Expandable Repeat */}
-        <div className="collapse collapse-arrow bg-base-200 rounded-xl">
-          <input
-            type="checkbox"
-            checked={showRepeat}
-            onChange={(e) => setShowRepeat(e.target.checked)}
-          />
-          <div className="collapse-title font-medium text-sm">
-            {t('expense.repeat.label')}{' '}
-            <span className="text-base-content/50">
-              {repeatType === 'none' ? t('expense.repeat.disabled') : t('expense.repeat.enabled')}
-            </span>
-          </div>
-          <div className="collapse-content flex flex-col gap-3">
-            <div className="join w-full">
-              {(['none', 'daily', 'weekly', 'monthly'] as RepeatType[]).map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  className={`join-item btn btn-sm flex-1 ${repeatType === type ? 'btn-active' : ''}`}
-                  onClick={() => setRepeatType(type)}
-                >
-                  {t(`expense.repeat.${type}`)}
-                </button>
-              ))}
-            </div>
-
-            {repeatType !== 'none' && (
-              <fieldset className="fieldset w-full">
-                <legend className="fieldset-legend">{t('expense.repeat.endDate')}</legend>
-                <input
-                  type="date"
-                  className="input w-full"
-                  value={repeatEndDate}
-                  onChange={(e) => setRepeatEndDate(e.target.value)}
-                />
-              </fieldset>
-            )}
-          </div>
-        </div>
+        {/* Delete */}
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm text-error gap-2 self-start"
+          onClick={() => setShowDeleteModal(true)}
+        >
+          <TrashIcon className="h-4 w-4" />
+          {t('common.button.delete')}
+        </button>
       </form>
 
-      {/* Discard confirmation modal */}
+      {/* Discard modal */}
       {showDiscardModal && (
         <div className="modal modal-open">
           <div className="modal-box">
@@ -505,6 +498,17 @@ export function AddExpensePage() {
           <div className="modal-backdrop" onClick={() => setShowDiscardModal(false)} />
         </div>
       )}
+
+      {/* Delete modal */}
+      <ConfirmModal
+        open={showDeleteModal}
+        message={t('expense.deleteConfirm')}
+        confirmLabel={t('common.button.delete')}
+        confirmVariant="btn-error"
+        cancelLabel={t('common.button.cancel')}
+        onConfirm={() => { setShowDeleteModal(false); handleDelete(); }}
+        onCancel={() => setShowDeleteModal(false)}
+      />
     </div>
   );
 }

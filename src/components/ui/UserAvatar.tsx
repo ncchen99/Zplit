@@ -19,7 +19,7 @@ export function UserAvatar({
   src,
   name,
   size = 'w-10',
-  textSize = 'text-sm',
+  textSize = 'text-[17px]',
   bgClass = 'bg-base-300 text-base-content',
 }: UserAvatarProps) {
   const [imgError, setImgError] = useState(false);
@@ -37,7 +37,7 @@ export function UserAvatar({
             onError={() => setImgError(true)}
           />
         ) : (
-          <span className={`${textSize} font-semibold leading-none select-none`}>{initial}</span>
+          <span className={`${textSize} text-base-content/60 font-semibold leading-none select-none`}>{initial}</span>
         )}
       </div>
     </div>

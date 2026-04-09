@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { ChevronLeftIcon } from '@heroicons/react/24/outline';
+import { ArrowLeft as ArrowLeftIcon } from 'lucide-react';
 
 interface PageHeaderProps {
   title: ReactNode;
@@ -23,11 +23,11 @@ export function HeaderIconButton({
   tone = 'default',
   children,
 }: HeaderIconButtonProps) {
+  const toneClass = tone === 'primary' ? 'text-base-content/50' : 'text-base-content/50';
+
   return (
     <button
-      className={`btn btn-ghost btn-sm btn-circle disabled:opacity-30 disabled:cursor-not-allowed ${
-        tone === 'primary' ? 'text-primary' : ''
-      }`}
+      className={`btn btn-ghost btn-sm btn-circle ${toneClass} hover:text-base-content/50 [&>svg]:h-5 [&>svg]:w-5 disabled:opacity-30 disabled:cursor-not-allowed`}
       onClick={onClick}
       disabled={disabled}
     >
@@ -43,17 +43,19 @@ export function PageHeader({ title, onBack, rightAction, sticky = false }: PageH
         sticky ? 'sticky top-0 bg-base-100 z-10' : ''
       }`}
     >
-      <button
-        className="btn btn-ghost btn-sm btn-circle -ml-2 text-base-content/60 hover:text-base-content"
-        onClick={onBack}
-        aria-label="Back"
-      >
-        <ChevronLeftIcon className="h-6 w-6" />
-      </button>
+      <div className="flex w-10 justify-start">
+        <button
+          className="btn btn-ghost btn-sm btn-circle text-base-content/50 hover:text-base-content/50 [&>svg]:h-5 [&>svg]:w-5"
+          onClick={onBack}
+          aria-label="Back"
+        >
+          <ArrowLeftIcon />
+        </button>
+      </div>
 
       <h1 className="flex-1 truncate px-2 text-center text-lg font-bold">{title}</h1>
 
-      <div className="-mr-2 flex min-w-9 justify-end">
+      <div className="flex w-10 justify-end">
         {rightAction ?? <span className="h-9 w-9" aria-hidden="true" />}
       </div>
     </div>

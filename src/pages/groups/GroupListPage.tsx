@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store/authStore';
 import type { Group } from '@/store/groupStore';
 import { getUserGroups } from '@/services/groupService';
 import { logger } from '@/utils/logger';
-import { PlusIcon, MagnifyingGlassIcon, UserGroupIcon } from '@heroicons/react/24/outline';
+import { Plus as PlusIcon, Search as MagnifyingGlassIcon, Users as UserGroupIcon } from 'lucide-react';
 import { GroupListItem } from '@/components/ui/GroupListItem';
 
 export function GroupListPage() {

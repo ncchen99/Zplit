@@ -19,9 +19,9 @@ import { SettingsTab } from './tabs/SettingsTab';
 import { PageHeader, HeaderIconButton } from '@/components/ui/PageHeader';
 import { useState } from 'react';
 import {
-  PlusIcon,
-  ShareIcon,
-} from '@heroicons/react/24/outline';
+  Plus as PlusIcon,
+  Share2 as ShareIcon,
+} from 'lucide-react';
 
 type TabKey = 'summary' | 'settle' | 'members' | 'settings';
 
@@ -131,7 +131,7 @@ export function GroupDetailPage() {
           onBack={() => navigate('/home')}
           rightAction={(
             <HeaderIconButton onClick={() => {}} disabled>
-              <ShareIcon className="h-6 w-6" />
+              <ShareIcon className="h-5 w-5" />
             </HeaderIconButton>
           )}
         />
@@ -190,7 +190,7 @@ export function GroupDetailPage() {
         onBack={() => navigate('/home')}
         rightAction={(
           <HeaderIconButton onClick={handleShare}>
-            <ShareIcon className="h-6 w-6" />
+            <ShareIcon className="h-5 w-5" />
           </HeaderIconButton>
         )}
       />

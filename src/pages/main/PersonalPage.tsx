@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { PlusIcon, MagnifyingGlassIcon, ChevronDownIcon, BanknotesIcon } from '@heroicons/react/24/outline';
-import { CheckCircleIcon } from '@heroicons/react/24/solid';
+import { Plus as PlusIcon, Search as MagnifyingGlassIcon, ChevronDown as ChevronDownIcon, Banknote as BanknotesIcon, CircleCheck as CheckCircleIcon } from 'lucide-react';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { useAuthStore } from '@/store/authStore';
 import { usePersonalStore } from '@/store/personalStore';

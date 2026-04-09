@@ -7,8 +7,8 @@ import { createGroup, addPlaceholderMember } from '@/services/groupService';
 import { logger } from '@/utils/logger';
 import { ImageUpload } from '@/components/ui/ImageUpload';
 import { PageHeader, HeaderIconButton } from '@/components/ui/PageHeader';
-import { XMarkIcon, CheckIcon } from '@heroicons/react/24/outline';
-import { StarIcon, PlusIcon } from '@heroicons/react/24/solid';
+import { UserAvatar } from '@/components/ui/UserAvatar';
+import { X as XMarkIcon, Check as CheckIcon, Star as StarIcon, Plus as PlusIcon } from 'lucide-react';
 
 interface PreAddMember {
   id: string;
@@ -59,8 +59,7 @@ export function CreateGroupPage() {
     navigate(-1);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const submitGroup = async () => {
     if (!user || !name.trim()) return;
 
     setSaving(true);
@@ -90,6 +89,11 @@ export function CreateGroupPage() {
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await submitGroup();
+  };
+
   return (
     <div className="flex min-h-screen flex-col">
       <PageHeader
@@ -97,12 +101,12 @@ export function CreateGroupPage() {
         onBack={handleBack}
         rightAction={(
           <HeaderIconButton
-            onClick={handleSubmit}
+            onClick={submitGroup}
             disabled={!name.trim() || saving}
             loading={saving}
             tone="primary"
           >
-            <CheckIcon className="h-6 w-6" />
+            <CheckIcon className="h-5 w-5" />
           </HeaderIconButton>
         )}
       />
@@ -152,11 +156,13 @@ export function CreateGroupPage() {
                 key={m.id}
                 className="badge badge-lg gap-1 pr-1"
               >
-                <div className="avatar placeholder">
-                  <div className="w-5 rounded-full bg-neutral text-neutral-content">
-                    <span className="text-[10px]">{m.name.charAt(0)}</span>
-                  </div>
-                </div>
+                <UserAvatar
+                  src={null}
+                  name={m.name}
+                  size="w-5"
+                  textSize="text-[10px]"
+                  bgClass="bg-base-300 text-base-content"
+                />
                 <span className="text-sm">{m.name}</span>
                 {m.isCreator ? (
                   <StarIcon className="h-3.5 w-3.5 text-warning" />

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { uploadImage } from '@/services/uploadService';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
-import { CameraIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Camera as CameraIcon, X as XMarkIcon } from 'lucide-react';
 
 interface ImageUploadProps {
   currentUrl?: string | null;
@@ -39,7 +39,7 @@ export function ImageUpload({
 
     setUploading(true);
     try {
-      const url = await uploadImage(file, firebaseUser);
+      const url = await uploadImage(file);
       setPreview(url);
       onUpload(url);
     } catch {

@@ -10,8 +10,7 @@ import {
 } from '@/services/groupService';
 import type { Group, GroupMember } from '@/store/groupStore';
 import { logger } from '@/utils/logger';
-import { ChevronLeftIcon, UserPlusIcon, LinkIcon } from '@heroicons/react/24/outline';
-import { ExclamationCircleIcon } from '@heroicons/react/24/solid';
+import { ChevronLeft as ChevronLeftIcon, UserPlus as UserPlusIcon, Link as LinkIcon, CircleAlert as ExclamationCircleIcon } from 'lucide-react';
 
 type Step = 'info' | 'select' | 'confirm';
 

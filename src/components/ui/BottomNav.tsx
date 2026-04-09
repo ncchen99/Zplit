@@ -1,17 +1,11 @@
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
-  HomeIcon,
-  UserGroupIcon,
-  WalletIcon,
-  Cog8ToothIcon,
-} from '@heroicons/react/24/outline';
-import {
-  HomeIcon as HomeIconSolid,
-  UserGroupIcon as UserGroupIconSolid,
-  WalletIcon as WalletIconSolid,
-  Cog8ToothIcon as Cog8ToothIconSolid,
-} from '@heroicons/react/24/solid';
+  House as HomeIcon,
+  Users as UserGroupIcon,
+  Wallet as WalletIcon,
+  Settings as Cog8ToothIcon,
+} from 'lucide-react';
 
 const navItems = [
   { key: 'home', path: '/home', icon: 'home' },
@@ -25,13 +19,13 @@ function NavIcon({ icon, active }: { icon: string; active: boolean }) {
 
   switch (icon) {
     case 'home':
-      return active ? <HomeIconSolid className={`h-6 w-6 ${cls}`} /> : <HomeIcon className={`h-6 w-6 ${cls}`} />;
+      return <HomeIcon className={`h-6 w-6 ${cls}`} />;
     case 'groups':
-      return active ? <UserGroupIconSolid className={`h-6 w-6 ${cls}`} /> : <UserGroupIcon className={`h-6 w-6 ${cls}`} />;
+      return <UserGroupIcon className={`h-6 w-6 ${cls}`} />;
     case 'personal':
-      return active ? <WalletIconSolid className={`h-6 w-6 ${cls}`} /> : <WalletIcon className={`h-6 w-6 ${cls}`} />;
+      return <WalletIcon className={`h-6 w-6 ${cls}`} />;
     case 'settings':
-      return active ? <Cog8ToothIconSolid className={`h-6 w-6 ${cls}`} /> : <Cog8ToothIcon className={`h-6 w-6 ${cls}`} />;
+      return <Cog8ToothIcon className={`h-6 w-6 ${cls}`} />;
     default:
       return null;
   }

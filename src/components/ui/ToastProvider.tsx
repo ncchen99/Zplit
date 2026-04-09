@@ -21,7 +21,7 @@ export function ToastProvider() {
           key={t.id}
           className={`alert ${
             t.type === 'success'
-              ? 'alert-success text-success-content'
+              ? 'alert-success text-white'
               : t.type === 'error'
                 ? 'alert-error text-error-content'
                 : 'alert-info text-info-content'

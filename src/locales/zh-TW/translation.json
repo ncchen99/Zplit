@@ -136,9 +136,9 @@
     "settle": {
       "title": "清算",
       "noDebts": "所有債務已結清！",
-      "transfer": "{{from}} 轉帳給 {{to}}",
+      "transfer": "{{from}} 支付給 {{to}}",
       "markDone": "標記完成",
-      "markAllDone": "一鍵全部標記完成",
+      "markAllDone": "全部標記完成",
       "undoComplete": "撤銷完成",
       "completed": "已完成",
       "progress": "清算進度",

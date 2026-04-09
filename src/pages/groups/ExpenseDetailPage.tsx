@@ -3,8 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useGroupStore } from '@/store/groupStore';
 import { PageHeader, HeaderIconButton } from '@/components/ui/PageHeader';
-import { PencilSquareIcon } from '@heroicons/react/24/outline';
-import { ArrowPathIcon } from '@heroicons/react/24/solid';
+import { Pencil as PencilIcon, RotateCw as ArrowPathIcon } from 'lucide-react';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 
 export function ExpenseDetailPage() {
@@ -63,26 +62,24 @@ export function ExpenseDetailPage() {
         onBack={() => navigate(`/groups/${groupId}`)}
         rightAction={(
           <HeaderIconButton onClick={() => navigate(`/groups/${groupId}/expense/${expenseId}/edit`)}>
-            <PencilSquareIcon className="h-6 w-6" />
+            <PencilIcon className="h-5 w-5" />
           </HeaderIconButton>
         )}
       />
 
-      <div className="px-4 pb-16 flex flex-col gap-5">
-        {/* Title, Amount, Date */}
-        <div className="bg-base-200 rounded-2xl p-4">
-          <div className="flex items-start justify-between gap-2">
-            <h2 className="text-xl font-bold leading-tight flex items-center gap-2">
+      <div className="px-4 pb-16 flex flex-col gap-5 mt-4">
+        {/* Summary stat */}
+        <div className="stats w-full border border-base-300 bg-base-100">
+          <div className="stat">
+            <div className="stat-title flex items-center gap-2">
               {expense.title}
-              {isRepeat && <ArrowPathIcon className="h-4 w-4 text-base-content/50 flex-shrink-0" />}
-            </h2>
-            <span className="text-2xl font-bold text-warning flex-shrink-0">
+              {isRepeat && <ArrowPathIcon className="h-4 w-4 text-base-content/50" />}
+            </div>
+            <div className="stat-value text-warning">
               NT${expense.amount.toLocaleString()}
-            </span>
+            </div>
+            {date && <div className="stat-desc">{date}</div>}
           </div>
-          {date && (
-            <p className="text-sm text-base-content/50 mt-2">{date}</p>
-          )}
         </div>
 
         {/* Payer */}
@@ -90,7 +87,7 @@ export function ExpenseDetailPage() {
           <h3 className="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-2">
             {t('expense.paidBy')}
           </h3>
-          <div className="flex items-center gap-3 bg-base-200 rounded-xl p-3">
+          <div className="flex items-center gap-3 py-2">
             <UserAvatar src={payerAvatar} name={payerName} />
             <span className="font-semibold">{payerName}</span>
           </div>
@@ -101,16 +98,14 @@ export function ExpenseDetailPage() {
           <h3 className="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-2">
             {t('expense.splitWith')}
           </h3>
-          <div className="bg-base-200 rounded-xl overflow-hidden">
-            {expense.splits.map((split, i) => {
+          <div className="flex flex-col">
+            {expense.splits.map((split) => {
               const name = memberMap.get(split.memberId) ?? split.memberId;
               const avatar = memberAvatarMap.get(split.memberId) ?? null;
               return (
                 <div
                   key={split.memberId}
-                  className={`flex items-center justify-between px-3 py-3 ${
-                    i < expense.splits.length - 1 ? 'border-b border-base-300' : ''
-                  }`}
+                  className="flex items-center justify-between py-3 border-b border-base-200 last:border-b-0"
                 >
                   <div className="flex items-center gap-3">
                     <UserAvatar src={avatar} name={name} size="w-8" textSize="text-xs" />
@@ -129,9 +124,7 @@ export function ExpenseDetailPage() {
             <h3 className="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-2">
               {t('expense.description')}
             </h3>
-            <div className="bg-base-200 rounded-xl p-3">
-              <p className="text-sm">{expense.description}</p>
-            </div>
+            <p className="text-sm">{expense.description}</p>
           </div>
         )}
 

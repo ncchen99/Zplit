@@ -6,13 +6,13 @@ import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { logger } from '@/utils/logger';
 import {
-  ChevronRightIcon,
-  GlobeAltIcon,
-  SwatchIcon,
-  ArrowRightStartOnRectangleIcon,
-  TrashIcon,
-  LinkIcon,
-} from '@heroicons/react/24/outline';
+  ChevronRight as ChevronRightIcon,
+  Languages as GlobeAltIcon,
+  Palette as SwatchIcon,
+  LogOut as ArrowRightStartOnRectangleIcon,
+  Trash2 as TrashIcon,
+  Link as LinkIcon,
+} from 'lucide-react';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 
 export function SettingsPage() {

@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { CheckCircleIcon } from '@heroicons/react/24/solid';
+import { CircleCheck as CheckCircleIcon } from 'lucide-react';
 import type { Group } from '@/store/groupStore';
 
 export function GroupListItem({

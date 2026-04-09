@@ -7,7 +7,7 @@ import { db } from '@/lib/firebase';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { logger } from '@/utils/logger';
-import { ArrowRightIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { ArrowRight as ArrowRightIcon, Sparkles as SparklesIcon, Check as CheckIcon } from 'lucide-react';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
@@ -138,7 +138,7 @@ export function SettleTab() {
       />
 
       {/* Settlement list */}
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col">
         {computedDebts.map((debt, i) => {
           const matchingSettlement = settlements.find(
             (s) => s.from === debt.from && s.to === debt.to && s.amount === debt.amount
@@ -148,53 +148,44 @@ export function SettleTab() {
           return (
             <div
               key={i}
-              className={`py-3 border-b border-base-200 last:border-b-0 ${isCompleted ? 'opacity-60' : ''}`}
+              className={`flex items-center gap-3 py-3 border-b border-base-200 last:border-b-0 ${isCompleted ? 'opacity-50' : ''}`}
             >
-              <div className="w-full">
-                <div className="flex items-center gap-3">
-                  <UserAvatar src={null} name={getName(debt.from)} size="w-9" />
+              <UserAvatar src={null} name={getName(debt.from)} size="w-9" />
+              <ArrowRightIcon className="h-4 w-4 text-base-content/40 flex-shrink-0" />
+              <UserAvatar src={null} name={getName(debt.to)} size="w-9" />
 
-                  <ArrowRightIcon className="h-4 w-4 text-base-content/40" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold truncate">
+                  {t('group.settle.transfer', {
+                    from: getName(debt.from),
+                    to: getName(debt.to),
+                  })}
+                </p>
+                <p className="text-base font-bold text-warning">
+                  NT${debt.amount.toLocaleString()}
+                </p>
+              </div>
 
-                  <UserAvatar src={null} name={getName(debt.to)} size="w-9" />
-
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate">
-                      {t('group.settle.transfer', {
-                        from: getName(debt.from),
-                        to: getName(debt.to),
-                      })}
-                    </p>
-                    <p className="text-lg font-bold text-warning">
-                      NT${debt.amount.toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-2 flex justify-end">
-                  {isCompleted ? (
-                    <div className="flex items-center gap-2">
-                      <span className="badge badge-success">{t('group.settle.completed')}</span>
-                      {matchingSettlement && (
-                        <button
-                          className="btn btn-ghost btn-xs"
-                          onClick={() => handleUndoComplete(matchingSettlement.settlementId)}
-                        >
-                          {t('group.settle.undoComplete')}
-                        </button>
-                      )}
-                    </div>
-                  ) : matchingSettlement ? (
-                    <button
-                      className="btn btn-primary btn-sm"
-                      onClick={() => handleMarkDone(matchingSettlement.settlementId)}
-                    >
-                      {t('group.settle.markDone')}
-                    </button>
-                  ) : (
-                    <span className="badge badge-ghost text-xs">pending</span>
-                  )}
-                </div>
+              <div className="flex-shrink-0">
+                {isCompleted ? (
+                  <button
+                    className="btn btn-ghost btn-sm btn-circle text-success"
+                    onClick={() => matchingSettlement && handleUndoComplete(matchingSettlement.settlementId)}
+                    title={t('group.settle.undoComplete')}
+                  >
+                    <CheckIcon className="h-5 w-5" />
+                  </button>
+                ) : matchingSettlement ? (
+                  <button
+                    className="btn btn-outline btn-primary btn-sm btn-circle"
+                    onClick={() => handleMarkDone(matchingSettlement.settlementId)}
+                    title={t('group.settle.markDone')}
+                  >
+                    <CheckIcon className="h-5 w-5" />
+                  </button>
+                ) : (
+                  <span className="badge badge-ghost badge-sm">pending</span>
+                )}
               </div>
             </div>
           );
