@@ -1,12 +1,19 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useGroupStore } from '@/store/groupStore';
+import {
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+  doc,
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useGroupStore, type Expense, type Group } from '@/store/groupStore';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { updateExpense, deleteExpense } from '@/services/expenseService';
 import { recalculateSettlements } from '@/services/settlementService';
-import { getGroupById } from '@/services/groupService';
 import { logger } from '@/utils/logger';
 import { getTaipeiDateTimeLocalString, parseTaipeiDateTimeLocalString } from '@/utils/datetime';
 import { ImageUpload } from '@/components/ui/ImageUpload';
@@ -21,13 +28,58 @@ export function EditExpensePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { groupId, expenseId } = useParams<{ groupId: string; expenseId: string }>();
-  const currentGroup = useGroupStore((s) => s.currentGroup);
+  const storeGroup = useGroupStore((s) => s.currentGroup);
+  const storeExpenses = useGroupStore((s) => s.expenses);
   const setCurrentGroup = useGroupStore((s) => s.setCurrentGroup);
-  const expenses = useGroupStore((s) => s.expenses);
+  const setExpenses = useGroupStore((s) => s.setExpenses);
   const user = useAuthStore((s) => s.user);
   const showToast = useUIStore((s) => s.showToast);
 
-  const expense = expenses.find((e) => e.expenseId === expenseId);
+  const needsFetch = !storeGroup || storeGroup.groupId !== groupId || storeExpenses.length === 0;
+  const [loading, setLoading] = useState(needsFetch);
+
+  // Fetch from Firestore when store is empty (e.g. page refresh)
+  useEffect(() => {
+    if (!groupId || !needsFetch) {
+      setLoading(false);
+      return;
+    }
+
+    let groupLoaded = false;
+    let expensesLoaded = false;
+    const tryFinish = () => {
+      if (groupLoaded && expensesLoaded) setLoading(false);
+    };
+
+    const groupUnsub = onSnapshot(
+      doc(db, 'groups', groupId),
+      (snap) => {
+        if (snap.exists()) {
+          setCurrentGroup({ groupId: snap.id, ...snap.data() } as Group);
+        }
+        groupLoaded = true;
+        tryFinish();
+      }
+    );
+
+    const expensesUnsub = onSnapshot(
+      query(collection(db, `groups/${groupId}/expenses`), orderBy('date', 'desc')),
+      (snap) => {
+        const expenses = snap.docs.map((d) => ({ ...d.data(), expenseId: d.id })) as Expense[];
+        setExpenses(expenses);
+        expensesLoaded = true;
+        tryFinish();
+      }
+    );
+
+    return () => {
+      groupUnsub();
+      expensesUnsub();
+    };
+  }, [groupId]);
+
+  const currentGroup = storeGroup?.groupId === groupId ? storeGroup : null;
+  const expense = storeExpenses.find((e) => e.expenseId === expenseId);
 
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
@@ -46,13 +98,6 @@ export function EditExpensePage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const members = currentGroup?.members ?? [];
-
-  useEffect(() => {
-    if (!groupId || currentGroup?.groupId === groupId) return;
-    getGroupById(groupId)
-      .then((group) => { if (group) setCurrentGroup(group); })
-      .catch((err) => logger.error('editExpense', 'Failed to load group', err));
-  }, [groupId]);
 
   // Initialize form from existing expense
   useEffect(() => {
@@ -190,17 +235,19 @@ export function EditExpensePage() {
     }
   };
 
-  if (!expense) {
+  if (loading || !expense) {
     return (
-      <div className="px-4 pt-4 pb-10 space-y-5">
-        <div className="flex items-center justify-between">
-          <div className="skeleton h-8 w-8 rounded-full" />
-          <div className="skeleton h-6 w-24" />
-          <div className="skeleton h-8 w-8 rounded-full" />
+      <div className="flex min-h-screen flex-col">
+        <PageHeader
+          title={t('expense.edit')}
+          onBack={() => navigate(-1)}
+        />
+        <div className="px-4 pt-4 space-y-4">
+          <div className="skeleton h-12 w-full rounded-xl" />
+          <div className="skeleton h-12 w-full rounded-xl" />
+          <div className="skeleton h-12 w-full rounded-xl" />
+          <div className="skeleton h-12 w-full rounded-xl" />
         </div>
-        <div className="skeleton h-12 w-full rounded-xl" />
-        <div className="skeleton h-12 w-full rounded-xl" />
-        <div className="skeleton h-12 w-full rounded-xl" />
       </div>
     );
   }

@@ -69,9 +69,6 @@ export function HomePage() {
           <h1 className="text-xl font-bold tracking-tight text-primary">Zplit</h1>
         </div>
         <div className="flex items-center gap-2">
-          <button className="btn btn-ghost btn-sm btn-circle">
-            <BellIcon className="h-5 w-5" />
-          </button>
           <button
             className="btn btn-ghost btn-sm btn-circle"
             onClick={() => navigate('/settings')}

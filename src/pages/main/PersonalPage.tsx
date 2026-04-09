@@ -223,7 +223,7 @@ function ContactCard({
           <p className="font-semibold truncate">{contact.displayName}</p>
           {contact.lastInteraction && (
             <p className="text-xs text-base-content/40">
-              {t('common.lastInteraction', { time: formatRelativeTime(contact.lastInteraction) })}
+              {t('personal.lastRecordCreated', { time: formatRelativeTime(contact.lastInteraction, t) })}
             </p>
           )}
         </div>
@@ -250,11 +250,14 @@ function ContactCard({
   );
 }
 
-function formatRelativeTime(date: Date): string {
+function formatRelativeTime(
+  date: Date,
+  t: (key: string, options?: Record<string, unknown>) => string
+): string {
   const diff = Date.now() - date.getTime();
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  if (days < 1) return 'today';
-  if (days < 7) return `${days}d ago`;
+  if (days < 1) return t('common.today');
+  if (days < 7) return t('common.daysAgo', { count: days });
   const weeks = Math.floor(days / 7);
-  return `${weeks}w ago`;
+  return t('common.weeksAgo', { count: weeks });
 }

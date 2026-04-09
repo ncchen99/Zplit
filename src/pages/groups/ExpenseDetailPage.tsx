@@ -1,7 +1,15 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useGroupStore } from '@/store/groupStore';
+import {
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+  doc,
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useGroupStore, type Expense, type Group } from '@/store/groupStore';
 import { PageHeader, HeaderIconButton } from '@/components/ui/PageHeader';
 import { Pencil as PencilIcon, RotateCw as ArrowPathIcon } from 'lucide-react';
 import { UserAvatar } from '@/components/ui/UserAvatar';
@@ -10,10 +18,56 @@ export function ExpenseDetailPage() {
   const { t } = useTranslation();
   const { groupId, expenseId } = useParams<{ groupId: string; expenseId: string }>();
   const navigate = useNavigate();
-  const currentGroup = useGroupStore((s) => s.currentGroup);
-  const expenses = useGroupStore((s) => s.expenses);
 
-  const expense = expenses.find((e) => e.expenseId === expenseId);
+  const storeGroup = useGroupStore((s) => s.currentGroup);
+  const storeExpenses = useGroupStore((s) => s.expenses);
+  const setCurrentGroup = useGroupStore((s) => s.setCurrentGroup);
+  const setExpenses = useGroupStore((s) => s.setExpenses);
+
+  const needsFetch = !storeGroup || storeGroup.groupId !== groupId || storeExpenses.length === 0;
+  const [loading, setLoading] = useState(needsFetch);
+
+  useEffect(() => {
+    if (!groupId || !needsFetch) {
+      setLoading(false);
+      return;
+    }
+
+    let groupLoaded = false;
+    let expensesLoaded = false;
+    const tryFinish = () => {
+      if (groupLoaded && expensesLoaded) setLoading(false);
+    };
+
+    const groupUnsub = onSnapshot(
+      doc(db, 'groups', groupId),
+      (snap) => {
+        if (snap.exists()) {
+          setCurrentGroup({ groupId: snap.id, ...snap.data() } as Group);
+        }
+        groupLoaded = true;
+        tryFinish();
+      }
+    );
+
+    const expensesUnsub = onSnapshot(
+      query(collection(db, `groups/${groupId}/expenses`), orderBy('date', 'desc')),
+      (snap) => {
+        const expenses = snap.docs.map((d) => ({ ...d.data(), expenseId: d.id })) as Expense[];
+        setExpenses(expenses);
+        expensesLoaded = true;
+        tryFinish();
+      }
+    );
+
+    return () => {
+      groupUnsub();
+      expensesUnsub();
+    };
+  }, [groupId]);
+
+  const currentGroup = storeGroup?.groupId === groupId ? storeGroup : null;
+  const expense = storeExpenses.find((e) => e.expenseId === expenseId);
 
   const memberMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -27,22 +81,33 @@ export function ExpenseDetailPage() {
     return map;
   }, [currentGroup]);
 
-  if (!expense) {
+  // Always show header
+  const header = (
+    <PageHeader
+      title={t('expense.detail.title')}
+      onBack={() => navigate(`/groups/${groupId}`)}
+      rightAction={expense ? (
+        <HeaderIconButton onClick={() => navigate(`/groups/${groupId}/expense/${expenseId}/edit`)}>
+          <PencilIcon className="h-5 w-5" />
+        </HeaderIconButton>
+      ) : undefined}
+    />
+  );
+
+  if (loading || !expense) {
     return (
-      <div className="px-4 pt-4 pb-10 space-y-5">
-        <div className="flex items-center justify-between">
-          <div className="skeleton h-8 w-8 rounded-full" />
-          <div className="skeleton h-6 w-24" />
-          <div className="skeleton h-8 w-8 rounded-full" />
-        </div>
-        <div className="skeleton h-28 w-full rounded-2xl" />
-        <div className="space-y-3">
-          <div className="skeleton h-4 w-24" />
-          <div className="skeleton h-14 w-full rounded-xl" />
-        </div>
-        <div className="space-y-3">
-          <div className="skeleton h-4 w-24" />
-          <div className="skeleton h-40 w-full rounded-xl" />
+      <div className="flex min-h-screen flex-col">
+        {header}
+        <div className="px-4 pt-4 space-y-5">
+          <div className="skeleton h-28 w-full rounded-2xl" />
+          <div className="space-y-3">
+            <div className="skeleton h-4 w-24" />
+            <div className="skeleton h-14 w-full rounded-xl" />
+          </div>
+          <div className="space-y-3">
+            <div className="skeleton h-4 w-24" />
+            <div className="skeleton h-40 w-full rounded-xl" />
+          </div>
         </div>
       </div>
     );
@@ -57,15 +122,7 @@ export function ExpenseDetailPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <PageHeader
-        title={t('expense.detail.title')}
-        onBack={() => navigate(`/groups/${groupId}`)}
-        rightAction={(
-          <HeaderIconButton onClick={() => navigate(`/groups/${groupId}/expense/${expenseId}/edit`)}>
-            <PencilIcon className="h-5 w-5" />
-          </HeaderIconButton>
-        )}
-      />
+      {header}
 
       <div className="px-4 pb-16 flex flex-col gap-5 mt-4">
         {/* Summary stat */}

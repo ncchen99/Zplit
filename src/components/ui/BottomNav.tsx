@@ -46,7 +46,7 @@ export function BottomNav() {
             onClick={() => navigate(item.path)}
           >
             <NavIcon icon={item.icon} active={active} />
-            <span className="dock-label text-xs">
+            <span className={`dock-label text-xs ${active ? 'text-primary' : 'text-base-content/60'}`}>
               {t(`nav.${item.key}`)}
             </span>
           </button>

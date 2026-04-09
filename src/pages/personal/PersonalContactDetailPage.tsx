@@ -376,6 +376,8 @@ function ExpenseCard({
       ).toLocaleDateString()
     : '';
   const user = useAuthStore((s) => s.user);
+  const payerName = isSelfPaid ? (user?.displayName ?? '?') : contactName;
+  const payerAvatarUrl = isSelfPaid ? (user?.avatarUrl ?? null) : (contactAvatarUrl ?? null);
 
   return (
     <button
@@ -408,24 +410,13 @@ function ExpenseCard({
         >
           {isSelfPaid ? '+' : '-'}NT${expense.amount.toLocaleString()}
         </span>
-        <div className="avatar-group -space-x-3">
-          <div className="avatar placeholder">
-            <div className="w-6 rounded-full bg-base-300 text-base-content">
-              {user?.avatarUrl ? (
-                <img src={user.avatarUrl} alt="" />
-              ) : (
-                <span className="text-[8px]">{user?.displayName?.charAt(0) ?? '?'}</span>
-              )}
-            </div>
-          </div>
-          <div className="avatar placeholder">
-            <div className="w-6 rounded-full bg-base-300 text-base-content">
-              {contactAvatarUrl ? (
-                <img src={contactAvatarUrl} alt="" />
-              ) : (
-                <span className="text-[8px]">{contactName.charAt(0)}</span>
-              )}
-            </div>
+        <div className="avatar placeholder" title={payerName}>
+          <div className="w-6 rounded-full bg-base-300 text-base-content">
+            {payerAvatarUrl ? (
+              <img src={payerAvatarUrl} alt="" />
+            ) : (
+              <span className="text-[8px]">{payerName.charAt(0)}</span>
+            )}
           </div>
         </div>
       </div>
