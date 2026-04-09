@@ -45,10 +45,7 @@ export function BottomNav() {
   return (
     <div className="dock dock-sm border-t border-base-300 bg-base-100 pb-safe">
       {navItems.map((item) => {
-        const active =
-          location.pathname === item.path ||
-          (item.path !== '/' && location.pathname.startsWith(item.path + '/')) ||
-          (item.key === 'groups' && location.pathname.startsWith('/groups'));
+        const active = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
         return (
           <button
             key={item.key}

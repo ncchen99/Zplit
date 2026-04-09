@@ -24,7 +24,6 @@ import {
   PencilIcon,
   ArrowRightStartOnRectangleIcon,
 } from '@heroicons/react/24/outline';
-import { BottomNav } from '@/components/ui/BottomNav';
 
 type TabKey = 'summary' | 'settle' | 'members';
 
@@ -207,7 +206,7 @@ export function GroupDetailPage() {
       </div>
 
       {/* Tab Content */}
-      <div className="flex-1 px-4 pt-4 pb-20">
+      <div className="flex-1 px-4 pt-4 pb-24">
         {activeTab === 'summary' && <SummaryTab />}
         {activeTab === 'settle' && <SettleTab />}
         {activeTab === 'members' && <MembersTab />}
@@ -223,9 +222,6 @@ export function GroupDetailPage() {
           <PlusIcon className="h-6 w-6" />
         </button>
       </div>
-
-      {/* Bottom Nav */}
-      <BottomNav />
 
       {/* Backdrop for dropdown */}
       {showMenu && (
