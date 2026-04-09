@@ -164,23 +164,39 @@ export function PersonalContactDetailPage() {
           )}
         />
 
-        <div className="px-4 mt-2">
-          <div className="skeleton h-28 w-full rounded-2xl" />
+        <div className="px-4 mt-4">
+          <div className="stats stats-horizontal w-full border border-base-300 bg-base-100">
+            <div className="stat py-3 px-4">
+              <div className="skeleton h-3 w-20" />
+              <div className="skeleton h-8 w-28 mt-2" />
+              <div className="skeleton h-3 w-24 mt-2" />
+            </div>
+            <div className="stat py-3 px-4 border-l border-base-300">
+              <div className="skeleton h-3 w-20" />
+              <div className="skeleton h-8 w-28 mt-2" />
+              <div className="skeleton h-3 w-24 mt-2" />
+            </div>
+          </div>
         </div>
 
         <div className="px-4 mt-6 flex-1">
-          <div className="skeleton h-4 w-28" />
+          <div className="skeleton h-4 w-24" />
           <div className="mt-3 space-y-3">
             {Array.from({ length: 4 }).map((_, idx) => (
-              <div key={idx} className="flex items-center gap-3 py-2">
-                <div className="flex-1 space-y-2">
+              <div key={idx} className="flex items-center gap-3 py-3 border-b border-base-200 last:border-b-0">
+                <div className="skeleton h-10 w-10 rounded-full shrink-0" />
+                <div className="flex-1 space-y-2 min-w-0">
                   <div className="skeleton h-4 w-40" />
-                  <div className="skeleton h-3 w-28" />
+                  <div className="skeleton h-3 w-24" />
                 </div>
                 <div className="skeleton h-5 w-16" />
               </div>
             ))}
           </div>
+        </div>
+
+        <div className="fixed bottom-6 right-4 z-50" aria-hidden="true">
+          <div className="skeleton h-16 w-16 rounded-full" />
         </div>
       </div>
     );
@@ -295,8 +311,9 @@ export function PersonalContactDetailPage() {
         {isLoading ? (
           <div className="mt-3 space-y-3">
             {Array.from({ length: 3 }).map((_, idx) => (
-              <div key={idx} className="flex items-center gap-3 py-2">
-                <div className="flex-1 space-y-2">
+              <div key={idx} className="flex items-center gap-3 py-3 border-b border-base-200 last:border-b-0">
+                <div className="skeleton h-10 w-10 rounded-full shrink-0" />
+                <div className="flex-1 space-y-2 min-w-0">
                   <div className="skeleton h-4 w-36" />
                   <div className="skeleton h-3 w-24" />
                 </div>

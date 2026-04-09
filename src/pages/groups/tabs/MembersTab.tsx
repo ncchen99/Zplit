@@ -4,7 +4,8 @@ import { useGroupStore } from '@/store/groupStore';
 import { useUIStore } from '@/store/uiStore';
 import { addPlaceholderMember } from '@/services/groupService';
 import { logger } from '@/utils/logger';
-import { Link as LinkIcon, Plus as PlusIcon, Star as StarIcon } from 'lucide-react';
+import { LinkIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { StarIcon } from '@heroicons/react/24/solid';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 
 export function MembersTab() {

@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useGroupStore } from '@/store/groupStore';
-import { computeBalances } from '@/lib/algorithm/settlement';
+import { computeBalances, computeSettlements } from '@/lib/algorithm/settlement';
 import {
   ChevronDown as ChevronDownIcon,
   FileText as DocumentTextIcon,
@@ -21,6 +21,7 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
   const { groupId } = useParams<{ groupId: string }>();
   const navigate = useNavigate();
   const expenses = useGroupStore((s) => s.expenses);
+  const settlements = useGroupStore((s) => s.settlements);
   const currentGroup = useGroupStore((s) => s.currentGroup);
 
   const memberMap = useMemo(() => {
@@ -41,20 +42,39 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
     return map;
   }, [currentGroup]);
 
-  // Build DebtEntry[] for treemap — only negative balances (debtors)
+  // Build DebtEntry[] for treemap — only negative balances (debtors),
+  // adjusted for completed settlements
   const treemapData: DebtEntry[] = useMemo(() => {
     if (!expenses.length) return [];
     const balances = computeBalances(expenses);
-    return balances
-      .filter((b) => b.amount < 0)
-      .map((b) => ({
-        memberId: b.memberId,
-        name: memberMap.get(b.memberId) ?? b.memberId,
-        avatarUrl: memberAvatarMap.get(b.memberId) ?? null,
-        owed: Math.abs(b.amount),
+    const debts = computeSettlements(balances);
+
+    // Subtract completed settlements from the computed debts
+    const completedSettlements = settlements.filter((s) => s.completed);
+    const remainingDebts = debts.map((debt) => {
+      const matching = completedSettlements.find(
+        (s) => s.from === debt.from && s.to === debt.to && s.amount === debt.amount
+      );
+      if (matching) return { ...debt, amount: 0 };
+      return debt;
+    }).filter((d) => d.amount > 0);
+
+    // Aggregate remaining debts per debtor (from)
+    const debtorMap = new Map<string, number>();
+    for (const d of remainingDebts) {
+      debtorMap.set(d.from, (debtorMap.get(d.from) ?? 0) + d.amount);
+    }
+
+    return Array.from(debtorMap.entries())
+      .map(([memberId, owed]) => ({
+        memberId,
+        name: memberMap.get(memberId) ?? memberId,
+        avatarUrl: memberAvatarMap.get(memberId) ?? null,
+        owed,
       }))
+      .filter((d) => d.owed > 0)
       .sort((a, b) => b.owed - a.owed);
-  }, [expenses, memberMap, memberAvatarMap]);
+  }, [expenses, settlements, memberMap, memberAvatarMap]);
 
   const getName = (memberId: string) => memberMap.get(memberId) ?? memberId;
 

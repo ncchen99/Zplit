@@ -28,6 +28,12 @@ export function SettleTab() {
     return map;
   }, [currentGroup]);
 
+  const memberAvatarMap = useMemo(() => {
+    const map = new Map<string, string | null>();
+    currentGroup?.members?.forEach((m) => map.set(m.memberId, m.avatarUrl));
+    return map;
+  }, [currentGroup]);
+
   const computedDebts = useMemo(() => {
     if (!expenses.length) return [];
     const balances = computeBalances(expenses);
@@ -150,9 +156,9 @@ export function SettleTab() {
               key={i}
               className={`flex items-center gap-3 py-3 border-b border-base-200 last:border-b-0 ${isCompleted ? 'opacity-50' : ''}`}
             >
-              <UserAvatar src={null} name={getName(debt.from)} size="w-9" />
+              <UserAvatar src={memberAvatarMap.get(debt.from) ?? null} name={getName(debt.from)} size="w-9" />
               <ArrowRightIcon className="h-4 w-4 text-base-content/40 flex-shrink-0" />
-              <UserAvatar src={null} name={getName(debt.to)} size="w-9" />
+              <UserAvatar src={memberAvatarMap.get(debt.to) ?? null} name={getName(debt.to)} size="w-9" />
 
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold truncate">

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Plus as PlusIcon, Check as CheckIcon } from 'lucide-react';
+import { PlusIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { useAuthStore } from '@/store/authStore';
 import { usePersonalStore } from '@/store/personalStore';
 import { useUIStore } from '@/store/uiStore';
@@ -153,7 +153,7 @@ export function AddPersonalExpensePage() {
             loading={saving}
             tone="primary"
           >
-            <CheckIcon className="h-5 w-5" />
+            <CheckIcon className="h-6 w-6" />
           </HeaderIconButton>
         )}
       />

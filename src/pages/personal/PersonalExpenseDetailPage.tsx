@@ -65,11 +65,55 @@ export function PersonalExpenseDetailPage() {
         <PageHeader
           title={t('expense.detail.title')}
           onBack={() => navigate(`/personal/${contactId}`)}
+          rightAction={(
+            <HeaderIconButton onClick={() => {}} disabled>
+              <PencilIcon className="h-5 w-5" />
+            </HeaderIconButton>
+          )}
         />
-        <div className="px-4 pt-4 space-y-4">
-          <div className="skeleton h-20 w-full rounded-xl" />
-          <div className="skeleton h-12 w-full rounded-xl" />
-          <div className="skeleton h-12 w-full rounded-xl" />
+
+        <div className="px-4 pb-16 flex flex-col gap-5 mt-4">
+          {/* Summary stat skeleton */}
+          <div className="stats w-full border border-base-300 bg-base-100">
+            <div className="stat">
+              <div className="skeleton h-4 w-28" />
+              <div className="skeleton h-10 w-40 mt-2" />
+              <div className="skeleton h-3 w-32 mt-2" />
+            </div>
+          </div>
+
+          {/* Payer skeleton */}
+          <div>
+            <div className="skeleton h-3 w-16 mb-2" />
+            <div className="flex items-center gap-3 py-2">
+              <div className="skeleton h-10 w-10 rounded-full" />
+              <div className="skeleton h-5 w-28" />
+            </div>
+          </div>
+
+          {/* Split skeleton */}
+          <div>
+            <div className="skeleton h-3 w-20 mb-2" />
+            <div className="flex items-center gap-3 py-2 border-b border-base-200">
+              <div className="skeleton h-8 w-8 rounded-full" />
+              <div className="skeleton h-4 w-24 flex-1" />
+              <div className="skeleton h-4 w-20" />
+            </div>
+            <div className="flex items-center gap-3 py-2">
+              <div className="skeleton h-8 w-8 rounded-full" />
+              <div className="skeleton h-4 w-24 flex-1" />
+              <div className="skeleton h-4 w-20" />
+            </div>
+          </div>
+
+          {/* Description skeleton */}
+          <div>
+            <div className="skeleton h-3 w-20 mb-2" />
+            <div className="space-y-2">
+              <div className="skeleton h-3 w-full" />
+              <div className="skeleton h-3 w-5/6" />
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -93,7 +137,7 @@ export function PersonalExpenseDetailPage() {
         )}
       />
 
-      <div className="px-4 pb-16 flex flex-col gap-5">
+      <div className="px-4 pb-16 flex flex-col gap-5 mt-4">
         {/* Summary stat */}
         <div className="stats w-full border border-base-300 bg-base-100">
           <div className="stat">

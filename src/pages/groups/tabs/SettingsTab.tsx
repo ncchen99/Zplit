@@ -6,7 +6,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { deleteGroup } from '@/services/groupService';
 import { logger } from '@/utils/logger';
-import { SquarePen as PencilSquareIcon, Trash2 as TrashIcon } from 'lucide-react';
+import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 export function SettingsTab() {

@@ -7,7 +7,7 @@ import { createOrUpdateUser } from '@/services/userService';
 import { logger } from '@/utils/logger';
 import { ImageUpload } from '@/components/ui/ImageUpload';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import { ChevronLeft as ChevronLeftIcon } from 'lucide-react';
+import { ChevronLeftIcon } from '@heroicons/react/24/outline';
 
 export function OnboardingPage() {
   const { t } = useTranslation();

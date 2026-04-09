@@ -90,7 +90,11 @@ export function ExpenseDetailPage() {
         <HeaderIconButton onClick={() => navigate(`/groups/${groupId}/expense/${expenseId}/edit`)}>
           <PencilIcon className="h-5 w-5" />
         </HeaderIconButton>
-      ) : undefined}
+      ) : (
+        <HeaderIconButton onClick={() => {}} disabled>
+          <PencilIcon className="h-5 w-5" />
+        </HeaderIconButton>
+      )}
     />
   );
 
@@ -98,14 +102,56 @@ export function ExpenseDetailPage() {
     return (
       <div className="flex min-h-screen flex-col">
         {header}
-        <div className="px-4 pt-4 space-y-5">
-          <div className="skeleton h-28 w-full rounded-2xl" />
-          <div className="space-y-3">
-            <div className="skeleton h-4 w-24" />
-            <div className="skeleton h-14 w-full rounded-xl" />
+
+        <div className="px-4 pb-16 flex flex-col gap-5 mt-4">
+          {/* Summary stat skeleton */}
+          <div className="stats w-full border border-base-300 bg-base-100">
+            <div className="stat">
+              <div className="skeleton h-4 w-40" />
+              <div className="skeleton h-10 w-32 mt-2" />
+              <div className="skeleton h-3 w-36 mt-2" />
+            </div>
           </div>
-          <div className="space-y-3">
-            <div className="skeleton h-4 w-24" />
+
+          {/* Payer skeleton */}
+          <div>
+            <div className="skeleton h-3 w-16 mb-2" />
+            <div className="flex items-center gap-3 py-2">
+              <div className="skeleton h-10 w-10 rounded-full" />
+              <div className="skeleton h-5 w-28" />
+            </div>
+          </div>
+
+          {/* Split details skeleton */}
+          <div>
+            <div className="skeleton h-3 w-20 mb-2" />
+            <div className="flex flex-col">
+              {Array.from({ length: 4 }).map((_, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between py-3 border-b border-base-200 last:border-b-0"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="skeleton h-8 w-8 rounded-full" />
+                    <div className="skeleton h-4 w-24" />
+                  </div>
+                  <div className="skeleton h-4 w-16" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Description and receipt placeholders */}
+          <div>
+            <div className="skeleton h-3 w-20 mb-2" />
+            <div className="space-y-2">
+              <div className="skeleton h-3 w-full" />
+              <div className="skeleton h-3 w-4/5" />
+            </div>
+          </div>
+
+          <div>
+            <div className="skeleton h-3 w-16 mb-2" />
             <div className="skeleton h-40 w-full rounded-xl" />
           </div>
         </div>

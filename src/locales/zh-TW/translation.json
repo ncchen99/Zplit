@@ -166,7 +166,7 @@
     "add": "新增帳務",
     "edit": "編輯帳務",
     "title": "品項名稱",
-    "titlePlaceholder": "例如：梅啤、計程車...",
+    "titlePlaceholder": "例如：Pizza、計程車...",
     "amount": "金額",
     "amountPlaceholder": "0",
     "paidBy": "付款人",
@@ -175,7 +175,7 @@
     "details": "詳細資訊（備注、圖片）",
     "detailsExpand": "展開詳細資料",
     "description": "備註說明",
-    "descriptionPlaceholder": "例如：3/29 南部出差晚餐...",
+    "descriptionPlaceholder": "例如：3/29 東寧福利中心 Happy 一下...",
     "receipt": "收據圖片",
     "receiptUpload": "上傳收據圖片",
     "splitMode": {
