@@ -99,7 +99,7 @@ export function SettingsPage() {
         {isAnonymous && (
           <div className="flex items-center gap-3 py-4 border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-4 md:border-0">
             <div className="flex items-center gap-3 w-full md:card-body md:p-4">
-              <LinkIcon className="h-5 w-5 text-primary shrink-0" />
+              <LinkIcon className="h-5 w-5 text-base-content/60 shrink-0" />
               <div className="flex-1">
                 <p className="font-semibold text-sm">{t('settings.bindGoogle')}</p>
                 <p className="text-xs text-base-content/50">{t('settings.bindGoogleHint')}</p>
@@ -120,7 +120,7 @@ export function SettingsPage() {
         <div className="py-4 border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-4 md:border-0">
           <div className="flex flex-col gap-3 w-full md:card-body md:p-4">
             <div className="flex items-center gap-3">
-              <GlobeAltIcon className="h-5 w-5 text-base-content/60" />
+              <GlobeAltIcon className="h-5 w-5 text-base-content/60 shrink-0" />
               <h2 className="font-semibold text-sm">{t('settings.language')}</h2>
             </div>
             <div className="join w-full">
@@ -144,7 +144,7 @@ export function SettingsPage() {
         <div className="py-4 border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-4 md:border-0">
           <div className="flex flex-col gap-3 w-full md:card-body md:p-4">
             <div className="flex items-center gap-3">
-              <SwatchIcon className="h-5 w-5 text-base-content/60" />
+              <SwatchIcon className="h-5 w-5 text-base-content/60 shrink-0" />
               <h2 className="font-semibold text-sm">{t('settings.theme')}</h2>
             </div>
             <div className="join w-full">
@@ -167,7 +167,7 @@ export function SettingsPage() {
             className="btn btn-outline btn-block"
             onClick={() => setShowLogoutConfirm(true)}
           >
-            <ArrowRightStartOnRectangleIcon className="h-5 w-5" />
+            <ArrowRightStartOnRectangleIcon className="h-5 w-5 shrink-0" />
             {t('settings.logout')}
           </button>
 
@@ -175,7 +175,7 @@ export function SettingsPage() {
             className="btn btn-error btn-outline btn-block"
             onClick={() => setShowDeleteConfirm(true)}
           >
-            <TrashIcon className="h-5 w-5" />
+            <TrashIcon className="h-5 w-5 shrink-0" />
             {t('settings.deleteAccount')}
           </button>
         </div>
