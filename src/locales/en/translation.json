@@ -233,7 +233,14 @@
     "lendingHistory": "Lending History",
     "linked": "Linked",
     "paidFor": "You paid for {{name}}",
-    "settledRecord": "Settled"
+    "settledRecord": "Settled",
+    "contact": "Contact",
+    "selectContact": "Select Contact",
+    "contactPlaceholder": "Enter a friend's name...",
+    "addAsNewContact": "Add \"{{name}}\" as new contact",
+    "contactSelected": "Selected: {{name}}",
+    "paidForPlaceholder": "You paid",
+    "contactPaidPlaceholder": "They paid"
   },
   "join": {
     "title": "Join Group",

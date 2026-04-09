@@ -75,8 +75,10 @@ export function PersonalContactDetailPage() {
   }, [user, contactId]);
 
   useEffect(() => {
+    // 清除前一個聯絡人的舊資料（避免短暫顯示過期內容）
+    clearCurrentContact();
     loadData();
-    return () => clearCurrentContact();
+    // 不在 unmount 時清除，保留資料供 AddPersonalExpensePage 使用
   }, [loadData]);
 
   const closeConfirm = () => setConfirmModal((prev) => ({ ...prev, open: false }));

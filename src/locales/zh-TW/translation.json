@@ -233,7 +233,14 @@
     "lendingHistory": "往來記錄",
     "linked": "已連結",
     "paidFor": "你替 {{name}} 付款",
-    "settledRecord": "已還款"
+    "settledRecord": "已還款",
+    "contact": "聯絡人",
+    "selectContact": "選擇聯絡人",
+    "contactPlaceholder": "輸入朋友名字...",
+    "addAsNewContact": "新增「{{name}}」為新聯絡人",
+    "contactSelected": "已選擇：{{name}}",
+    "paidForPlaceholder": "你付款",
+    "contactPaidPlaceholder": "對方付款"
   },
   "join": {
     "title": "加入群組",

@@ -37,12 +37,19 @@ export function GroupDetailPage() {
   const setExpenses = useGroupStore((s) => s.setExpenses);
   const setSettlements = useGroupStore((s) => s.setSettlements);
   const clearCurrentGroup = useGroupStore((s) => s.clearCurrentGroup);
+  const unsubscribeListeners = useGroupStore((s) => s.unsubscribeListeners);
   const setUnsubscribeExpenses = useGroupStore((s) => s.setUnsubscribeExpenses);
   const setUnsubscribeSettlements = useGroupStore((s) => s.setUnsubscribeSettlements);
   const setUnsubscribeGroup = useGroupStore((s) => s.setUnsubscribeGroup);
 
   useEffect(() => {
     if (!groupId) return;
+
+    // 若切換到不同群組，清除舊資料
+    const storeGroupId = useGroupStore.getState().currentGroupId;
+    if (storeGroupId && storeGroupId !== groupId) {
+      clearCurrentGroup();
+    }
 
     const groupUnsub = onSnapshot(
       doc(db, 'groups', groupId),
@@ -85,7 +92,8 @@ export function GroupDetailPage() {
     setUnsubscribeSettlements(settlementsUnsub);
 
     return () => {
-      clearCurrentGroup();
+      // 僅取消 Firebase 訂閱，保留 store 資料供 AddExpensePage 等子頁面讀取
+      unsubscribeListeners();
     };
   }, [groupId]);
 

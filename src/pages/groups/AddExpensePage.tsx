@@ -285,74 +285,98 @@ export function AddExpensePage() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-2">
-            {members.map((m) => {
-              const isSelected = selectedMembers.includes(m.memberId);
-              const splitAmount = splits.find((s) => s.memberId === m.memberId)?.amount ?? 0;
-
-              return (
-                <div key={m.memberId} className="flex items-center gap-3">
-                  <label className="label cursor-pointer gap-2 flex-1 min-w-0">
+          {/* 平均分帳：兩欄網格排版，讓畫面更平衡 */}
+          {splitMode === 'equal' ? (
+            <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+              {members.map((m) => {
+                const isSelected = selectedMembers.includes(m.memberId);
+                const splitAmount = splits.find((s) => s.memberId === m.memberId)?.amount ?? 0;
+                return (
+                  <label key={m.memberId} className="label cursor-pointer gap-2 py-2 min-w-0">
                     <input
                       type="checkbox"
-                      className="checkbox checkbox-primary checkbox-sm"
+                      className="checkbox checkbox-primary checkbox-sm flex-shrink-0"
                       checked={isSelected}
                       onChange={() => toggleMember(m.memberId)}
                     />
-                    <div className="avatar placeholder">
+                    <div className="avatar placeholder flex-shrink-0">
                       <div className="w-6 rounded-full bg-neutral text-neutral-content">
                         <span className="text-[10px]">{m.displayName.charAt(0)}</span>
                       </div>
                     </div>
-                    <span className="label-text flex-1 truncate">{m.displayName}</span>
+                    <span className="label-text flex-1 truncate text-sm">{m.displayName}</span>
+                    {isSelected && amountNum > 0 && (
+                      <span className="text-xs text-base-content/50 flex-shrink-0">
+                        NT${splitAmount}
+                      </span>
+                    )}
                   </label>
-
-                  {splitMode === 'equal' && isSelected && amountNum > 0 && (
-                    <span className="text-sm text-base-content/50 flex-shrink-0">
-                      NT${splitAmount}
-                    </span>
-                  )}
-
-                  {splitMode === 'amount' && isSelected && (
-                    <div className="input input-sm flex items-center gap-1 w-28 flex-shrink-0">
-                      <span className="text-xs text-base-content/40">NT$</span>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {members.map((m) => {
+                const isSelected = selectedMembers.includes(m.memberId);
+                const splitAmount = splits.find((s) => s.memberId === m.memberId)?.amount ?? 0;
+                return (
+                  <div key={m.memberId} className="flex items-center gap-3">
+                    <label className="label cursor-pointer gap-2 flex-1 min-w-0">
                       <input
-                        type="number"
-                        className="grow w-full"
-                        placeholder="0"
-                        value={customAmounts[m.memberId] ?? ''}
-                        onChange={(e) =>
-                          setCustomAmounts((prev) => ({ ...prev, [m.memberId]: e.target.value }))
-                        }
+                        type="checkbox"
+                        className="checkbox checkbox-primary checkbox-sm"
+                        checked={isSelected}
+                        onChange={() => toggleMember(m.memberId)}
                       />
-                    </div>
-                  )}
+                      <div className="avatar placeholder">
+                        <div className="w-6 rounded-full bg-neutral text-neutral-content">
+                          <span className="text-[10px]">{m.displayName.charAt(0)}</span>
+                        </div>
+                      </div>
+                      <span className="label-text flex-1 truncate">{m.displayName}</span>
+                    </label>
 
-                  {splitMode === 'percent' && isSelected && (
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <div className="input input-sm flex items-center gap-1 w-20">
+                    {splitMode === 'amount' && isSelected && (
+                      <div className="input input-sm flex items-center gap-1 w-28 flex-shrink-0">
+                        <span className="text-xs text-base-content/40">NT$</span>
                         <input
                           type="number"
                           className="grow w-full"
                           placeholder="0"
-                          value={customPercents[m.memberId] ?? ''}
+                          value={customAmounts[m.memberId] ?? ''}
                           onChange={(e) =>
-                            setCustomPercents((prev) => ({ ...prev, [m.memberId]: e.target.value }))
+                            setCustomAmounts((prev) => ({ ...prev, [m.memberId]: e.target.value }))
                           }
                         />
-                        <span className="text-xs text-base-content/40">%</span>
                       </div>
-                      {amountNum > 0 && (
-                        <span className="text-xs text-base-content/40">
-                          ${splitAmount}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                    )}
+
+                    {splitMode === 'percent' && isSelected && (
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <div className="input input-sm flex items-center gap-1 w-20">
+                          <input
+                            type="number"
+                            className="grow w-full"
+                            placeholder="0"
+                            value={customPercents[m.memberId] ?? ''}
+                            onChange={(e) =>
+                              setCustomPercents((prev) => ({ ...prev, [m.memberId]: e.target.value }))
+                            }
+                          />
+                          <span className="text-xs text-base-content/40">%</span>
+                        </div>
+                        {amountNum > 0 && (
+                          <span className="text-xs text-base-content/40">
+                            ${splitAmount}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           {/* Split validation */}
           {amountNum > 0 && splitMode === 'amount' && (

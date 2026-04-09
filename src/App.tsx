@@ -139,6 +139,7 @@ export default function App() {
               <Route path="/groups/:groupId" element={<AuthGuard><GroupDetailPage /></AuthGuard>} />
               <Route path="/groups/:groupId/expense/new" element={<AuthGuard><AddExpensePage /></AuthGuard>} />
               <Route path="/groups/:groupId/expenses/:expenseId" element={<AuthGuard><ExpenseDetailPage /></AuthGuard>} />
+              <Route path="/personal/expense/new" element={<AuthGuard><AddPersonalExpensePage /></AuthGuard>} />
               <Route path="/personal/:contactId" element={<AuthGuard><PersonalContactDetailPage /></AuthGuard>} />
               <Route path="/personal/:contactId/expense/new" element={<AuthGuard><AddPersonalExpensePage /></AuthGuard>} />
               <Route path="/settings/profile" element={<AuthGuard><EditProfilePage /></AuthGuard>} />

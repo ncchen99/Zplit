@@ -10,7 +10,6 @@ import {
   getContacts,
   getPersonalExpenses,
   computePersonalNetAmount,
-  createContact,
   type PersonalContact,
 } from '@/services/personalLedgerService';
 import { useUIStore } from '@/store/uiStore';
@@ -34,9 +33,6 @@ export function PersonalPage() {
   const [search, setSearch] = useState('');
   const [showSettled, setShowSettled] = useState(false);
   const [contactsWithNet, setContactsWithNet] = useState<ContactWithNet[]>([]);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [newContactName, setNewContactName] = useState('');
-  const [addingContact, setAddingContact] = useState(false);
 
   const loadContacts = useCallback(async () => {
     if (!user) return;
@@ -71,22 +67,6 @@ export function PersonalPage() {
     loadContacts();
   }, [loadContacts]);
 
-  const handleAddContact = async () => {
-    if (!user || !newContactName.trim()) return;
-    setAddingContact(true);
-    try {
-      const contact = await createContact(user.uid, newContactName.trim());
-      setShowAddModal(false);
-      setNewContactName('');
-      navigate(`/personal/${contact.contactId}`);
-    } catch (err) {
-      logger.error('personal.addContact', '新增聯絡人失敗', err);
-      showToast(t('common.error'), 'error');
-    } finally {
-      setAddingContact(false);
-    }
-  };
-
   const filtered = contactsWithNet.filter((c) =>
     c.displayName.toLowerCase().includes(search.toLowerCase())
   );
@@ -102,17 +82,10 @@ export function PersonalPage() {
     .reduce((sum, c) => sum + Math.abs(c.netAmount), 0);
 
   return (
-    <div className="px-4 pt-4 pb-4">
+    <div className="px-4 pt-4 pb-24">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">{t('personal.title')}</h1>
-        <button
-          className="btn btn-primary btn-sm"
-          onClick={() => setShowAddModal(true)}
-        >
-          <PlusIcon className="h-4 w-4" />
-          {t('common.button.add')}
-        </button>
       </div>
 
       {/* Search */}
@@ -204,86 +177,16 @@ export function PersonalPage() {
         </>
       )}
 
-      {/* Add Contact Modal */}
-      {showAddModal && (
-        <dialog className="modal modal-open">
-          <div className="modal-box">
-            <h3 className="text-lg font-bold">{t('personal.addExpense')}</h3>
-            <div className="mt-4">
-              <input
-                type="text"
-                className="input input-bordered w-full"
-                placeholder={t('personal.search')}
-                value={newContactName}
-                onChange={(e) => setNewContactName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddContact();
-                  }
-                }}
-                maxLength={30}
-                autoFocus
-              />
-            </div>
-
-            {/* Show existing contacts that match search */}
-            {newContactName.trim() && (
-              <div className="mt-3 flex flex-col gap-1">
-                {contactsWithNet
-                  .filter((c) =>
-                    c.displayName.toLowerCase().includes(newContactName.toLowerCase())
-                  )
-                  .slice(0, 5)
-                  .map((c) => (
-                    <button
-                      key={c.contactId}
-                      className="flex items-center gap-2 rounded-lg p-2 text-left hover:bg-base-200 active:bg-base-300"
-                      onClick={() => {
-                        setShowAddModal(false);
-                        setNewContactName('');
-                        navigate(`/personal/${c.contactId}`);
-                      }}
-                    >
-                      <UserAvatar src={c.avatarUrl} name={c.displayName} size="w-8" textSize="text-xs" />
-                      <span className="text-sm font-medium">{c.displayName}</span>
-                    </button>
-                  ))}
-                {/* New contact option */}
-                {!contactsWithNet.some(
-                  (c) => c.displayName.toLowerCase() === newContactName.trim().toLowerCase()
-                ) && (
-                  <button
-                    className="flex items-center gap-2 rounded-lg p-2 text-left text-primary hover:bg-primary/10 active:bg-primary/20"
-                    onClick={handleAddContact}
-                    disabled={addingContact}
-                  >
-                    <PlusIcon className="h-5 w-5" />
-                    <span className="text-sm font-medium">
-                      {t('group.create.addAsMember', { name: newContactName.trim() })}
-                    </span>
-                  </button>
-                )}
-              </div>
-            )}
-
-            <div className="modal-action">
-              <button
-                className="btn btn-ghost"
-                onClick={() => {
-                  setShowAddModal(false);
-                  setNewContactName('');
-                }}
-              >
-                {t('common.button.cancel')}
-              </button>
-            </div>
-          </div>
-          <form method="dialog" className="modal-backdrop">
-            <button onClick={() => { setShowAddModal(false); setNewContactName(''); }}>close</button>
-          </form>
-        </dialog>
-      )}
+      {/* FAB - 新增個人分帳 */}
+      <div className="fixed bottom-20 right-4 z-50">
+        <button
+          className="btn btn-primary btn-circle btn-lg shadow-xl"
+          onClick={() => navigate('/personal/expense/new')}
+          aria-label={t('personal.addExpense')}
+        >
+          <PlusIcon className="h-6 w-6" />
+        </button>
+      </div>
     </div>
   );
 }

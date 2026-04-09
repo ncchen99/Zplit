@@ -90,6 +90,8 @@ interface GroupStore {
   setUnsubscribeSettlements: (unsub: (() => void) | null) => void;
   setUnsubscribeGroup: (unsub: (() => void) | null) => void;
 
+  /** 僅取消訂閱 Firebase listeners，保留 store 資料給子頁面使用 */
+  unsubscribeListeners: () => void;
   clearCurrentGroup: () => void;
 }
 
@@ -112,6 +114,18 @@ export const useGroupStore = create<GroupStore>((set, get) => ({
   setUnsubscribeExpenses: (unsub) => set({ _unsubscribeExpenses: unsub }),
   setUnsubscribeSettlements: (unsub) => set({ _unsubscribeSettlements: unsub }),
   setUnsubscribeGroup: (unsub) => set({ _unsubscribeGroup: unsub }),
+
+  unsubscribeListeners: () => {
+    const state = get();
+    state._unsubscribeExpenses?.();
+    state._unsubscribeSettlements?.();
+    state._unsubscribeGroup?.();
+    set({
+      _unsubscribeExpenses: null,
+      _unsubscribeSettlements: null,
+      _unsubscribeGroup: null,
+    });
+  },
 
   clearCurrentGroup: () => {
     const state = get();
