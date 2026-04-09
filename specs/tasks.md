@@ -104,13 +104,3 @@
 - [ ] **M5-10**：全站 i18n 翻譯完善
 
 ---
-
-## 風險與依賴
-
-| 風險 | 影響 | 緩解方案 |
-|------|------|----------|
-| Firebase 專案未建立 | M1 無法整合 Auth | 先用 mock 模式開發 UI，待 config 到位後切換 |
-| Cloudflare R2/Worker 未就緒 | 圖片上傳功能受阻 | 上傳 Service 預留 mock 模式，回傳假 URL |
-| Turnstile 未設定 | 匿名登入無法驗證 | 開發環境跳過 Turnstile，生產再啟用 |
-| DaisyUI v5 元件 API 變動 | class 名稱錯誤 | 開發前讀取 daisyui.com/llm.txt |
-| Firestore Rules 的 array 查詢限制 | 群組成員驗證效能 | 考慮將 members 改為 Map 結構 |

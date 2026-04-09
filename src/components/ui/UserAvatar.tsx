@@ -2,6 +2,7 @@
  * Reusable avatar component that properly handles text initials
  * when no avatar image is available, preventing text overflow.
  */
+import { useState } from 'react';
 
 interface UserAvatarProps {
   src: string | null | undefined;
@@ -19,17 +20,24 @@ export function UserAvatar({
   name,
   size = 'w-10',
   textSize = 'text-sm',
-  bgClass = 'bg-neutral text-neutral-content',
+  bgClass = 'bg-base-300 text-base-content',
 }: UserAvatarProps) {
+  const [imgError, setImgError] = useState(false);
   const initial = name?.charAt(0) || '?';
+  const showImage = src && !imgError;
 
   return (
     <div className="avatar placeholder flex-shrink-0">
-      <div className={`${size} rounded-full ${bgClass} overflow-hidden`}>
-        {src ? (
-          <img src={src} alt="" className="w-full h-full object-cover" />
+      <div className={`${size} rounded-full ${bgClass} overflow-hidden flex items-center justify-center`}>
+        {showImage ? (
+          <img
+            src={src}
+            alt=""
+            className="w-full h-full object-cover"
+            onError={() => setImgError(true)}
+          />
         ) : (
-          <span className={`${textSize} leading-none select-none`}>{initial}</span>
+          <span className={`${textSize} font-semibold leading-none select-none`}>{initial}</span>
         )}
       </div>
     </div>

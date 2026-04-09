@@ -6,6 +6,7 @@ import { useUIStore } from '@/store/uiStore';
 import { createOrUpdateUser } from '@/services/userService';
 import { logger } from '@/utils/logger';
 import { ImageUpload } from '@/components/ui/ImageUpload';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { ChevronLeftIcon } from '@heroicons/react/24/outline';
 
 export function OnboardingPage() {
@@ -23,10 +24,12 @@ export function OnboardingPage() {
     firebaseUser?.photoURL ?? null
   );
   const [saving, setSaving] = useState(false);
+  const [showBackConfirm, setShowBackConfirm] = useState(false);
 
   const handleBack = () => {
     if (displayName.trim() || avatarUrl) {
-      if (!window.confirm(t('auth.onboarding.backConfirm'))) return;
+      setShowBackConfirm(true);
+      return;
     }
     navigate(-1);
   };
@@ -128,6 +131,14 @@ export function OnboardingPage() {
           </button>
         </form>
       </div>
+      <ConfirmModal
+        open={showBackConfirm}
+        message={t('auth.onboarding.backConfirm')}
+        confirmLabel={t('common.button.confirm')}
+        cancelLabel={t('common.button.cancel')}
+        onConfirm={() => { setShowBackConfirm(false); navigate(-1); }}
+        onCancel={() => setShowBackConfirm(false)}
+      />
     </div>
   );
 }

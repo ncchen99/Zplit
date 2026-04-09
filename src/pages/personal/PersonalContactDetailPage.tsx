@@ -9,6 +9,7 @@ import {
   DocumentTextIcon,
 } from '@heroicons/react/24/outline';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { useAuthStore } from '@/store/authStore';
 import { usePersonalStore } from '@/store/personalStore';
 import { useUIStore } from '@/store/uiStore';
@@ -42,6 +43,13 @@ export function PersonalContactDetailPage() {
   const [showMenu, setShowMenu] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [editName, setEditName] = useState('');
+  const [confirmModal, setConfirmModal] = useState<{
+    open: boolean;
+    message: string;
+    confirmLabel?: string;
+    confirmVariant?: string;
+    onConfirm: () => void;
+  }>({ open: false, message: '', onConfirm: () => {} });
 
   const netAmount = computePersonalNetAmount(currentExpenses);
 
@@ -71,50 +79,73 @@ export function PersonalContactDetailPage() {
     return () => clearCurrentContact();
   }, [loadData]);
 
-  const handleSettleAll = async () => {
+  const closeConfirm = () => setConfirmModal((prev) => ({ ...prev, open: false }));
+
+  const handleSettleAll = () => {
     if (!user || !contactId || netAmount === 0) return;
     const contactName = currentContact?.displayName ?? '';
-    if (!window.confirm(t('personal.settleAllConfirm', { name: contactName }))) return;
-
-    try {
-      await settleAllWithContact(user.uid, contactId, netAmount);
-      showToast(t('personal.settled'), 'success');
-      loadData();
-    } catch (err) {
-      logger.error('personal.settleAll', '結清失敗', err);
-      showToast(t('common.error'), 'error');
-    }
-    setShowMenu(false);
+    setConfirmModal({
+      open: true,
+      message: t('personal.settleAllConfirm', { name: contactName }),
+      confirmLabel: t('common.button.confirm'),
+      confirmVariant: 'btn-primary',
+      onConfirm: async () => {
+        closeConfirm();
+        try {
+          await settleAllWithContact(user.uid, contactId, netAmount);
+          showToast(t('personal.settled'), 'success');
+          loadData();
+        } catch (err) {
+          logger.error('personal.settleAll', '結清失敗', err);
+          showToast(t('common.error'), 'error');
+        }
+        setShowMenu(false);
+      },
+    });
   };
 
-  const handleDeleteExpense = async (expenseId: string) => {
+  const handleDeleteExpense = (expenseId: string) => {
     if (!user || !contactId) return;
-    if (!window.confirm(t('expense.deleteConfirm'))) return;
-
-    try {
-      await deletePersonalExpense(user.uid, contactId, expenseId);
-      showToast(t('common.button.done'), 'success');
-      loadData();
-    } catch (err) {
-      logger.error('personal.deleteExpense', '刪除帳務失敗', err);
-      showToast(t('common.error'), 'error');
-    }
+    setConfirmModal({
+      open: true,
+      message: t('expense.deleteConfirm'),
+      confirmLabel: t('common.button.delete'),
+      confirmVariant: 'btn-error',
+      onConfirm: async () => {
+        closeConfirm();
+        try {
+          await deletePersonalExpense(user.uid, contactId, expenseId);
+          showToast(t('common.button.done'), 'success');
+          loadData();
+        } catch (err) {
+          logger.error('personal.deleteExpense', '刪除帳務失敗', err);
+          showToast(t('common.error'), 'error');
+        }
+      },
+    });
   };
 
-  const handleDeleteContact = async () => {
+  const handleDeleteContact = () => {
     if (!user || !contactId) return;
     const contactName = currentContact?.displayName ?? '';
-    if (!window.confirm(t('personal.deleteContactConfirm', { name: contactName }))) return;
-
-    try {
-      await deleteContact(user.uid, contactId);
-      showToast(t('common.button.done'), 'success');
-      navigate('/personal');
-    } catch (err) {
-      logger.error('personal.deleteContact', '刪除聯絡人失敗', err);
-      showToast(t('common.error'), 'error');
-    }
-    setShowMenu(false);
+    setConfirmModal({
+      open: true,
+      message: t('personal.deleteContactConfirm', { name: contactName }),
+      confirmLabel: t('common.button.delete'),
+      confirmVariant: 'btn-error',
+      onConfirm: async () => {
+        closeConfirm();
+        try {
+          await deleteContact(user.uid, contactId);
+          showToast(t('common.button.done'), 'success');
+          navigate('/personal');
+        } catch (err) {
+          logger.error('personal.deleteContact', '刪除聯絡人失敗', err);
+          showToast(t('common.error'), 'error');
+        }
+        setShowMenu(false);
+      },
+    });
   };
 
   const handleUpdateName = async () => {
@@ -294,6 +325,16 @@ export function PersonalContactDetailPage() {
           onClick={() => setShowMenu(false)}
         />
       )}
+
+      <ConfirmModal
+        open={confirmModal.open}
+        message={confirmModal.message}
+        confirmLabel={confirmModal.confirmLabel}
+        confirmVariant={confirmModal.confirmVariant}
+        cancelLabel={t('common.button.cancel')}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={closeConfirm}
+      />
     </div>
   );
 }

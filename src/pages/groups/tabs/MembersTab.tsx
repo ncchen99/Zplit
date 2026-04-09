@@ -75,7 +75,7 @@ export function MembersTab() {
               <UserAvatar
                 src={m.avatarUrl}
                 name={m.displayName}
-                bgClass={m.isBound ? 'bg-neutral text-neutral-content' : 'bg-base-300 text-neutral-content'}
+                bgClass={m.isBound ? 'bg-primary/15 text-primary' : 'bg-base-300 text-base-content/50'}
               />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">

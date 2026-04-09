@@ -7,6 +7,7 @@ import { useUIStore } from '@/store/uiStore';
 import { deleteGroup } from '@/services/groupService';
 import { logger } from '@/utils/logger';
 import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 export function SettingsTab() {
   const { t } = useTranslation();
@@ -15,12 +16,12 @@ export function SettingsTab() {
   const user = useAuthStore((s) => s.user);
   const showToast = useUIStore((s) => s.showToast);
   const [deleting, setDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const isCreator = currentGroup?.createdBy === user?.uid;
 
   const handleDeleteGroup = async () => {
     if (!currentGroup) return;
-    if (!window.confirm(t('group.detail.deleteConfirm'))) return;
     setDeleting(true);
     try {
       await deleteGroup(currentGroup.groupId);
@@ -74,7 +75,7 @@ export function SettingsTab() {
           </h3>
           <button
             className="btn btn-block btn-error btn-outline gap-2"
-            onClick={handleDeleteGroup}
+            onClick={() => setShowDeleteConfirm(true)}
             disabled={deleting}
           >
             {deleting ? (
@@ -86,6 +87,16 @@ export function SettingsTab() {
           </button>
         </div>
       )}
+      <ConfirmModal
+        open={showDeleteConfirm}
+        title={t('group.detail.deleteGroup')}
+        message={t('group.detail.deleteConfirm')}
+        confirmLabel={t('common.button.delete')}
+        cancelLabel={t('common.button.cancel')}
+        confirmVariant="btn-error"
+        onConfirm={() => { setShowDeleteConfirm(false); handleDeleteGroup(); }}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
     </div>
   );
 }

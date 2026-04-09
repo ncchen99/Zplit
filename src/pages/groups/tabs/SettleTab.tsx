@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useGroupStore } from '@/store/groupStore';
 import { computeBalances, computeSettlements } from '@/lib/algorithm/settlement';
@@ -9,6 +9,7 @@ import { useUIStore } from '@/store/uiStore';
 import { logger } from '@/utils/logger';
 import { ArrowRightIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { UserAvatar } from '@/components/ui/UserAvatar';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 export function SettleTab() {
   const { t } = useTranslation();
@@ -17,6 +18,7 @@ export function SettleTab() {
   const currentGroup = useGroupStore((s) => s.currentGroup);
   const user = useAuthStore((s) => s.user);
   const showToast = useUIStore((s) => s.showToast);
+  const [showMarkAllConfirm, setShowMarkAllConfirm] = useState(false);
 
   const memberMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -72,8 +74,6 @@ export function SettleTab() {
 
   const handleMarkAllDone = async () => {
     if (!currentGroup || !user) return;
-    if (!window.confirm(t('group.settle.markAllDone') + '?')) return;
-
     try {
       const pending = settlements.filter((s) => !s.completed);
       for (const s of pending) {
@@ -122,11 +122,20 @@ export function SettleTab() {
       {completedCount < totalCount && (
         <button
           className="btn btn-outline btn-primary btn-sm btn-block mb-4"
-          onClick={handleMarkAllDone}
+          onClick={() => setShowMarkAllConfirm(true)}
         >
           {t('group.settle.markAllDone')}
         </button>
       )}
+
+      <ConfirmModal
+        open={showMarkAllConfirm}
+        message={t('group.settle.markAllDone') + '?'}
+        confirmLabel={t('common.button.confirm')}
+        cancelLabel={t('common.button.cancel')}
+        onConfirm={() => { setShowMarkAllConfirm(false); handleMarkAllDone(); }}
+        onCancel={() => setShowMarkAllConfirm(false)}
+      />
 
       {/* Settlement list */}
       <div className="flex flex-col gap-2">
