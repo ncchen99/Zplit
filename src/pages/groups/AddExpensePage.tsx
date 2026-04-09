@@ -8,6 +8,7 @@ import { addExpense } from '@/services/expenseService';
 import { recalculateSettlements } from '@/services/settlementService';
 import { getGroupById } from '@/services/groupService';
 import { logger } from '@/utils/logger';
+import { getTaipeiDateTimeLocalString, parseTaipeiDateTimeLocalString } from '@/utils/datetime';
 import { ImageUpload } from '@/components/ui/ImageUpload';
 import { PageHeader, HeaderIconButton } from '@/components/ui/PageHeader';
 import { CheckIcon } from '@heroicons/react/24/outline';
@@ -39,9 +40,7 @@ export function AddExpensePage() {
   const [showRepeat, setShowRepeat] = useState(false);
   const [repeatType, setRepeatType] = useState<RepeatType>('none');
   const [repeatEndDate, setRepeatEndDate] = useState('');
-  const [expenseDate, setExpenseDate] = useState(
-    new Date().toISOString().slice(0, 16)
-  );
+  const [expenseDate, setExpenseDate] = useState(() => getTaipeiDateTimeLocalString());
   const [saving, setSaving] = useState(false);
   const [showDiscardModal, setShowDiscardModal] = useState(false);
 
@@ -147,7 +146,7 @@ export function AddExpensePage() {
         splits,
         description: description.trim() || null,
         imageUrl,
-        date: new Date(expenseDate),
+        date: parseTaipeiDateTimeLocalString(expenseDate),
         createdBy: user.uid,
         repeat: repeatType !== 'none'
           ? { type: repeatType, endDate: repeatEndDate ? new Date(repeatEndDate) : null }
@@ -227,7 +226,7 @@ export function AddExpensePage() {
           >
             {members.map((m) => (
               <option key={m.memberId} value={m.memberId}>
-                {m.displayName} {m.userId === user?.uid ? `(${t('group.create.creatorBadge')})` : ''}
+                {m.displayName}
               </option>
             ))}
           </select>

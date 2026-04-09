@@ -126,7 +126,7 @@ export function OnboardingPage() {
             className="btn btn-primary btn-block btn-lg"
             disabled={!displayName.trim() || saving}
           >
-            {saving && <span className="loading loading-spinner loading-sm" />}
+            {saving && <span className="skeleton h-4 w-4 rounded-full" />}
             {t('auth.onboarding.continue')}
           </button>
         </form>

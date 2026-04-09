@@ -116,20 +116,63 @@ export function GroupDetailPage() {
     }
   };
 
-  if (!currentGroup) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <span className="loading loading-spinner loading-lg text-primary" />
-      </div>
-    );
-  }
-
   const tabs: { key: TabKey; label: string }[] = [
     { key: 'summary', label: t('group.summary.title') },
     { key: 'settle', label: t('group.settle.title') },
     { key: 'members', label: t('group.members.title') },
     { key: 'settings', label: t('group.settings.title') },
   ];
+
+  if (!currentGroup) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <PageHeader
+          title={t('group.summary.title')}
+          onBack={() => navigate('/home')}
+          rightAction={(
+            <HeaderIconButton onClick={() => {}} disabled>
+              <ShareIcon className="h-6 w-6" />
+            </HeaderIconButton>
+          )}
+        />
+
+        <div role="tablist" className="tabs tabs-border px-4">
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              role="tab"
+              className={`tab ${tab.key === 'summary' ? 'tab-active' : ''}`}
+              disabled
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex-1 px-4 pt-4 pb-24">
+          <div className="space-y-4">
+            <div className="skeleton h-5 w-24" />
+            <div className="skeleton h-44 w-full rounded-2xl" />
+            <div className="skeleton h-4 w-28" />
+            {Array.from({ length: 5 }).map((_, idx) => (
+              <div key={idx} className="flex items-center gap-3 py-2">
+                <div className="skeleton h-10 w-10 shrink-0 rounded-full" />
+                <div className="flex-1 space-y-2">
+                  <div className="skeleton h-4 w-40" />
+                  <div className="skeleton h-3 w-24" />
+                </div>
+                <div className="skeleton h-5 w-16" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="fixed bottom-6 right-4 z-50" aria-hidden="true">
+          <div className="skeleton h-16 w-16 rounded-full" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col">

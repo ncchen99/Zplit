@@ -55,7 +55,7 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
     <div className="flex flex-col">
       {/* Top Block: Debt Treemap */}
       {treemapData.length > 0 && (
-        <div className="-mx-4 px-4 pb-4 border-b border-base-200 mb-4">
+        <div className="pb-4 border-b border-base-200 mb-4">
           <DebtTreemap
             data={treemapData}
             formatAmount={(amount) => `-$${amount.toLocaleString()}`}
@@ -94,7 +94,7 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
               return (
                 <button
                   key={expense.expenseId}
-                  className="flex items-center gap-3 -mx-4 px-4 py-3 border-b border-base-200 last:border-b-0 text-left active:bg-base-200 transition-colors w-[calc(100%+2rem)]"
+                  className="flex items-center gap-3 py-3 border-b border-base-200 last:border-b-0 text-left active:bg-base-200 transition-colors w-full"
                   onClick={() =>
                     navigate(`/groups/${groupId}/expenses/${expense.expenseId}`)
                   }

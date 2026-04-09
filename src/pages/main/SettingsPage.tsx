@@ -75,7 +75,7 @@ export function SettingsPage() {
       <div className="mt-6 flex flex-col">
         {/* Profile Row */}
         <div
-          className="flex items-center gap-3 -mx-4 px-4 py-4 border-b border-base-200 last:border-b-0 cursor-pointer active:bg-base-300 transition-colors md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-4 md:border-0 md:active:bg-base-300"
+          className="flex items-center gap-3 py-4 border-b border-base-200 last:border-b-0 cursor-pointer active:bg-base-300 transition-colors md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-4 md:border-0 md:active:bg-base-300"
           onClick={() => navigate('/settings/profile')}
         >
           <div className="flex items-center gap-3 w-full md:card-body md:p-4">
@@ -97,7 +97,7 @@ export function SettingsPage() {
 
         {/* Bind Google (anonymous only) */}
         {isAnonymous && (
-          <div className="flex items-center gap-3 -mx-4 px-4 py-4 border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-4 md:border-0">
+          <div className="flex items-center gap-3 py-4 border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-4 md:border-0">
             <div className="flex items-center gap-3 w-full md:card-body md:p-4">
               <LinkIcon className="h-5 w-5 text-primary shrink-0" />
               <div className="flex-1">
@@ -109,7 +109,7 @@ export function SettingsPage() {
                 onClick={handleBindGoogle}
                 disabled={binding}
               >
-                {binding && <span className="loading loading-spinner loading-xs" />}
+                {binding && <span className="skeleton h-3 w-3 rounded-full" />}
                 {t('settings.bindGoogle')}
               </button>
             </div>
@@ -117,7 +117,7 @@ export function SettingsPage() {
         )}
 
         {/* Language Row */}
-        <div className="-mx-4 px-4 py-4 border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-4 md:border-0">
+        <div className="py-4 border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-4 md:border-0">
           <div className="flex flex-col gap-3 w-full md:card-body md:p-4">
             <div className="flex items-center gap-3">
               <GlobeAltIcon className="h-5 w-5 text-base-content/60" />
@@ -141,7 +141,7 @@ export function SettingsPage() {
         </div>
 
         {/* Theme Row */}
-        <div className="-mx-4 px-4 py-4 border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-4 md:border-0">
+        <div className="py-4 border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-4 md:border-0">
           <div className="flex flex-col gap-3 w-full md:card-body md:p-4">
             <div className="flex items-center gap-3">
               <SwatchIcon className="h-5 w-5 text-base-content/60" />

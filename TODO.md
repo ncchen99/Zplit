@@ -204,7 +204,7 @@ btn-primary {
 - [x] 想要將個人分帳的新增分帳頁面，儲存按鈕也改到右上角變成勾勾，一致化這個設計
 - [x] 個人分帳的新增分帳頁面上有顯示「你替 Contact 付款」和「Contact 代墊」，這個 Contact 可以幫我改成他的名字嗎？不要直接使用 Contact
 
-- [ ] 想請你幫忙將現在的各頁面的 Loading 動畫，改成 Daisy UI 內建的 Skeleton
+- [x] 想請你幫忙將現在的各頁面的 Loading 動畫，改成 Daisy UI 內建的 Skeleton
 <div className="flex w-52 flex-col gap-4">
   <div className="flex items-center gap-4">
     <div className="skeleton h-16 w-16 shrink-0 rounded-full"></div>
@@ -261,13 +261,6 @@ btn-primary {
 <span className="badge">Badge</span>
 
 - [ ] 修正記帳頁面自動設定的日期與時間，時區好像不在臺灣。
-群組的總覽頁面，在「代付」的清單裡面也需要顯示「代收」，並顯示在最後面。
-
-關於代收的部分：
-1. 顯示位置：清單最後面
-2. 樣式設定：使用綠色的 Progress Bar
-
-
 
 - [ ] 在顯示使用者名稱的時候，不用顯示為「建立者」。
 就是在這個「新增帳務」的頁面，付款人這邊都會顯示建立者，這部分不需要顯示。

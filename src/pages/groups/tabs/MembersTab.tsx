@@ -71,7 +71,7 @@ export function MembersTab() {
         {currentGroup?.members?.map((m) => {
           const isMemberCreator = m.userId === currentGroup.createdBy;
           return (
-            <div key={m.memberId} className="flex items-center gap-3 -mx-4 px-4 py-3 border-b border-base-200 last:border-b-0 md:mx-0 md:rounded-xl md:bg-base-200 md:px-3 md:py-3 md:mb-0 md:border-0">
+            <div key={m.memberId} className="flex items-center gap-3 py-3 border-b border-base-200 last:border-b-0 md:mx-0 md:rounded-xl md:bg-base-200 md:px-3 md:py-3 md:mb-0 md:border-0">
               <UserAvatar
                 src={m.avatarUrl}
                 name={m.displayName}
@@ -84,7 +84,7 @@ export function MembersTab() {
                 </div>
                 <div className="flex items-center gap-1 mt-0.5">
                   {m.isBound ? (
-                    <span className="badge badge-success badge-xs gap-0.5">
+                    <span className="badge badge-soft badge-success badge-xs gap-0.5">
                       <LinkIcon className="h-2.5 w-2.5" />
                       {t('group.members.bound')}
                     </span>
@@ -123,7 +123,7 @@ export function MembersTab() {
             disabled={!newName.trim() || adding}
           >
             {adding ? (
-              <span className="loading loading-spinner loading-xs" />
+              <span className="skeleton h-3 w-3 rounded-full" />
             ) : (
               <>
                 <PlusIcon className="h-4 w-4" />
@@ -164,7 +164,7 @@ export function MembersTab() {
               return (
                 <div
                   key={i}
-                  className="flex -mx-4 px-4 py-2 border-b border-base-200 last:border-b-0 text-xs text-base-content/60 md:mx-0 md:rounded-lg md:bg-base-200 md:px-3 md:py-2 md:mb-0 md:border-0"
+                  className="flex py-2 border-b border-base-200 last:border-b-0 text-xs text-base-content/60 md:mx-0 md:rounded-lg md:bg-base-200 md:px-3 md:py-2 md:mb-0 md:border-0"
                 >
                   <span className="font-semibold">{actorName}</span>{' '}
                   {log.description}

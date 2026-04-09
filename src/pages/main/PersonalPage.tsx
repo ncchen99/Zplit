@@ -104,22 +104,33 @@ export function PersonalPage() {
 
       {/* Net Summary */}
       {contactsWithNet.length > 0 && (totalOwed > 0 || totalOwe > 0) && (
-        <div className="mt-4 flex gap-3">
-          <div className="flex-1 rounded-xl bg-success/10 p-3 text-center">
-            <p className="text-xs text-success">{t('personal.owedToYouTotal')}</p>
-            <p className="text-lg font-bold text-success">NT${totalOwed.toLocaleString()}</p>
+        <div className="mt-4 stats stats-horizontal w-full border border-base-300 bg-base-100">
+          <div className="stat py-3 px-4">
+            <div className="stat-title text-success">{t('personal.owedToYouTotal')}</div>
+            <div className="stat-value text-success text-2xl">NT${totalOwed.toLocaleString()}</div>
           </div>
-          <div className="flex-1 rounded-xl bg-warning/10 p-3 text-center">
-            <p className="text-xs text-warning">{t('personal.youOweTotal')}</p>
-            <p className="text-lg font-bold text-warning">NT${totalOwe.toLocaleString()}</p>
+          <div className="stat py-3 px-4 border-l border-base-300">
+            <div className="stat-title text-warning">{t('personal.youOweTotal')}</div>
+            <div className="stat-value text-warning text-2xl">NT${totalOwe.toLocaleString()}</div>
           </div>
         </div>
       )}
 
       {/* Loading */}
       {isLoading ? (
-        <div className="mt-12 flex justify-center">
-          <span className="loading loading-spinner loading-md" />
+        <div className="mt-4 space-y-3">
+          <div className="skeleton h-20 w-full rounded-2xl" />
+          <div className="skeleton h-4 w-20" />
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <div key={idx} className="flex items-center gap-3 py-2">
+              <div className="skeleton h-12 w-12 shrink-0 rounded-full" />
+              <div className="flex-1 space-y-2">
+                <div className="skeleton h-4 w-36" />
+                <div className="skeleton h-3 w-24" />
+              </div>
+              <div className="skeleton h-5 w-16" />
+            </div>
+          ))}
         </div>
       ) : contactsWithNet.length === 0 ? (
         <div className="mt-16 text-center text-base-content/40">
@@ -204,7 +215,7 @@ function ContactCard({
 
   return (
     <div
-      className="flex items-center gap-3 -mx-4 px-4 py-3 cursor-pointer active:bg-base-200/50 transition-colors border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:border-0 md:active:bg-base-300"
+      className="flex items-center gap-3 py-3 cursor-pointer active:bg-base-200/50 transition-colors border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:border-0 md:active:bg-base-300"
       onClick={onClick}
     >
       <div className="flex items-center gap-3 w-full md:card-body md:p-3">

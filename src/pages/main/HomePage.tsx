@@ -100,8 +100,17 @@ export function HomePage() {
 
       {/* Main Content */}
       {loading ? (
-        <div className="mt-8 flex justify-center">
-          <span className="loading loading-spinner loading-md" />
+        <div className="mt-6 space-y-4">
+          <div className="space-y-2">
+            <div className="skeleton h-4 w-28" />
+            <div className="skeleton h-16 w-full rounded-2xl" />
+            <div className="skeleton h-16 w-full rounded-2xl" />
+          </div>
+          <div className="space-y-2">
+            <div className="skeleton h-4 w-32" />
+            <div className="skeleton h-16 w-full rounded-2xl" />
+            <div className="skeleton h-16 w-full rounded-2xl" />
+          </div>
         </div>
       ) : groups.length === 0 && personalContacts.length === 0 ? (
         <div className="mt-16 text-center text-base-content/40 cursor-pointer" onClick={() => navigate('/groups/new')}>
@@ -159,7 +168,7 @@ export function HomePage() {
                 {personalContacts.map((c) => (
                   <div
                     key={c.contactId}
-                    className="flex items-center gap-3 -mx-4 px-4 py-3 cursor-pointer active:bg-base-200/50 transition-colors border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-2 md:border-0 md:active:bg-base-300"
+                    className="flex items-center gap-3 py-3 cursor-pointer active:bg-base-200/50 transition-colors border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-2 md:border-0 md:active:bg-base-300"
                     onClick={() => navigate(`/personal/${c.contactId}`)}
                   >
                     <div className="flex items-center gap-3 w-full md:card-body md:p-3">

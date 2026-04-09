@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-  ChevronLeftIcon,
   EllipsisVerticalIcon,
   PlusIcon,
   TrashIcon,
@@ -10,6 +9,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { PageHeader, HeaderIconButton } from '@/components/ui/PageHeader';
 import { useAuthStore } from '@/store/authStore';
 import { usePersonalStore } from '@/store/personalStore';
 import { useUIStore } from '@/store/uiStore';
@@ -52,6 +52,7 @@ export function PersonalContactDetailPage() {
   }>({ open: false, message: '', onConfirm: () => {} });
 
   const netAmount = computePersonalNetAmount(currentExpenses);
+  const loadingDisplayName = currentContact?.displayName ?? '...';
 
   const loadData = useCallback(async () => {
     if (!user || !contactId) return;
@@ -165,8 +166,44 @@ export function PersonalContactDetailPage() {
 
   if (isLoading && !currentContact) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <span className="loading loading-spinner loading-lg text-primary" />
+      <div className="flex min-h-screen flex-col">
+        <PageHeader
+          title={(
+            <span className="inline-flex min-w-0 items-center gap-2">
+              <span className="avatar placeholder shrink-0">
+                <span className="w-8 rounded-full bg-neutral text-neutral-content">
+                  <span className="text-sm">{loadingDisplayName.charAt(0)}</span>
+                </span>
+              </span>
+              <span className="truncate text-lg font-bold">{loadingDisplayName}</span>
+            </span>
+          )}
+          onBack={() => navigate('/personal')}
+          rightAction={(
+            <HeaderIconButton onClick={() => {}} disabled>
+              <EllipsisVerticalIcon className="h-6 w-6" />
+            </HeaderIconButton>
+          )}
+        />
+
+        <div className="px-4 mt-2">
+          <div className="skeleton h-28 w-full rounded-2xl" />
+        </div>
+
+        <div className="px-4 mt-6 flex-1">
+          <div className="skeleton h-4 w-28" />
+          <div className="mt-3 space-y-3">
+            {Array.from({ length: 4 }).map((_, idx) => (
+              <div key={idx} className="flex items-center gap-3 py-2">
+                <div className="flex-1 space-y-2">
+                  <div className="skeleton h-4 w-40" />
+                  <div className="skeleton h-3 w-28" />
+                </div>
+                <div className="skeleton h-5 w-16" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -175,27 +212,20 @@ export function PersonalContactDetailPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 pt-4 pb-2">
-        <div className="flex items-center gap-3 min-w-0">
-          <button
-            className="btn btn-ghost btn-sm btn-circle"
-            onClick={() => navigate('/personal')}
-          >
-            <ChevronLeftIcon className="h-5 w-5" />
-          </button>
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="avatar placeholder">
-              <div className="w-8 rounded-full bg-neutral text-neutral-content">
+      <PageHeader
+        title={(
+          <span className="inline-flex min-w-0 items-center gap-2">
+            <span className="avatar placeholder shrink-0">
+              <span className="w-8 rounded-full bg-neutral text-neutral-content">
                 {currentContact?.avatarUrl ? (
                   <img src={currentContact.avatarUrl} alt="" />
                 ) : (
                   <span className="text-sm">{displayName.charAt(0)}</span>
                 )}
-              </div>
-            </div>
+              </span>
+            </span>
             {editingName ? (
-              <div className="flex items-center gap-1">
+              <span className="inline-flex items-center gap-1">
                 <input
                   type="text"
                   className="input input-sm input-bordered w-32"
@@ -214,70 +244,68 @@ export function PersonalContactDetailPage() {
                 <button className="btn btn-ghost btn-xs" onClick={() => setEditingName(false)}>
                   {t('common.button.cancel')}
                 </button>
-              </div>
+              </span>
             ) : (
-              <h1 className="text-xl font-bold truncate">{displayName}</h1>
+              <span className="truncate text-lg font-bold">{displayName}</span>
             )}
-          </div>
-        </div>
-
-        <div className="dropdown dropdown-end">
-          <button
-            className="btn btn-ghost btn-sm btn-circle"
-            onClick={() => setShowMenu(!showMenu)}
-          >
-            <EllipsisVerticalIcon className="h-5 w-5" />
-          </button>
-          {showMenu && (
-            <ul className="dropdown-content menu bg-base-200 rounded-box z-50 w-48 p-2 shadow-lg">
-              {netAmount !== 0 && (
+          </span>
+        )}
+        onBack={() => navigate('/personal')}
+        rightAction={(
+          <span className="dropdown dropdown-end">
+            <HeaderIconButton onClick={() => setShowMenu(!showMenu)}>
+              <EllipsisVerticalIcon className="h-6 w-6" />
+            </HeaderIconButton>
+            {showMenu && (
+              <ul className="dropdown-content menu bg-base-200 rounded-box z-50 w-48 p-2 shadow-lg">
+                {netAmount !== 0 && (
+                  <li>
+                    <button onClick={handleSettleAll}>
+                      {t('personal.settleAll')}
+                    </button>
+                  </li>
+                )}
                 <li>
-                  <button onClick={handleSettleAll}>
-                    {t('personal.settleAll')}
+                  <button onClick={() => { setShowMenu(false); setEditingName(true); }}>
+                    {t('personal.editContactName')}
                   </button>
                 </li>
-              )}
-              <li>
-                <button onClick={() => { setShowMenu(false); setEditingName(true); }}>
-                  {t('personal.editContactName')}
-                </button>
-              </li>
-              <li>
-                <button className="text-error" onClick={handleDeleteContact}>
-                  {t('personal.deleteContact')}
-                </button>
-              </li>
-            </ul>
-          )}
-        </div>
-      </div>
+                <li>
+                  <button className="text-error" onClick={handleDeleteContact}>
+                    {t('personal.deleteContact')}
+                  </button>
+                </li>
+              </ul>
+            )}
+          </span>
+        )}
+      />
 
       {/* Net Amount Card */}
-      <div className="px-4 mt-2">
-        <div className="card bg-base-200">
-          <div className="card-body p-4 text-center">
-            {netAmount === 0 ? (
-              <p className="inline-flex items-center justify-center gap-1 text-base-content/50">
-                <CheckCircleIcon className="h-4 w-4" />
-                {t('personal.settled')}
-              </p>
-            ) : netAmount > 0 ? (
-              <>
-                <p className="text-sm text-success">{t('personal.owesYou', { name: displayName })}</p>
-                <p className="text-3xl font-bold text-success">
-                  NT${netAmount.toLocaleString()}
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-sm text-warning">{t('personal.youOwe', { name: displayName })}</p>
-                <p className="text-3xl font-bold text-warning">
-                  NT${Math.abs(netAmount).toLocaleString()}
-                </p>
-              </>
-            )}
+      <div className="px-4 mt-4">
+        <div className="stats stats-horizontal w-full border border-base-300 bg-base-100">
+          <div className="stat py-3 px-4">
+            <div className="stat-title text-success">{t('personal.owedToYouTotal')}</div>
+            <div className="stat-value text-success text-2xl">
+              NT${(netAmount > 0 ? netAmount : 0).toLocaleString()}
+            </div>
+            <div className="stat-desc truncate">{t('personal.owesYou', { name: displayName })}</div>
+          </div>
+
+          <div className="stat py-3 px-4 border-l border-base-300">
+            <div className="stat-title text-warning">{t('personal.youOweTotal')}</div>
+            <div className="stat-value text-warning text-2xl">
+              NT${(netAmount < 0 ? Math.abs(netAmount) : 0).toLocaleString()}
+            </div>
+            <div className="stat-desc truncate">{t('personal.youOwe', { name: displayName })}</div>
           </div>
         </div>
+        {netAmount === 0 && (
+          <p className="mt-2 inline-flex items-center justify-center gap-1 text-sm text-base-content/50">
+            <CheckCircleIcon className="h-4 w-4" />
+            {t('personal.settled')}
+          </p>
+        )}
       </div>
 
       {/* Lending History */}
@@ -287,8 +315,16 @@ export function PersonalContactDetailPage() {
         </h2>
 
         {isLoading ? (
-          <div className="mt-6 flex justify-center">
-            <span className="loading loading-spinner loading-md" />
+          <div className="mt-3 space-y-3">
+            {Array.from({ length: 3 }).map((_, idx) => (
+              <div key={idx} className="flex items-center gap-3 py-2">
+                <div className="flex-1 space-y-2">
+                  <div className="skeleton h-4 w-36" />
+                  <div className="skeleton h-3 w-24" />
+                </div>
+                <div className="skeleton h-5 w-14" />
+              </div>
+            ))}
           </div>
         ) : currentExpenses.length === 0 ? (
           <div className="mt-8 text-center text-base-content/40 py-8">
@@ -352,7 +388,7 @@ function ExpenseCard({
 }) {
   const { t } = useTranslation();
   const isSelfPaid = expense.paidBy === 'self';
-  const isSettlement = (expense as Record<string, unknown>).isSettlement === true;
+  const isSettlement = (expense as unknown as Record<string, unknown>).isSettlement === true;
   const dateStr = expense.date
     ? new Date(
         ((expense.date as { seconds: number })?.seconds ?? 0) * 1000
@@ -360,7 +396,7 @@ function ExpenseCard({
     : '';
 
   return (
-    <div className="flex items-center gap-3 -mx-4 px-4 py-3 border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-2 md:border-0">
+    <div className="flex items-center gap-3 py-3 border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-2 md:border-0">
       <div className="flex items-center gap-3 w-full md:card-body md:p-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">

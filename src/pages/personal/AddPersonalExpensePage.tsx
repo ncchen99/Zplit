@@ -13,6 +13,7 @@ import {
   type PersonalContact,
 } from '@/services/personalLedgerService';
 import { logger } from '@/utils/logger';
+import { getTaipeiDateTimeLocalString, parseTaipeiDateTimeLocalString } from '@/utils/datetime';
 
 export function AddPersonalExpensePage() {
   const { t } = useTranslation();
@@ -35,7 +36,7 @@ export function AddPersonalExpensePage() {
   const [amount, setAmount] = useState('');
   const [paidBy, setPaidBy] = useState<'self' | 'contact'>('self');
   const [description, setDescription] = useState('');
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 16));
+  const [date, setDate] = useState(() => getTaipeiDateTimeLocalString());
   const [saving, setSaving] = useState(false);
 
   // 若從個人頁 FAB 進入（無 contactId），需載入聯絡人清單
@@ -120,7 +121,7 @@ export function AddPersonalExpensePage() {
         paidBy,
         description: description.trim() || null,
         imageUrl: null,
-        date: new Date(date),
+        date: parseTaipeiDateTimeLocalString(date),
       });
       showToast(t('common.toast.recordAdded'), 'success');
       navigate(`/personal/${resolvedContactId}`);
@@ -179,7 +180,7 @@ export function AddPersonalExpensePage() {
                 autoComplete="off"
               />
               {loadingContacts && (
-                <span className="loading loading-spinner loading-xs absolute right-3 top-1/2 -translate-y-1/2" />
+                <span className="skeleton h-3 w-3 rounded-full absolute right-3 top-1/2 -translate-y-1/2" />
               )}
             </div>
 
@@ -260,9 +261,10 @@ export function AddPersonalExpensePage() {
           <label className="label">
             <span className="label-text font-medium">{t('expense.paidBy')}</span>
           </label>
-          <div className="flex gap-2">
+          <div className="join w-full">
             <button
-              className={`btn btn-sm flex-1 ${paidBy === 'self' ? 'btn-primary' : 'btn-ghost'}`}
+              type="button"
+              className={`join-item btn btn-sm flex-1 ${paidBy === 'self' ? 'btn-active' : ''}`}
               onClick={() => setPaidBy('self')}
             >
               {resolvedContactName
@@ -270,7 +272,8 @@ export function AddPersonalExpensePage() {
                 : t('personal.paidForPlaceholder')}
             </button>
             <button
-              className={`btn btn-sm flex-1 ${paidBy === 'contact' ? 'btn-primary' : 'btn-ghost'}`}
+              type="button"
+              className={`join-item btn btn-sm flex-1 ${paidBy === 'contact' ? 'btn-active' : ''}`}
               onClick={() => setPaidBy('contact')}
             >
               {resolvedContactName

@@ -49,7 +49,7 @@ export function GroupListPage() {
           onClick={() => navigate('/groups/new')}
         >
           <PlusIcon className="h-4 w-4" />
-          {t('common.button.add')}
+          {t('home.createGroup')}
         </button>
       </div>
 
@@ -68,8 +68,17 @@ export function GroupListPage() {
       </div>
 
       {loading ? (
-        <div className="mt-8 flex justify-center">
-          <span className="loading loading-spinner loading-md" />
+        <div className="mt-6 space-y-3">
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <div key={idx} className="flex items-center gap-3 py-2">
+              <div className="skeleton h-12 w-12 shrink-0 rounded-2xl" />
+              <div className="flex-1 space-y-2">
+                <div className="skeleton h-4 w-40" />
+                <div className="skeleton h-3 w-24" />
+              </div>
+              <div className="skeleton h-5 w-12" />
+            </div>
+          ))}
         </div>
       ) : filtered.length === 0 && search ? (
         <div className="mt-8 text-center text-base-content/40">

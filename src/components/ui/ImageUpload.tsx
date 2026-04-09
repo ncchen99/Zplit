@@ -83,7 +83,7 @@ export function ImageUpload({
           />
           {uploading && (
             <div className={`absolute inset-0 flex items-center justify-center bg-black/40 ${isCircle ? 'rounded-full' : 'rounded-xl'}`}>
-              <span className="loading loading-spinner loading-sm text-white" />
+              <span className="skeleton h-4 w-4 rounded-full" />
             </div>
           )}
           {onRemove && !uploading && (
@@ -108,7 +108,7 @@ export function ImageUpload({
           disabled={uploading}
         >
           {uploading ? (
-            <span className="loading loading-spinner loading-sm" />
+            <span className="skeleton h-4 w-4 rounded-full" />
           ) : (
             <>
               <CameraIcon className="h-6 w-6 text-base-content/40" />

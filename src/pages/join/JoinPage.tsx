@@ -100,10 +100,16 @@ export function JoinPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <span className="loading loading-spinner loading-lg text-primary" />
-          <p className="mt-2 text-sm text-base-content/50">{t('join.loading')}</p>
+      <div className="flex min-h-screen items-center justify-center px-6">
+        <div className="w-full max-w-sm space-y-4">
+          <div className="flex justify-center gap-2">
+            <div className="skeleton h-1.5 w-8 rounded-full" />
+            <div className="skeleton h-1.5 w-8 rounded-full" />
+            <div className="skeleton h-1.5 w-8 rounded-full" />
+          </div>
+          <div className="skeleton h-4 w-28 mx-auto" />
+          <div className="skeleton h-64 w-full rounded-2xl" />
+          <div className="skeleton h-12 w-full rounded-xl" />
         </div>
       </div>
     );
@@ -277,7 +283,7 @@ export function JoinPage() {
               onClick={handleConfirmJoin}
               disabled={!displayName.trim() || joining}
             >
-              {joining && <span className="loading loading-spinner loading-sm" />}
+              {joining && <span className="skeleton h-4 w-4 rounded-full" />}
               {t('join.confirmJoin')}
             </button>
           </div>

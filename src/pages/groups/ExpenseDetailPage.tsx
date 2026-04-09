@@ -30,8 +30,21 @@ export function ExpenseDetailPage() {
 
   if (!expense) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <span className="loading loading-spinner loading-lg text-primary" />
+      <div className="px-4 pt-4 pb-10 space-y-5">
+        <div className="flex items-center justify-between">
+          <div className="skeleton h-8 w-8 rounded-full" />
+          <div className="skeleton h-6 w-24" />
+          <div className="skeleton h-8 w-8 rounded-full" />
+        </div>
+        <div className="skeleton h-28 w-full rounded-2xl" />
+        <div className="space-y-3">
+          <div className="skeleton h-4 w-24" />
+          <div className="skeleton h-14 w-full rounded-xl" />
+        </div>
+        <div className="space-y-3">
+          <div className="skeleton h-4 w-24" />
+          <div className="skeleton h-40 w-full rounded-xl" />
+        </div>
       </div>
     );
   }
