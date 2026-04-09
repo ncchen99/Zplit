@@ -13,6 +13,18 @@
       "selectAll": "全選",
       "clearAll": "清除全部"
     },
+    "toast": {
+      "groupCreated": "群組建立完成",
+      "expenseAdded": "帳務新增完成",
+      "recordAdded": "記錄新增完成",
+      "saved": "儲存成功"
+    },
+    "discard": {
+      "title": "放棄變更？",
+      "message": "目前輸入的內容將不會被儲存",
+      "confirm": "放棄",
+      "cancel": "繼續編輯"
+    },
     "loading": "載入中...",
     "error": "發生錯誤",
     "retry": "重試",

@@ -6,7 +6,7 @@ import { useUIStore } from '@/store/uiStore';
 import { createGroup, addPlaceholderMember } from '@/services/groupService';
 import { logger } from '@/utils/logger';
 import { ImageUpload } from '@/components/ui/ImageUpload';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, ChevronLeftIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { StarIcon, PlusIcon } from '@heroicons/react/24/solid';
 
 interface PreAddMember {
@@ -32,6 +32,7 @@ export function CreateGroupPage() {
     },
   ]);
   const [saving, setSaving] = useState(false);
+  const [showDiscardModal, setShowDiscardModal] = useState(false);
 
   const handleAddMember = () => {
     const trimmed = memberSearch.trim();
@@ -49,9 +50,10 @@ export function CreateGroupPage() {
     setPreMembers((prev) => prev.filter((m) => m.id !== id));
   };
 
-  const handleCancel = () => {
+  const handleBack = () => {
     if (name.trim() || coverUrl || preMembers.length > 1) {
-      if (!window.confirm(t('common.button.cancel') + '?')) return;
+      setShowDiscardModal(true);
+      return;
     }
     navigate(-1);
   };
@@ -77,7 +79,7 @@ export function CreateGroupPage() {
       }
 
       logger.info('group.create', '群組建立成功', { groupId: group.groupId });
-      showToast(t('common.button.done'), 'success');
+      showToast(t('common.toast.groupCreated'), 'success');
       navigate(`/groups/${group.groupId}`, { replace: true });
     } catch (err) {
       logger.error('group.create', '群組建立失敗', err);
@@ -91,17 +93,22 @@ export function CreateGroupPage() {
     <div className="flex min-h-screen flex-col">
       {/* Top Action Bar */}
       <div className="flex items-center justify-between px-4 pt-4 pb-2">
-        <button className="btn btn-ghost btn-sm" onClick={handleCancel}>
-          {t('common.button.cancel')}
+        <button
+          className="-ml-1 p-1 rounded-lg text-base-content/60 hover:text-base-content hover:bg-base-200 active:bg-base-300 transition-colors"
+          onClick={handleBack}
+        >
+          <ChevronLeftIcon className="h-6 w-6" />
         </button>
         <h1 className="text-lg font-bold">{t('group.create.title')}</h1>
         <button
-          className="btn btn-primary btn-sm"
+          className="-mr-1 p-1 rounded-lg text-primary hover:bg-primary/10 active:bg-primary/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           onClick={handleSubmit}
           disabled={!name.trim() || saving}
         >
-          {saving && <span className="loading loading-spinner loading-xs" />}
-          {t('common.button.done')}
+          {saving
+            ? <span className="loading loading-spinner loading-xs" />
+            : <CheckIcon className="h-6 w-6" />
+          }
         </button>
       </div>
 
@@ -199,6 +206,25 @@ export function CreateGroupPage() {
           </div>
         </div>
       </form>
+
+      {/* Discard confirmation modal */}
+      {showDiscardModal && (
+        <div className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="font-bold">{t('common.discard.title')}</h3>
+            <p className="mt-2 text-sm text-base-content/70">{t('common.discard.message')}</p>
+            <div className="modal-action">
+              <button className="btn btn-ghost" onClick={() => setShowDiscardModal(false)}>
+                {t('common.discard.cancel')}
+              </button>
+              <button className="btn btn-error" onClick={() => navigate(-1)}>
+                {t('common.discard.confirm')}
+              </button>
+            </div>
+          </div>
+          <div className="modal-backdrop" onClick={() => setShowDiscardModal(false)} />
+        </div>
+      )}
     </div>
   );
 }

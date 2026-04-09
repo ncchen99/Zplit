@@ -17,7 +17,7 @@ export function ToastProvider() {
               : t.type === 'error'
                 ? 'alert-error'
                 : 'alert-info'
-          } cursor-pointer shadow-lg`}
+          } cursor-pointer shadow-2xl ring-1 ring-base-content/10`}
           onClick={() => removeToast(t.id)}
         >
           <span>{t.message}</span>

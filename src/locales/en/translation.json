@@ -13,6 +13,18 @@
       "selectAll": "Select All",
       "clearAll": "Clear All"
     },
+    "toast": {
+      "groupCreated": "Group created",
+      "expenseAdded": "Expense added",
+      "recordAdded": "Record added",
+      "saved": "Saved"
+    },
+    "discard": {
+      "title": "Discard changes?",
+      "message": "Your input will not be saved",
+      "confirm": "Discard",
+      "cancel": "Keep editing"
+    },
     "loading": "Loading...",
     "error": "An error occurred",
     "retry": "Retry",

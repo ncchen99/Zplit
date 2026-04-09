@@ -47,7 +47,7 @@ export function AddPersonalExpensePage() {
         imageUrl: null,
         date: new Date(date),
       });
-      showToast(t('common.button.done'), 'success');
+      showToast(t('common.toast.recordAdded'), 'success');
       navigate(`/personal/${contactId}`);
     } catch (err) {
       logger.error('personal.addExpense', '新增個人帳務失敗', err);
@@ -64,10 +64,10 @@ export function AddPersonalExpensePage() {
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-4 pb-2">
         <button
-          className="btn btn-ghost btn-sm btn-circle"
+          className="-ml-1 p-1 rounded-lg text-base-content/60 hover:text-base-content hover:bg-base-200 active:bg-base-300 transition-colors"
           onClick={() => navigate(`/personal/${contactId}`)}
         >
-          <ChevronLeftIcon className="h-5 w-5" />
+          <ChevronLeftIcon className="h-6 w-6" />
         </button>
         <h1 className="text-xl font-bold">{t('personal.addExpense')}</h1>
       </div>

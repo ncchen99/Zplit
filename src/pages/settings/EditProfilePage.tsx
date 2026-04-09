@@ -6,7 +6,7 @@ import { useUIStore } from '@/store/uiStore';
 import { createOrUpdateUser } from '@/services/userService';
 import { ImageUpload } from '@/components/ui/ImageUpload';
 import { logger } from '@/utils/logger';
-import { ChevronLeftIcon } from '@heroicons/react/24/outline';
+import { ChevronLeftIcon, CheckIcon } from '@heroicons/react/24/outline';
 
 export function EditProfilePage() {
   const { t } = useTranslation();
@@ -43,7 +43,7 @@ export function EditProfilePage() {
         isAnonymous: firebaseUser.isAnonymous,
       });
       setUser(updated);
-      showToast(t('common.button.done'), 'success');
+      showToast(t('common.toast.saved'), 'success');
       logger.info('editProfile', '個人資料更新完成');
       navigate(-1);
     } catch (err) {
@@ -58,17 +58,22 @@ export function EditProfilePage() {
     <div className="flex min-h-screen flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-4 pb-2">
-        <button className="btn btn-ghost btn-sm btn-circle" onClick={() => navigate(-1)}>
-          <ChevronLeftIcon className="h-5 w-5" />
+        <button
+          className="-ml-1 p-1 rounded-lg text-base-content/60 hover:text-base-content hover:bg-base-200 active:bg-base-300 transition-colors"
+          onClick={() => navigate(-1)}
+        >
+          <ChevronLeftIcon className="h-6 w-6" />
         </button>
         <h1 className="text-lg font-bold">{t('settings.editProfileTitle')}</h1>
         <button
-          className="btn btn-primary btn-sm"
+          className="-mr-1 p-1 rounded-lg text-primary hover:bg-primary/10 active:bg-primary/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           onClick={handleSave}
           disabled={!displayName.trim() || !hasChanges || saving}
         >
-          {saving && <span className="loading loading-spinner loading-xs" />}
-          {t('common.button.save')}
+          {saving
+            ? <span className="loading loading-spinner loading-xs" />
+            : <CheckIcon className="h-6 w-6" />
+          }
         </button>
       </div>
 

@@ -9,7 +9,7 @@ import { recalculateSettlements } from '@/services/settlementService';
 import { getGroupById } from '@/services/groupService';
 import { logger } from '@/utils/logger';
 import { ImageUpload } from '@/components/ui/ImageUpload';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { ChevronLeftIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { ArrowPathIcon, CheckCircleIcon } from '@heroicons/react/24/solid';
 
 type SplitMode = 'equal' | 'amount' | 'percent';
@@ -42,6 +42,7 @@ export function AddExpensePage() {
     new Date().toISOString().slice(0, 16)
   );
   const [saving, setSaving] = useState(false);
+  const [showDiscardModal, setShowDiscardModal] = useState(false);
 
   const members = currentGroup?.members ?? [];
 
@@ -123,9 +124,10 @@ export function AddExpensePage() {
     setCustomPercents({});
   };
 
-  const handleCancel = () => {
+  const handleBack = () => {
     if (title.trim() || amount) {
-      if (!window.confirm(t('common.button.cancel') + '?')) return;
+      setShowDiscardModal(true);
+      return;
     }
     navigate(-1);
   };
@@ -153,7 +155,7 @@ export function AddExpensePage() {
 
       await recalculateSettlements(groupId);
 
-      showToast(t('common.button.done'), 'success');
+      showToast(t('common.toast.expenseAdded'), 'success');
       navigate(`/groups/${groupId}`, { replace: true });
     } catch (err) {
       logger.error('expense.add', '新增帳務失敗', err);
@@ -167,17 +169,22 @@ export function AddExpensePage() {
     <div className="flex min-h-screen flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-4 pb-2 sticky top-0 bg-base-100 z-10">
-        <button className="btn btn-ghost btn-sm" onClick={handleCancel}>
-          <XMarkIcon className="h-5 w-5" />
+        <button
+          className="-ml-1 p-1 rounded-lg text-base-content/60 hover:text-base-content hover:bg-base-200 active:bg-base-300 transition-colors"
+          onClick={handleBack}
+        >
+          <ChevronLeftIcon className="h-6 w-6" />
         </button>
         <h1 className="text-lg font-bold">{t('expense.add')}</h1>
         <button
-          className="btn btn-primary btn-sm"
+          className="-mr-1 p-1 rounded-lg text-primary hover:bg-primary/10 active:bg-primary/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           onClick={handleSubmit}
           disabled={!isValid || saving}
         >
-          {saving && <span className="loading loading-spinner loading-xs" />}
-          {t('common.button.save')}
+          {saving
+            ? <span className="loading loading-spinner loading-xs" />
+            : <CheckIcon className="h-6 w-6" />
+          }
         </button>
       </div>
 
@@ -445,6 +452,25 @@ export function AddExpensePage() {
           </div>
         </div>
       </form>
+
+      {/* Discard confirmation modal */}
+      {showDiscardModal && (
+        <div className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="font-bold">{t('common.discard.title')}</h3>
+            <p className="mt-2 text-sm text-base-content/70">{t('common.discard.message')}</p>
+            <div className="modal-action">
+              <button className="btn btn-ghost" onClick={() => setShowDiscardModal(false)}>
+                {t('common.discard.cancel')}
+              </button>
+              <button className="btn btn-error" onClick={() => navigate(-1)}>
+                {t('common.discard.confirm')}
+              </button>
+            </div>
+          </div>
+          <div className="modal-backdrop" onClick={() => setShowDiscardModal(false)} />
+        </div>
+      )}
     </div>
   );
 }
