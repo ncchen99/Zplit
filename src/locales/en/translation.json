@@ -109,7 +109,16 @@
       "deleteGroup": "Delete Group",
       "leaveConfirm": "Are you sure you want to leave?",
       "leaveWithDebt": "You still have NT${{amount}} unsettled. Leave anyway?",
-      "deleteConfirm": "This cannot be undone. Delete this group?"
+      "deleteConfirm": "This cannot be undone. Delete this group?",
+      "shareTitle": "Join \"{{name}}\" group on Zplit",
+      "shareText": "Click the link to join and start splitting bills"
+    },
+    "settings": {
+      "title": "Settings",
+      "coverPhoto": "Cover Photo",
+      "groupInfo": "Group Info",
+      "dangerZone": "Danger Zone",
+      "groupDeleted": "Group deleted"
     },
     "summary": {
       "title": "Summary",
@@ -117,7 +126,12 @@
       "addFirst": "Add the first expense",
       "owes": "{{from}} owes {{to}}",
       "totalSpent": "Total spent",
-      "expandDetails": "Expand details"
+      "expandDetails": "Expand details",
+      "pendingAmount": "Owes NT$ {{amount}}",
+      "expandAll": "Show all members",
+      "collapse": "Collapse",
+      "detailRecords": "Expense Records",
+      "sortByDate": "By date"
     },
     "settle": {
       "title": "Settle Up",
@@ -188,7 +202,10 @@
     },
     "paidFor": "{{name}} paid for",
     "deleteConfirm": "Delete this expense?",
-    "recurring": "Recurring"
+    "recurring": "Recurring",
+    "detail": {
+      "title": "Expense Detail"
+    }
   },
   "personal": {
     "title": "Personal Ledger",

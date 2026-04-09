@@ -1,184 +1,158 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useGroupStore } from '@/store/groupStore';
-import { useAuthStore } from '@/store/authStore';
-import { computeBalances, computeSettlements } from '@/lib/algorithm/settlement';
-import { ArrowPathIcon, ArrowRightIcon } from '@heroicons/react/24/solid';
-import { DocumentTextIcon } from '@heroicons/react/24/outline';
+import { computeBalances } from '@/lib/algorithm/settlement';
+import {
+  ChevronDownIcon,
+  ChevronUpIcon,
+  DocumentTextIcon,
+} from '@heroicons/react/24/outline';
+import { ArrowPathIcon } from '@heroicons/react/24/solid';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 
 export function SummaryTab() {
   const { t } = useTranslation();
+  const { groupId } = useParams<{ groupId: string }>();
+  const navigate = useNavigate();
   const expenses = useGroupStore((s) => s.expenses);
   const currentGroup = useGroupStore((s) => s.currentGroup);
-  const user = useAuthStore((s) => s.user);
+  const [expandMembers, setExpandMembers] = useState(false);
 
   const memberMap = useMemo(() => {
     const map = new Map<string, string>();
-    currentGroup?.members?.forEach((m) => {
-      map.set(m.memberId, m.displayName);
-    });
+    currentGroup?.members?.forEach((m) => map.set(m.memberId, m.displayName));
     return map;
   }, [currentGroup]);
 
   const memberAvatarMap = useMemo(() => {
     const map = new Map<string, string | null>();
-    currentGroup?.members?.forEach((m) => {
-      map.set(m.memberId, m.avatarUrl);
-    });
+    currentGroup?.members?.forEach((m) => map.set(m.memberId, m.avatarUrl));
     return map;
   }, [currentGroup]);
 
-  const debts = useMemo(() => {
+  // Debtors sorted by amount owed descending
+  const debtors = useMemo(() => {
     if (!expenses.length) return [];
     const balances = computeBalances(expenses);
-    return computeSettlements(balances);
+    return balances
+      .filter((b) => b.amount < 0)
+      .map((b) => ({ memberId: b.memberId, owed: Math.abs(b.amount) }))
+      .sort((a, b) => b.owed - a.owed);
   }, [expenses]);
 
-  const totalSpent = useMemo(
-    () => expenses.reduce((sum, e) => sum + e.amount, 0),
-    [expenses]
-  );
+  const maxOwed = debtors.length > 0 ? debtors[0].owed : 0;
+  const hasMoreDebtors = debtors.length > 3;
+  const visibleDebtors = expandMembers ? debtors : debtors.slice(0, 3);
 
   const getName = (memberId: string) => memberMap.get(memberId) ?? memberId;
 
-  const groupedByDate = useMemo(() => {
-    const groups = new Map<string, typeof expenses>();
-    expenses.forEach((e) => {
-      const dateKey = e.date?.seconds
-        ? new Date(e.date.seconds * 1000).toLocaleDateString()
-        : 'Unknown';
-      if (!groups.has(dateKey)) groups.set(dateKey, []);
-      groups.get(dateKey)!.push(e);
-    });
-    return groups;
-  }, [expenses]);
-
   return (
-    <div>
-      {/* Total Spent */}
-      {expenses.length > 0 && (
-        <div className="flex items-center justify-between -mx-4 px-4 py-3 mb-1 border-b border-base-200">
-          <span className="text-sm font-semibold text-base-content/60">
-            {t('group.summary.totalSpent')}
-          </span>
-          <span className="font-bold text-primary text-lg">
-            NT${totalSpent.toLocaleString()}
-          </span>
-        </div>
-      )}
-
-      {/* Debt Summary */}
-      {debts.length > 0 && (
-        <div className="mb-4">
-          <p className="text-xs text-base-content/40 font-semibold mt-3 mb-1 px-1 uppercase tracking-wider">
-            {t('group.settle.title')}
-          </p>
-          <div className="flex flex-col">
-            {debts.map((d, i) => {
-              const isUserDebtor = d.from === user?.uid;
-              const isUserCreditor = d.to === user?.uid;
+    <div className="flex flex-col">
+      {/* Top Block: Member Pending Amounts */}
+      {debtors.length > 0 && (
+        <div className="-mx-4 px-4 pb-4 border-b border-base-200 mb-4">
+          <div className="flex flex-col gap-4 pt-1">
+            {visibleDebtors.map(({ memberId, owed }) => {
+              const name = getName(memberId);
+              const avatar = memberAvatarMap.get(memberId) ?? null;
+              const progressVal = maxOwed > 0 ? Math.round((owed / maxOwed) * 100) : 0;
               return (
-                <div
-                  key={i}
-                  className="flex items-center justify-between -mx-4 px-4 py-3 border-b border-base-200 last:border-b-0"
-                >
-                  <div className="flex items-center gap-2">
-                    <UserAvatar src={null} name={getName(d.from)} size="w-7" textSize="text-xs" />
-                    <ArrowRightIcon className="h-3.5 w-3.5 text-base-content/60" />
-                    <UserAvatar src={null} name={getName(d.to)} size="w-7" textSize="text-xs" />
-                    <span className="text-sm text-base-content/70">
-                      {t('group.summary.owes', {
-                        from: getName(d.from),
-                        to: getName(d.to),
-                      })}
+                <div key={memberId}>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <div className="flex items-center gap-2">
+                      <UserAvatar src={avatar} name={name} size="w-7" textSize="text-xs" />
+                      <span className="text-sm font-semibold">{name}</span>
+                    </div>
+                    <span className="text-sm font-bold text-error">
+                      {t('group.summary.pendingAmount', { amount: owed.toLocaleString() })}
                     </span>
                   </div>
-                  <span
-                    className={`font-bold ${
-                      isUserDebtor
-                        ? 'text-warning'
-                        : isUserCreditor
-                          ? 'text-success'
-                          : 'text-base-content'
-                    }`}
-                  >
-                    NT${d.amount.toLocaleString()}
-                  </span>
+                  <progress
+                    className="progress progress-error w-full"
+                    value={progressVal}
+                    max={100}
+                  />
                 </div>
               );
             })}
           </div>
+
+          {hasMoreDebtors && (
+            <button
+              className="btn btn-ghost btn-sm btn-block mt-3 gap-1 text-base-content/50"
+              onClick={() => setExpandMembers(!expandMembers)}
+            >
+              {expandMembers ? (
+                <>
+                  <ChevronUpIcon className="h-4 w-4" />
+                  {t('group.summary.collapse')}
+                </>
+              ) : (
+                <>
+                  <ChevronDownIcon className="h-4 w-4" />
+                  {t('group.summary.expandAll')}
+                </>
+              )}
+            </button>
+          )}
         </div>
       )}
 
-      {/* Expense List */}
+      {/* Bottom Block: Expense Records */}
       {expenses.length === 0 ? (
         <div className="mt-16 text-center text-base-content/40">
-          <DocumentTextIcon className="mx-auto mb-3 h-12 w-12 text-base-content/40" />
+          <DocumentTextIcon className="mx-auto mb-3 h-12 w-12" />
           <p>{t('group.summary.noExpenses')}</p>
           <p className="text-sm mt-1">{t('group.summary.addFirst')}</p>
         </div>
       ) : (
-        <div className="flex flex-col">
-          {[...groupedByDate.entries()].map(([date, dateExpenses]) => (
-            <div key={date}>
-              <p className="text-xs text-base-content/40 font-semibold mt-3 mb-1 px-1 uppercase tracking-wider">
-                {date}
-              </p>
-              {dateExpenses.map((expense) => {
-                const payer = getName(expense.paidBy);
-                const payerAvatar = memberAvatarMap.get(expense.paidBy);
-                const splitMembers = expense.splits
-                  .map((s) => getName(s.memberId))
-                  .filter(Boolean);
-                const isRepeat = expense.repeat && expense.repeat.type !== 'none';
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-base-content/60">
+              {t('group.summary.detailRecords')}
+            </h3>
+            <button className="btn btn-ghost btn-xs gap-1 text-base-content/40">
+              {t('group.summary.sortByDate')}
+              <ChevronDownIcon className="h-3 w-3" />
+            </button>
+          </div>
 
-                return (
-                  <div
-                    key={expense.expenseId}
-                    className="flex items-center gap-3 -mx-4 px-4 py-3 border-b border-base-200 last:border-b-0"
-                  >
-                    <div className="flex items-center gap-3 w-full">
-                      <UserAvatar src={payerAvatar} name={payer} />
+          <div className="flex flex-col">
+            {expenses.map((expense) => {
+              const payer = getName(expense.paidBy);
+              const payerAvatar = memberAvatarMap.get(expense.paidBy) ?? null;
+              const isRepeat =
+                expense.repeat &&
+                (expense.repeat as { type?: string }).type !== 'none';
 
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1">
-                          <p className="font-semibold truncate">{expense.title}</p>
-                          {isRepeat && <ArrowPathIcon className="h-3.5 w-3.5 text-base-content/60" />}
-                        </div>
-                        <p className="text-xs text-base-content/50">
-                          {t('expense.paidFor', { name: payer })}
-                        </p>
-                      </div>
-
-                      <div className="text-right flex-shrink-0">
-                        <p className="font-bold text-warning">
-                          NT${expense.amount.toLocaleString()}
-                        </p>
-                        <div className="avatar-group -space-x-3 mt-1 justify-end">
-                          {splitMembers.slice(0, 3).map((name, i) => (
-                            <div key={i} className="avatar placeholder">
-                              <div className="w-5 rounded-full bg-base-300 text-base-content">
-                                <span className="text-[10px]">{name.charAt(0)}</span>
-                              </div>
-                            </div>
-                          ))}
-                          {splitMembers.length > 3 && (
-                            <div className="avatar placeholder">
-                              <div className="w-5 rounded-full bg-base-300 text-base-content">
-                                <span className="text-[10px]">+{splitMembers.length - 3}</span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
+              return (
+                <button
+                  key={expense.expenseId}
+                  className="flex items-center gap-3 -mx-4 px-4 py-3 border-b border-base-200 last:border-b-0 text-left active:bg-base-200 transition-colors w-[calc(100%+2rem)]"
+                  onClick={() =>
+                    navigate(`/groups/${groupId}/expenses/${expense.expenseId}`)
+                  }
+                >
+                  <UserAvatar src={payerAvatar} name={payer} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1">
+                      <p className="font-semibold truncate">{expense.title}</p>
+                      {isRepeat && (
+                        <ArrowPathIcon className="h-3.5 w-3.5 flex-shrink-0 text-base-content/50" />
+                      )}
                     </div>
+                    <p className="text-xs text-base-content/50">
+                      {t('expense.paidFor', { name: payer })}
+                    </p>
                   </div>
-                );
-              })}
-            </div>
-          ))}
+                  <span className="font-bold text-warning flex-shrink-0">
+                    NT${expense.amount.toLocaleString()}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

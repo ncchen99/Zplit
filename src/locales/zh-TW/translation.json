@@ -109,7 +109,16 @@
       "deleteGroup": "刪除群組",
       "leaveConfirm": "確定要離開這個群組嗎？",
       "leaveWithDebt": "你目前還有 NT${{amount}} 未結清，確定要離開？",
-      "deleteConfirm": "刪除後所有帳務記錄將無法復原，確定要刪除嗎？"
+      "deleteConfirm": "刪除後所有帳務記錄將無法復原，確定要刪除嗎？",
+      "shareTitle": "加入「{{name}}」的分帳群組",
+      "shareText": "點擊連結加入群組並開始分帳"
+    },
+    "settings": {
+      "title": "設定",
+      "coverPhoto": "群組封面",
+      "groupInfo": "群組資料",
+      "dangerZone": "危險操作",
+      "groupDeleted": "群組已刪除"
     },
     "summary": {
       "title": "總覽",
@@ -117,7 +126,12 @@
       "addFirst": "新增第一筆帳務",
       "owes": "{{from}} 欠 {{to}}",
       "totalSpent": "總花費",
-      "expandDetails": "展開詳情"
+      "expandDetails": "展開詳情",
+      "pendingAmount": "待付 NT$ {{amount}}",
+      "expandAll": "展開顯示所有成員",
+      "collapse": "收起",
+      "detailRecords": "詳細記錄",
+      "sortByDate": "依日期"
     },
     "settle": {
       "title": "清算",
@@ -188,7 +202,10 @@
     },
     "paidFor": "{{name}} 代墊",
     "deleteConfirm": "確定要刪除這筆帳務嗎？",
-    "recurring": "重複記帳"
+    "recurring": "重複記帳",
+    "detail": {
+      "title": "帳務詳情"
+    }
   },
   "personal": {
     "title": "個人記錄",

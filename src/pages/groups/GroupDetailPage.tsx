@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -10,31 +10,27 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useGroupStore, type Expense, type Settlement, type Group } from '@/store/groupStore';
-import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { logger } from '@/utils/logger';
 import { SummaryTab } from './tabs/SummaryTab';
 import { SettleTab } from './tabs/SettleTab';
 import { MembersTab } from './tabs/MembersTab';
+import { SettingsTab } from './tabs/SettingsTab';
+import { useState } from 'react';
 import {
   ChevronLeftIcon,
   PlusIcon,
-  EllipsisVerticalIcon,
   ShareIcon,
-  PencilIcon,
-  ArrowRightStartOnRectangleIcon,
 } from '@heroicons/react/24/outline';
 
-type TabKey = 'summary' | 'settle' | 'members';
+type TabKey = 'summary' | 'settle' | 'members' | 'settings';
 
 export function GroupDetailPage() {
   const { t } = useTranslation();
   const { groupId } = useParams<{ groupId: string }>();
   const navigate = useNavigate();
   const showToast = useUIStore((s) => s.showToast);
-  const user = useAuthStore((s) => s.user);
   const [activeTab, setActiveTab] = useState<TabKey>('summary');
-  const [showMenu, setShowMenu] = useState(false);
 
   const currentGroup = useGroupStore((s) => s.currentGroup);
   const setCurrentGroup = useGroupStore((s) => s.setCurrentGroup);
@@ -93,17 +89,23 @@ export function GroupDetailPage() {
     };
   }, [groupId]);
 
-  const handleShareInvite = () => {
-    const inviteUrl = `${window.location.origin}/join/${currentGroup?.inviteCode ?? ''}`;
-    navigator.clipboard.writeText(inviteUrl);
-    showToast(t('group.members.linkCopied'), 'success');
-    setShowMenu(false);
-  };
-
-  const handleLeaveGroup = () => {
-    if (!window.confirm(t('group.detail.leaveConfirm'))) return;
-    // TODO: implement leave group
-    setShowMenu(false);
+  const handleShare = async () => {
+    if (!currentGroup) return;
+    const inviteUrl = `${window.location.origin}/join/${currentGroup.inviteCode}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: t('group.detail.shareTitle', { name: currentGroup.name }),
+          text: t('group.detail.shareText'),
+          url: inviteUrl,
+        });
+      } catch {
+        // User cancelled — no action needed
+      }
+    } else {
+      navigator.clipboard.writeText(inviteUrl);
+      showToast(t('group.members.linkCopied'), 'success');
+    }
   };
 
   if (!currentGroup) {
@@ -118,26 +120,13 @@ export function GroupDetailPage() {
     { key: 'summary', label: t('group.summary.title') },
     { key: 'settle', label: t('group.settle.title') },
     { key: 'members', label: t('group.members.title') },
+    { key: 'settings', label: t('group.settings.title') },
   ];
-
-  const isCreator = currentGroup.createdBy === user?.uid;
 
   return (
     <div className="flex min-h-screen flex-col">
-      {/* Cover Image */}
-      {currentGroup.coverUrl && (
-        <div className="relative h-40 w-full">
-          <img
-            src={currentGroup.coverUrl}
-            alt=""
-            className="h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-base-200/80 to-transparent" />
-        </div>
-      )}
-
-      {/* Header */}
-      <div className={`px-4 ${currentGroup.coverUrl ? '-mt-12 relative z-10' : 'pt-4'} pb-2`}>
+      {/* Header — always at top */}
+      <div className="px-4 pt-4 pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
             <button
@@ -154,40 +143,14 @@ export function GroupDetailPage() {
             </div>
           </div>
 
-          {/* More menu */}
-          <div className="dropdown dropdown-end">
-            <button
-              className="btn btn-ghost btn-sm btn-circle"
-              onClick={() => setShowMenu(!showMenu)}
-            >
-              <EllipsisVerticalIcon className="h-5 w-5" />
-            </button>
-            {showMenu && (
-              <ul className="dropdown-content menu bg-base-200 rounded-box z-50 w-56 p-2 shadow-lg">
-                <li>
-                  <button onClick={handleShareInvite}>
-                    <ShareIcon className="h-4 w-4" />
-                    {t('group.detail.shareInvite')}
-                  </button>
-                </li>
-                <li>
-                  <button onClick={() => { setShowMenu(false); }}>
-                    <PencilIcon className="h-4 w-4" />
-                    {t('group.detail.editGroup')}
-                  </button>
-                </li>
-                <li>
-                  <button
-                    className={isCreator ? 'text-error' : ''}
-                    onClick={handleLeaveGroup}
-                  >
-                    <ArrowRightStartOnRectangleIcon className="h-4 w-4" />
-                    {isCreator ? t('group.detail.deleteGroup') : t('group.detail.leaveGroup')}
-                  </button>
-                </li>
-              </ul>
-            )}
-          </div>
+          {/* Share button */}
+          <button
+            className="btn btn-ghost btn-sm btn-circle"
+            onClick={handleShare}
+            aria-label={t('group.detail.shareInvite')}
+          >
+            <ShareIcon className="h-5 w-5" />
+          </button>
         </div>
       </div>
 
@@ -210,9 +173,10 @@ export function GroupDetailPage() {
         {activeTab === 'summary' && <SummaryTab />}
         {activeTab === 'settle' && <SettleTab />}
         {activeTab === 'members' && <MembersTab />}
+        {activeTab === 'settings' && <SettingsTab />}
       </div>
 
-      {/* FAB - Add Expense (always visible) */}
+      {/* FAB - Add Expense */}
       <div className="fixed bottom-6 right-4 z-50">
         <button
           className="btn btn-primary btn-circle btn-lg shadow-xl"
@@ -222,14 +186,6 @@ export function GroupDetailPage() {
           <PlusIcon className="h-6 w-6" />
         </button>
       </div>
-
-      {/* Backdrop for dropdown */}
-      {showMenu && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setShowMenu(false)}
-        />
-      )}
     </div>
   );
 }

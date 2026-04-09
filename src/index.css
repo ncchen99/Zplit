@@ -5,10 +5,10 @@
 
 /* Customize lemonade (light) theme */
 [data-theme="lemonade"] {
-  --color-primary: oklch(50% 0.15 147);
+  --color-primary: oklch(54.937% 0.14028 149.554);
   --color-primary-content: oklch(98% 0 0);
   --color-success: oklch(60% 0.13 142);
   --color-warning: oklch(70% 0.13 86);
-  --color-error: oklch(52% 0.22 27);
+  --color-error: oklch(56.499% 0.1552 19.714);
   --color-error-content: oklch(98% 0 0);
 }

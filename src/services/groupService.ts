@@ -9,6 +9,7 @@ import {
   serverTimestamp,
   updateDoc,
   arrayUnion,
+  deleteDoc,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { nanoid } from 'nanoid';
@@ -138,6 +139,11 @@ export async function addMemberToGroup(
 
   await updateDoc(ref, updateData);
   logger.info('groupService.addMember', '成員加入群組', { groupId, memberId: member.memberId });
+}
+
+export async function deleteGroup(groupId: string): Promise<void> {
+  await deleteDoc(doc(db, 'groups', groupId));
+  logger.info('groupService.delete', '群組已刪除', { groupId });
 }
 
 export async function addPlaceholderMember(
