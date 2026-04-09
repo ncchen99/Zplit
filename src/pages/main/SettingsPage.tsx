@@ -116,8 +116,6 @@ export function SettingsPage() {
           </div>
         )}
 
-        <div className="divider my-0 md:hidden" />
-
         {/* Language Row */}
         <div className="-mx-4 px-4 py-4 border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-4 md:border-0">
           <div className="flex flex-col gap-3 w-full md:card-body md:p-4">

@@ -39,7 +39,6 @@ export function PersonalContactDetailPage() {
   const setIsLoading = usePersonalStore((s) => s.setIsLoadingExpenses);
   const clearCurrentContact = usePersonalStore((s) => s.clearCurrentContact);
 
-  const [optimalSplit, setOptimalSplit] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [editName, setEditName] = useState('');
@@ -246,30 +245,6 @@ export function PersonalContactDetailPage() {
             )}
           </div>
         </div>
-      </div>
-
-      {/* Optimal Split Toggle */}
-      <div className="px-4 mt-4">
-        <div className="flex items-center justify-between rounded-xl bg-base-200 p-4">
-          <div>
-            <p className="font-semibold text-sm">{t('personal.optimalSplit')}</p>
-            <p className="text-xs text-base-content/50">{t('personal.optimalSplitDesc')}</p>
-          </div>
-          <input
-            type="checkbox"
-            className="toggle toggle-primary"
-            checked={optimalSplit}
-            onChange={(e) => setOptimalSplit(e.target.checked)}
-          />
-        </div>
-
-        {optimalSplit && (
-          <div className="mt-2 rounded-xl bg-warning/10 p-3">
-            <p className="text-xs text-warning">
-              {t('personal.optimalSplitNotFound')}
-            </p>
-          </div>
-        )}
       </div>
 
       {/* Lending History */}

@@ -56,25 +56,32 @@ export function SummaryTab() {
 
   return (
     <div>
+      {/* Total Spent */}
+      {expenses.length > 0 && (
+        <div className="flex items-center justify-between -mx-4 px-4 py-3 mb-1 border-b border-base-200">
+          <span className="text-sm font-semibold text-base-content/60">
+            {t('group.summary.totalSpent')}
+          </span>
+          <span className="font-bold text-primary text-lg">
+            NT${totalSpent.toLocaleString()}
+          </span>
+        </div>
+      )}
+
       {/* Debt Summary */}
       {debts.length > 0 && (
         <div className="mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-semibold text-base-content/60">
-              {t('group.summary.totalSpent')}
-            </span>
-            <span className="font-bold text-primary text-lg">
-              NT${totalSpent.toLocaleString()}
-            </span>
-          </div>
-          <div className="flex flex-col gap-1.5">
+          <p className="text-xs text-base-content/40 font-semibold mt-3 mb-1 px-1 uppercase tracking-wider">
+            {t('group.settle.title')}
+          </p>
+          <div className="flex flex-col">
             {debts.map((d, i) => {
               const isUserDebtor = d.from === user?.uid;
               const isUserCreditor = d.to === user?.uid;
               return (
                 <div
                   key={i}
-                  className="flex items-center justify-between rounded-xl bg-base-200 px-3 py-2.5"
+                  className="flex items-center justify-between -mx-4 px-4 py-3 border-b border-base-200 last:border-b-0"
                 >
                   <div className="flex items-center gap-2">
                     <UserAvatar src={null} name={getName(d.from)} size="w-7" textSize="text-xs" />
@@ -113,10 +120,10 @@ export function SummaryTab() {
           <p className="text-sm mt-1">{t('group.summary.addFirst')}</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col">
           {[...groupedByDate.entries()].map(([date, dateExpenses]) => (
             <div key={date}>
-              <p className="text-xs text-base-content/40 font-semibold mt-3 mb-1.5 px-1">
+              <p className="text-xs text-base-content/40 font-semibold mt-3 mb-1 px-1 uppercase tracking-wider">
                 {date}
               </p>
               {dateExpenses.map((expense) => {
@@ -130,9 +137,9 @@ export function SummaryTab() {
                 return (
                   <div
                     key={expense.expenseId}
-                    className="flex items-center gap-3 -mx-4 px-4 py-3 border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-2 md:border-0"
+                    className="flex items-center gap-3 -mx-4 px-4 py-3 border-b border-base-200 last:border-b-0"
                   >
-                    <div className="flex items-center gap-3 w-full md:card-body md:p-3">
+                    <div className="flex items-center gap-3 w-full">
                       <UserAvatar src={payerAvatar} name={payer} />
 
                       <div className="flex-1 min-w-0">

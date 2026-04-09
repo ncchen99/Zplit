@@ -104,7 +104,7 @@ export function SettleTab() {
   return (
     <div>
       {/* Progress */}
-      <div className="mb-4 rounded-xl bg-base-200 p-4">
+      <div className="mb-4 -mx-4 px-4 py-4 border-b border-base-200">
         <div className="flex items-center justify-between text-sm mb-2">
           <span className="font-semibold">{t('group.settle.progress')}</span>
           <span className="font-bold text-primary">{Math.round(progress)}%</span>
@@ -139,9 +139,9 @@ export function SettleTab() {
           return (
             <div
               key={i}
-              className={`-mx-4 px-4 py-3 border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-2 md:border-0 ${isCompleted ? 'opacity-60' : ''}`}
+              className={`-mx-4 px-4 py-3 border-b border-base-200 last:border-b-0 ${isCompleted ? 'opacity-60' : ''}`}
             >
-              <div className="w-full md:card-body md:p-3">
+              <div className="w-full">
                 <div className="flex items-center gap-3">
                   <UserAvatar src={null} name={getName(debt.from)} size="w-9" />
 

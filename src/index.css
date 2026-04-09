@@ -10,4 +10,5 @@
   --color-success: oklch(60% 0.13 142);
   --color-warning: oklch(70% 0.13 86);
   --color-error: oklch(52% 0.22 27);
+  --color-error-content: oklch(98% 0 0);
 }
