@@ -180,7 +180,7 @@ export function AddPersonalExpensePage() {
                 autoComplete="off"
               />
               {loadingContacts && (
-                <span className="skeleton h-3 w-3 rounded-full absolute right-3 top-1/2 -translate-y-1/2" />
+                <span className="loading loading-spinner loading-xs absolute right-3 top-1/2 -translate-y-1/2" />
               )}
             </div>
 

@@ -123,7 +123,7 @@ export function MembersTab() {
             disabled={!newName.trim() || adding}
           >
             {adding ? (
-              <span className="skeleton h-3 w-3 rounded-full" />
+              <span className="loading loading-spinner loading-xs" />
             ) : (
               <>
                 <PlusIcon className="h-4 w-4" />

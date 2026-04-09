@@ -31,7 +31,7 @@ export function HeaderIconButton({
       onClick={onClick}
       disabled={disabled}
     >
-      {loading ? <span className="skeleton h-4 w-4 rounded-full" /> : children}
+      {loading ? <span className="loading loading-spinner loading-xs" /> : children}
     </button>
   );
 }

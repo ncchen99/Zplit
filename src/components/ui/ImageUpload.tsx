@@ -60,7 +60,7 @@ export function ImageUpload({
   const isCircle = shape === 'circle';
 
   return (
-    <div className={`relative inline-flex ${className}`}>
+    <div className={`relative ${isCircle ? 'inline-flex' : 'flex w-full'} ${className}`}>
       <input
         ref={fileRef}
         type="file"
@@ -70,26 +70,28 @@ export function ImageUpload({
       />
 
       {preview ? (
-        <div className="relative group">
-          <img
-            src={preview}
-            alt=""
-            className={`object-cover cursor-pointer ${
-              isCircle
-                ? 'h-24 w-24 rounded-full'
-                : 'h-32 w-full rounded-xl aspect-video'
-            }`}
-            onClick={() => fileRef.current?.click()}
-          />
+        <div
+          className={`relative group ${
+            isCircle ? 'h-24 w-24 rounded-full' : 'h-32 w-full rounded-xl'
+          }`}
+        >
+          <div className={`h-full w-full overflow-hidden ${isCircle ? 'rounded-full' : 'rounded-xl'}`}>
+            <img
+              src={preview}
+              alt=""
+              className="h-full w-full object-cover cursor-pointer"
+              onClick={() => fileRef.current?.click()}
+            />
+          </div>
           {uploading && (
-            <div className={`absolute inset-0 flex items-center justify-center bg-black/40 ${isCircle ? 'rounded-full' : 'rounded-xl'}`}>
-              <span className="skeleton h-4 w-4 rounded-full" />
+            <div className={`absolute inset-0 flex items-center justify-center bg-base-100/65 ${isCircle ? 'rounded-full' : 'rounded-xl'}`}>
+              <span className="loading loading-spinner loading-lg text-base-content/70" />
             </div>
           )}
           {onRemove && !uploading && (
             <button
               type="button"
-              className="absolute -top-1 -right-1 btn btn-circle btn-xs btn-error"
+              className="absolute -top-1 -right-1 z-20 btn btn-circle btn-xs btn-error"
               onClick={handleRemove}
             >
               <XMarkIcon className="h-3 w-3" />
@@ -108,7 +110,7 @@ export function ImageUpload({
           disabled={uploading}
         >
           {uploading ? (
-            <span className="skeleton h-4 w-4 rounded-full" />
+            <span className="loading loading-spinner loading-md text-base-content/60" />
           ) : (
             <>
               <CameraIcon className="h-6 w-6 text-base-content/40" />

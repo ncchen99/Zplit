@@ -216,13 +216,13 @@ btn-primary {
   <div className="skeleton h-32 w-full"></div>
 </div>
 
-- [ ] 幫我修改群組頁面，將右上角的這個「新增」按鈕改成「新增群組」，這樣比較明確。
+- [x] 幫我修改群組頁面，將右上角的這個「新增」按鈕改成「新增群組」，這樣比較明確。
 
-- [ ] 請幫忙修改一下。現在所有頁面上都有使用這個分隔線（divider）的設計，因為在手機畫面上使用卡片效果不太好，但這個分隔線目前的長度都會直接與畫面邊緣連在一起。
+- [x] 請幫忙修改一下。現在所有頁面上都有使用這個分隔線（divider）的設計，因為在手機畫面上使用卡片效果不太好，但這個分隔線目前的長度都會直接與畫面邊緣連在一起。
 
 想請你幫忙調整，讓它不要連到邊緣，而是限制在容器內部，不要擴展到 padding 區域。現在它連 padding 的地方也會顯示這條線，感覺畫面會有一種被截斷的錯覺，但其實它們是同一個區塊。所以想請你針對這個部分進行修改。
 
-- [ ] 對於出現在個人紀錄和其詳細內頁裡面，都會有顯示「別人欠多少」或「我們需要支付別人多少」的區塊。
+- [x] 對於出現在個人紀錄和其詳細內頁裡面，都會有顯示「別人欠多少」或「我們需要支付別人多少」的區塊。
 
 這部分你可以幫我改成使用這種的元件嗎？
 
@@ -245,7 +245,7 @@ btn-primary {
   </div>
 </div>
 
-- [ ] 目前群組「成員與動態」這邊，已綁定的使用者會出現「已連結」的 Badge。
+- [x] 目前群組「成員與動態」這邊，已綁定的使用者會出現「已連結」的 Badge。
 
 這個 Badge 的配色仍然需要修正，請幫我改成 Soft Style，謝謝。
 
@@ -260,16 +260,45 @@ btn-primary {
 一般的
 <span className="badge">Badge</span>
 
-- [ ] 修正記帳頁面自動設定的日期與時間，時區好像不在臺灣。
+- [x] 修正記帳頁面自動設定的日期與時間，時區好像不在臺灣。
 
-- [ ] 在顯示使用者名稱的時候，不用顯示為「建立者」。
+- [x] 在顯示使用者名稱的時候，不用顯示為「建立者」。
 就是在這個「新增帳務」的頁面，付款人這邊都會顯示建立者，這部分不需要顯示。
 
-- [ ] 所有上傳圖片的區塊都要注意：上傳之後，不能根據圖片的寬度就將該區塊的寬度改變，而是要維持原本的區塊大小，並將圖片填滿在區塊內顯示。
+- [x] 所有上傳圖片的區塊都要注意：上傳之後，不能根據圖片的寬度就將該區塊的寬度改變，而是要維持原本的區塊大小，並將圖片填滿在區塊內顯示。
 
+- [x] 請你幫忙修改「團體群組分帳」的新增帳務頁面。分帳對象的部分，想要請你改成使用 filter 的做法。 並且要確保現在頁面上的「全選」和「清除全部」功能仍然可以運作。
+---
+title: Filter
+desc: Filter is a group of radio buttons. Choosing one of the options will hide the others and shows a reset button next to the chosen option.
+source: https://raw.githubusercontent.com/saadeghi/daisyui/refs/heads/master/packages/daisyui/src/components/filter.css
+layout: components
+classnames:
+  component:
+  - class: filter
+    desc: For a HTML <form> or a <div> element that includes radio buttons for filtering items
+  part:
+  - class: filter-reset
+    desc: An alternative to the reset button if you can't use a HTML form
+---
 
-- [ ] 想請你幫忙修改群組內頁的 Header。目前在名稱下面會顯示「有幾位成員」，想請你幫我移到群組名稱的右邊，而不是顯示在下面。
-因為顯示在下面會導致 Header 高度增加，使得這個按鈕的位置和其他頁面的按鈕位置不一致，所以想請你幫我將「幾位成員」的文字移到群組名稱的右邊。
+<script>
+  import Component from "$components/Component.svelte"
+  import Translate from "$components/Translate.svelte"
+</script>
+
+### ~Filter using HTML form, radio buttons and reset button
+#### A HTML from for filtering items
+
+```html
+<form>
+  <input className="btn" type="checkbox" name="frameworks" aria-label="Svelte"/>
+  <input className="btn" type="checkbox" name="frameworks" aria-label="Vue"/>
+  <input className="btn" type="checkbox" name="frameworks" aria-label="React"/>
+  <input className="btn btn-square" type="reset" value="×"/>
+</form>
+```
+
 
 - [ ] 修正群組詳細記錄的項目，解決點擊後無法進入頁面修改的問題。這修改頁面其實與「新增帳務」的頁面非常相似。
 

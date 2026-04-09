@@ -120,6 +120,9 @@ export function AddExpensePage() {
 
   const handleSplitModeChange = (mode: SplitMode) => {
     setSplitMode(mode);
+    if (mode !== 'equal') {
+      setSelectedMembers(members.map((m) => m.memberId));
+    }
     setCustomAmounts({});
     setCustomPercents({});
   };
@@ -261,77 +264,94 @@ export function AddExpensePage() {
         <div>
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium">{t('expense.splitWith')}</span>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                className="btn btn-ghost btn-xs"
-                onClick={selectAll}
-              >
-                {t('common.button.selectAll')}
-              </button>
-              <span className="text-base-content/20">|</span>
-              <button
-                type="button"
-                className="btn btn-ghost btn-xs"
-                onClick={clearAll}
-              >
-                {t('common.button.clearAll')}
-              </button>
-            </div>
+            {splitMode === 'equal' && (
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-xs"
+                  onClick={selectAll}
+                >
+                  {t('common.button.selectAll')}
+                </button>
+                <span className="text-base-content/20">|</span>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-xs"
+                  onClick={clearAll}
+                >
+                  {t('common.button.clearAll')}
+                </button>
+              </div>
+            )}
           </div>
 
-          {/* 平均分帳：兩欄網格排版，讓畫面更平衡 */}
-          {splitMode === 'equal' ? (
-            <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+          {splitMode === 'equal' && (
+            <form className="filter mb-3 flex w-full flex-wrap gap-2">
               {members.map((m) => {
                 const isSelected = selectedMembers.includes(m.memberId);
-                const splitAmount = splits.find((s) => s.memberId === m.memberId)?.amount ?? 0;
                 return (
-                  <label key={m.memberId} className="label cursor-pointer gap-2 py-2 min-w-0">
+                  <label
+                    key={m.memberId}
+                    className={`btn h-auto min-h-11 gap-2 bg-base-100 px-3 text-base-content hover:bg-base-200 ${isSelected ? 'border-success' : 'border-base-300'}`}
+                  >
                     <input
                       type="checkbox"
-                      className="checkbox checkbox-primary checkbox-sm flex-shrink-0"
+                      name="split-members"
+                      className="sr-only"
                       checked={isSelected}
                       onChange={() => toggleMember(m.memberId)}
                     />
-                    <div className="avatar placeholder flex-shrink-0">
-                      <div className="w-6 rounded-full bg-neutral text-neutral-content">
-                        <span className="text-[10px]">{m.displayName.charAt(0)}</span>
+                    {isSelected ? (
+                      <input
+                        type="checkbox"
+                        checked
+                        readOnly
+                        className="checkbox checkbox-primary checkbox-sm pointer-events-none"
+                        aria-label={m.displayName}
+                      />
+                    ) : (
+                      <div className="avatar">
+                        <div className="h-6 w-6 rounded-full bg-neutral text-neutral-content">
+                          {m.avatarUrl ? (
+                            <img src={m.avatarUrl} alt={m.displayName} className="h-full w-full object-cover" />
+                          ) : (
+                            <span className="text-[10px]">{m.displayName.charAt(0)}</span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <span className="label-text flex-1 truncate text-sm">{m.displayName}</span>
-                    {isSelected && amountNum > 0 && (
-                      <span className="text-xs text-base-content/50 flex-shrink-0">
-                        NT${splitAmount}
-                      </span>
                     )}
+                    <span className="max-w-24 truncate text-xs">{m.displayName}</span>
                   </label>
                 );
               })}
-            </div>
-          ) : (
+            </form>
+          )}
+
+          {/* 平均分帳改由上方 filter 直接控制，不再顯示重複名單 */}
+          {splitMode !== 'equal' && (
             <div className="flex flex-col gap-2">
               {members.map((m) => {
-                const isSelected = selectedMembers.includes(m.memberId);
                 const splitAmount = splits.find((s) => s.memberId === m.memberId)?.amount ?? 0;
                 return (
                   <div key={m.memberId} className="flex items-center gap-3">
-                    <label className="label cursor-pointer gap-2 flex-1 min-w-0">
-                      <input
-                        type="checkbox"
-                        className="checkbox checkbox-primary checkbox-sm"
-                        checked={isSelected}
-                        onChange={() => toggleMember(m.memberId)}
-                      />
+                    <div className="label gap-2 flex-1 min-w-0">
                       <div className="avatar placeholder">
                         <div className="w-6 rounded-full bg-neutral text-neutral-content">
                           <span className="text-[10px]">{m.displayName.charAt(0)}</span>
                         </div>
                       </div>
-                      <span className="label-text flex-1 truncate">{m.displayName}</span>
-                    </label>
+                      <span className="label-text flex-1 truncate">
+                        {m.displayName}
+                        {splitMode === 'percent' && amountNum > 0 && splitAmount > 0 && (
+                          <span className="ml-2 text-xs text-base-content/50">
+                            <span className="mx-1 text-base-content/30">|</span>
+                            NT${splitAmount}
+                          </span>
+                        )}
+                      </span>
+                    </div>
 
-                    {splitMode === 'amount' && isSelected && (
+                    {splitMode === 'amount' && (
                       <div className="input input-sm flex items-center gap-1 w-28 flex-shrink-0">
                         <span className="text-xs text-base-content/40">NT$</span>
                         <input
@@ -346,7 +366,7 @@ export function AddExpensePage() {
                       </div>
                     )}
 
-                    {splitMode === 'percent' && isSelected && (
+                    {splitMode === 'percent' && (
                       <div className="flex items-center gap-1 flex-shrink-0">
                         <div className="input input-sm flex items-center gap-1 w-20">
                           <input
@@ -360,11 +380,6 @@ export function AddExpensePage() {
                           />
                           <span className="text-xs text-base-content/40">%</span>
                         </div>
-                        {amountNum > 0 && (
-                          <span className="text-xs text-base-content/40">
-                            ${splitAmount}
-                          </span>
-                        )}
                       </div>
                     )}
                   </div>

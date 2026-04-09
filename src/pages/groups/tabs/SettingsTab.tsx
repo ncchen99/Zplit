@@ -79,7 +79,7 @@ export function SettingsTab() {
             disabled={deleting}
           >
             {deleting ? (
-              <span className="skeleton h-3 w-3 rounded-full" />
+              <span className="loading loading-spinner loading-xs" />
             ) : (
               <TrashIcon className="h-5 w-5" />
             )}

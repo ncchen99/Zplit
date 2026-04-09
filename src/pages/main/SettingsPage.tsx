@@ -109,7 +109,7 @@ export function SettingsPage() {
                 onClick={handleBindGoogle}
                 disabled={binding}
               >
-                {binding && <span className="skeleton h-3 w-3 rounded-full" />}
+                {binding && <span className="loading loading-spinner loading-xs" />}
                 {t('settings.bindGoogle')}
               </button>
             </div>

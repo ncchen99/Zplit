@@ -21,10 +21,10 @@ export function ToastProvider() {
           key={t.id}
           className={`alert ${
             t.type === 'success'
-              ? 'alert-success'
+              ? 'alert-success text-success-content'
               : t.type === 'error'
-                ? 'alert-error'
-                : 'alert-info'
+                ? 'alert-error text-error-content'
+                : 'alert-info text-info-content'
           } cursor-pointer shadow-2xl ring-1 ring-base-content/10 max-w-xs`}
           onClick={() => removeToast(t.id)}
         >

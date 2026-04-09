@@ -283,7 +283,7 @@ export function JoinPage() {
               onClick={handleConfirmJoin}
               disabled={!displayName.trim() || joining}
             >
-              {joining && <span className="skeleton h-4 w-4 rounded-full" />}
+              {joining && <span className="loading loading-spinner loading-sm" />}
               {t('join.confirmJoin')}
             </button>
           </div>
