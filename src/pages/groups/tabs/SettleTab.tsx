@@ -41,7 +41,7 @@ export function SettleTab() {
   }, [expenses]);
 
   const completedCount = settlements.filter((s) => s.completed).length;
-  const totalCount = computedDebts.length || settlements.length;
+  const totalCount = computedDebts.length;
   const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 100;
 
   const getName = (memberId: string) => memberMap.get(memberId) ?? memberId;

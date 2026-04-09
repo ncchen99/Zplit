@@ -11,7 +11,7 @@ import {
   type PersonalContact,
 } from '@/services/personalLedgerService';
 import { logger } from '@/utils/logger';
-import { Bell as BellIcon, ChevronRight as ChevronRightIcon, FileText as DocumentTextIcon } from 'lucide-react';
+import { ChevronRight as ChevronRightIcon, FileText as DocumentTextIcon } from 'lucide-react';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { GroupListItem } from '@/components/ui/GroupListItem';
 
