@@ -2,7 +2,8 @@ import { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useGroupStore } from '@/store/groupStore';
-import { ChevronLeftIcon, PencilSquareIcon } from '@heroicons/react/24/outline';
+import { PageHeader, HeaderIconButton } from '@/components/ui/PageHeader';
+import { PencilSquareIcon } from '@heroicons/react/24/outline';
 import { ArrowPathIcon } from '@heroicons/react/24/solid';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 
@@ -44,22 +45,15 @@ export function ExpenseDetailPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 pt-4 pb-2">
-        <button
-          className="btn btn-ghost btn-sm btn-circle"
-          onClick={() => navigate(`/groups/${groupId}`)}
-        >
-          <ChevronLeftIcon className="h-5 w-5" />
-        </button>
-        <h1 className="text-lg font-bold">{t('expense.detail.title')}</h1>
-        <button
-          className="btn btn-ghost btn-sm btn-circle"
-          onClick={() => navigate(`/groups/${groupId}/expense/${expenseId}/edit`)}
-        >
-          <PencilSquareIcon className="h-5 w-5" />
-        </button>
-      </div>
+      <PageHeader
+        title={t('expense.detail.title')}
+        onBack={() => navigate(`/groups/${groupId}`)}
+        rightAction={(
+          <HeaderIconButton onClick={() => navigate(`/groups/${groupId}/expense/${expenseId}/edit`)}>
+            <PencilSquareIcon className="h-6 w-6" />
+          </HeaderIconButton>
+        )}
+      />
 
       <div className="px-4 pb-16 flex flex-col gap-5">
         {/* Title, Amount, Date */}

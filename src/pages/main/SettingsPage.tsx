@@ -123,15 +123,15 @@ export function SettingsPage() {
               <GlobeAltIcon className="h-5 w-5 text-base-content/60" />
               <h2 className="font-semibold text-sm">{t('settings.language')}</h2>
             </div>
-            <div className="flex gap-2">
+            <div className="join w-full">
               <button
-                className={`btn btn-sm flex-1 ${i18n.language === 'zh-TW' ? 'btn-primary' : 'btn-ghost'}`}
+                className={`join-item btn btn-sm flex-1 ${i18n.language === 'zh-TW' ? 'btn-active' : ''}`}
                 onClick={() => handleLanguageChange('zh-TW')}
               >
                 繁體中文
               </button>
               <button
-                className={`btn btn-sm flex-1 ${i18n.language === 'en' ? 'btn-primary' : 'btn-ghost'}`}
+                className={`join-item btn btn-sm flex-1 ${i18n.language === 'en' ? 'btn-active' : ''}`}
                 onClick={() => handleLanguageChange('en')}
               >
                 English
@@ -147,11 +147,11 @@ export function SettingsPage() {
               <SwatchIcon className="h-5 w-5 text-base-content/60" />
               <h2 className="font-semibold text-sm">{t('settings.theme')}</h2>
             </div>
-            <div className="flex gap-2">
+            <div className="join w-full">
               {(['system', 'light', 'dark'] as const).map((mode) => (
                 <button
                   key={mode}
-                  className={`btn btn-sm flex-1 ${themeMode === mode ? 'btn-primary' : 'btn-ghost'}`}
+                  className={`join-item btn btn-sm flex-1 ${themeMode === mode ? 'btn-active' : ''}`}
                   onClick={() => setThemeMode(mode)}
                 >
                   {t(`settings.theme${mode.charAt(0).toUpperCase() + mode.slice(1)}`)}

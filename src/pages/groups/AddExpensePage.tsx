@@ -9,7 +9,8 @@ import { recalculateSettlements } from '@/services/settlementService';
 import { getGroupById } from '@/services/groupService';
 import { logger } from '@/utils/logger';
 import { ImageUpload } from '@/components/ui/ImageUpload';
-import { ChevronLeftIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { PageHeader, HeaderIconButton } from '@/components/ui/PageHeader';
+import { CheckIcon } from '@heroicons/react/24/outline';
 import { ArrowPathIcon, CheckCircleIcon } from '@heroicons/react/24/solid';
 
 type SplitMode = 'equal' | 'amount' | 'percent';
@@ -167,26 +168,21 @@ export function AddExpensePage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 pt-4 pb-2 sticky top-0 bg-base-100 z-10">
-        <button
-          className="-ml-1 p-1 rounded-lg text-base-content/60 hover:text-base-content hover:bg-base-200 active:bg-base-300 transition-colors"
-          onClick={handleBack}
-        >
-          <ChevronLeftIcon className="h-6 w-6" />
-        </button>
-        <h1 className="text-lg font-bold">{t('expense.add')}</h1>
-        <button
-          className="-mr-1 p-1 rounded-lg text-primary hover:bg-primary/10 active:bg-primary/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-          onClick={handleSubmit}
-          disabled={!isValid || saving}
-        >
-          {saving
-            ? <span className="loading loading-spinner loading-xs" />
-            : <CheckIcon className="h-6 w-6" />
-          }
-        </button>
-      </div>
+      <PageHeader
+        title={t('expense.add')}
+        onBack={handleBack}
+        sticky
+        rightAction={(
+          <HeaderIconButton
+            onClick={handleSubmit}
+            disabled={!isValid || saving}
+            loading={saving}
+            tone="primary"
+          >
+            <CheckIcon className="h-6 w-6" />
+          </HeaderIconButton>
+        )}
+      />
 
       <form onSubmit={handleSubmit} className="flex-1 px-4 pb-8 flex flex-col gap-4">
         {/* Title */}

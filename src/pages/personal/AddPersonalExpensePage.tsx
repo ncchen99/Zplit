@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeftIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { useAuthStore } from '@/store/authStore';
 import { usePersonalStore } from '@/store/personalStore';
 import { useUIStore } from '@/store/uiStore';
+import { PageHeader, HeaderIconButton } from '@/components/ui/PageHeader';
 import {
   addPersonalExpense,
   getContacts,
@@ -57,9 +58,12 @@ export function AddPersonalExpensePage() {
     }
   }, [contactId, loadContacts]);
 
-  // 有 contactId 時，從 store 取得聯絡人名稱
+  // 有 contactId 時，優先用目前聯絡人名稱，否則退回清單中的名稱
+  const selectedContactFromStore = contactId
+    ? contacts.find((c) => c.contactId === contactId)
+    : null;
   const resolvedContactName = contactId
-    ? (currentContact?.displayName ?? t('personal.contact'))
+    ? (currentContact?.displayName ?? selectedContactFromStore?.displayName ?? '')
     : (selectedContact?.displayName ?? '');
 
   const isContactSelected = !!contactId || !!selectedContact;
@@ -138,16 +142,20 @@ export function AddPersonalExpensePage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      {/* Header */}
-      <div className="flex items-center gap-3 px-4 pt-4 pb-2">
-        <button
-          className="-ml-1 p-1 rounded-lg text-base-content/60 hover:text-base-content hover:bg-base-200 active:bg-base-300 transition-colors"
-          onClick={handleBack}
-        >
-          <ChevronLeftIcon className="h-6 w-6" />
-        </button>
-        <h1 className="text-xl font-bold">{t('personal.addExpense')}</h1>
-      </div>
+      <PageHeader
+        title={t('personal.addExpense')}
+        onBack={handleBack}
+        rightAction={(
+          <HeaderIconButton
+            onClick={handleSave}
+            disabled={!isValid || saving}
+            loading={saving}
+            tone="primary"
+          >
+            <CheckIcon className="h-6 w-6" />
+          </HeaderIconButton>
+        )}
+      />
 
       <div className="flex-1 px-4 mt-4 flex flex-col gap-4">
         {/* 聯絡人選取（僅在無 contactId 時顯示）*/}
@@ -266,7 +274,7 @@ export function AddPersonalExpensePage() {
               onClick={() => setPaidBy('contact')}
             >
               {resolvedContactName
-                ? `${resolvedContactName} ${t('expense.paidFor', { name: '' }).trim()}`
+                ? t('personal.contactPaidByName', { name: resolvedContactName })
                 : t('personal.contactPaidPlaceholder')}
             </button>
           </div>
@@ -300,20 +308,6 @@ export function AddPersonalExpensePage() {
         </div>
       </div>
 
-      {/* Save Button */}
-      <div className="px-4 py-4">
-        <button
-          className="btn btn-primary btn-block"
-          disabled={!isValid || saving}
-          onClick={handleSave}
-        >
-          {saving ? (
-            <span className="loading loading-spinner loading-sm" />
-          ) : (
-            t('common.button.save')
-          )}
-        </button>
-      </div>
     </div>
   );
 }

@@ -16,9 +16,9 @@ import { SummaryTab } from './tabs/SummaryTab';
 import { SettleTab } from './tabs/SettleTab';
 import { MembersTab } from './tabs/MembersTab';
 import { SettingsTab } from './tabs/SettingsTab';
+import { PageHeader, HeaderIconButton } from '@/components/ui/PageHeader';
 import { useState } from 'react';
 import {
-  ChevronLeftIcon,
   PlusIcon,
   ShareIcon,
 } from '@heroicons/react/24/outline';
@@ -133,34 +133,24 @@ export function GroupDetailPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      {/* Header — always at top */}
-      <div className="px-4 pt-4 pb-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 min-w-0">
-            <button
-              className="btn btn-ghost btn-sm btn-circle flex-shrink-0"
-              onClick={() => navigate('/home')}
-            >
-              <ChevronLeftIcon className="h-5 w-5" />
-            </button>
-            <div className="min-w-0">
-              <h1 className="text-xl font-bold truncate">{currentGroup.name}</h1>
-              <p className="text-xs text-base-content/50">
-                {t('common.members_count', { count: currentGroup.members?.length ?? 0 })}
-              </p>
-            </div>
-          </div>
-
-          {/* Share button */}
-          <button
-            className="btn btn-ghost btn-sm btn-circle"
-            onClick={handleShare}
-            aria-label={t('group.detail.shareInvite')}
-          >
-            <ShareIcon className="h-5 w-5" />
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title={(
+          <span className="inline-flex max-w-full flex-col items-center justify-center leading-none">
+            <span className="max-w-full truncate text-base font-bold leading-tight">
+              {currentGroup.name}
+            </span>
+            <span className="mt-0.5 text-[11px] font-medium leading-none text-base-content/60">
+              {t('common.members_count', { count: currentGroup.members?.length ?? 0 })}
+            </span>
+          </span>
+        )}
+        onBack={() => navigate('/home')}
+        rightAction={(
+          <HeaderIconButton onClick={handleShare}>
+            <ShareIcon className="h-6 w-6" />
+          </HeaderIconButton>
+        )}
+      />
 
       {/* Tabs */}
       <div role="tablist" className="tabs tabs-border px-4">

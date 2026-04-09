@@ -5,8 +5,9 @@ import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { createOrUpdateUser } from '@/services/userService';
 import { ImageUpload } from '@/components/ui/ImageUpload';
+import { PageHeader, HeaderIconButton } from '@/components/ui/PageHeader';
 import { logger } from '@/utils/logger';
-import { ChevronLeftIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { CheckIcon } from '@heroicons/react/24/outline';
 
 export function EditProfilePage() {
   const { t } = useTranslation();
@@ -56,26 +57,20 @@ export function EditProfilePage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 pt-4 pb-2">
-        <button
-          className="-ml-1 p-1 rounded-lg text-base-content/60 hover:text-base-content hover:bg-base-200 active:bg-base-300 transition-colors"
-          onClick={() => navigate(-1)}
-        >
-          <ChevronLeftIcon className="h-6 w-6" />
-        </button>
-        <h1 className="text-lg font-bold">{t('settings.editProfileTitle')}</h1>
-        <button
-          className="-mr-1 p-1 rounded-lg text-primary hover:bg-primary/10 active:bg-primary/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-          onClick={handleSave}
-          disabled={!displayName.trim() || !hasChanges || saving}
-        >
-          {saving
-            ? <span className="loading loading-spinner loading-xs" />
-            : <CheckIcon className="h-6 w-6" />
-          }
-        </button>
-      </div>
+      <PageHeader
+        title={t('settings.editProfileTitle')}
+        onBack={() => navigate(-1)}
+        rightAction={(
+          <HeaderIconButton
+            onClick={handleSave}
+            disabled={!displayName.trim() || !hasChanges || saving}
+            loading={saving}
+            tone="primary"
+          >
+            <CheckIcon className="h-6 w-6" />
+          </HeaderIconButton>
+        )}
+      />
 
       <div className="flex-1 px-4 pt-6">
         {/* Avatar */}
