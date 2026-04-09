@@ -1,23 +1,26 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useGroupStore } from '@/store/groupStore';
 import { computeBalances } from '@/lib/algorithm/settlement';
 import {
   ChevronDownIcon,
-  ChevronUpIcon,
   DocumentTextIcon,
 } from '@heroicons/react/24/outline';
 import { ArrowPathIcon } from '@heroicons/react/24/solid';
 import { UserAvatar } from '@/components/ui/UserAvatar';
+import { DebtTreemap, type DebtEntry } from '@/components/ui/DebtTreemap';
 
-export function SummaryTab() {
+interface SummaryTabProps {
+  onNavigateSettle?: () => void;
+}
+
+export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
   const { t } = useTranslation();
   const { groupId } = useParams<{ groupId: string }>();
   const navigate = useNavigate();
   const expenses = useGroupStore((s) => s.expenses);
   const currentGroup = useGroupStore((s) => s.currentGroup);
-  const [expandMembers, setExpandMembers] = useState(false);
 
   const memberMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -31,71 +34,33 @@ export function SummaryTab() {
     return map;
   }, [currentGroup]);
 
-  // Debtors sorted by amount owed descending
-  const debtors = useMemo(() => {
+  // Build DebtEntry[] for treemap — only negative balances (debtors)
+  const treemapData: DebtEntry[] = useMemo(() => {
     if (!expenses.length) return [];
     const balances = computeBalances(expenses);
     return balances
       .filter((b) => b.amount < 0)
-      .map((b) => ({ memberId: b.memberId, owed: Math.abs(b.amount) }))
+      .map((b) => ({
+        memberId: b.memberId,
+        name: memberMap.get(b.memberId) ?? b.memberId,
+        avatarUrl: memberAvatarMap.get(b.memberId) ?? null,
+        owed: Math.abs(b.amount),
+      }))
       .sort((a, b) => b.owed - a.owed);
-  }, [expenses]);
-
-  const maxOwed = debtors.length > 0 ? debtors[0].owed : 0;
-  const hasMoreDebtors = debtors.length > 3;
-  const visibleDebtors = expandMembers ? debtors : debtors.slice(0, 3);
+  }, [expenses, memberMap, memberAvatarMap]);
 
   const getName = (memberId: string) => memberMap.get(memberId) ?? memberId;
 
   return (
     <div className="flex flex-col">
-      {/* Top Block: Member Pending Amounts */}
-      {debtors.length > 0 && (
+      {/* Top Block: Debt Treemap */}
+      {treemapData.length > 0 && (
         <div className="-mx-4 px-4 pb-4 border-b border-base-200 mb-4">
-          <div className="flex flex-col gap-4 pt-1">
-            {visibleDebtors.map(({ memberId, owed }) => {
-              const name = getName(memberId);
-              const avatar = memberAvatarMap.get(memberId) ?? null;
-              const progressVal = maxOwed > 0 ? Math.round((owed / maxOwed) * 100) : 0;
-              return (
-                <div key={memberId}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center gap-2">
-                      <UserAvatar src={avatar} name={name} size="w-7" textSize="text-xs" />
-                      <span className="text-sm font-semibold">{name}</span>
-                    </div>
-                    <span className="text-sm font-bold text-error">
-                      {t('group.summary.pendingAmount', { amount: owed.toLocaleString() })}
-                    </span>
-                  </div>
-                  <progress
-                    className="progress progress-error w-full"
-                    value={progressVal}
-                    max={100}
-                  />
-                </div>
-              );
-            })}
-          </div>
-
-          {hasMoreDebtors && (
-            <button
-              className="btn btn-ghost btn-sm btn-block mt-3 gap-1 text-base-content/50"
-              onClick={() => setExpandMembers(!expandMembers)}
-            >
-              {expandMembers ? (
-                <>
-                  <ChevronUpIcon className="h-4 w-4" />
-                  {t('group.summary.collapse')}
-                </>
-              ) : (
-                <>
-                  <ChevronDownIcon className="h-4 w-4" />
-                  {t('group.summary.expandAll')}
-                </>
-              )}
-            </button>
-          )}
+          <DebtTreemap
+            data={treemapData}
+            formatAmount={(amount) => `-$${amount.toLocaleString()}`}
+            onBlockClick={() => onNavigateSettle?.()}
+          />
         </div>
       )}
 

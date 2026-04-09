@@ -178,7 +178,7 @@ export function GroupDetailPage() {
 
       {/* Tab Content */}
       <div className="flex-1 px-4 pt-4 pb-24">
-        {activeTab === 'summary' && <SummaryTab />}
+        {activeTab === 'summary' && <SummaryTab onNavigateSettle={() => setActiveTab('settle')} />}
         {activeTab === 'settle' && <SettleTab />}
         {activeTab === 'members' && <MembersTab />}
         {activeTab === 'settings' && <SettingsTab />}
