@@ -238,7 +238,7 @@ export function DebtTreemap({ data, height: heightProp, formatAmount, onBlockCli
   return (
     <div
       ref={containerRef}
-      className="relative w-full overflow-hidden rounded-xl"
+      className="relative w-full overflow-hidden rounded-box"
       style={{ height }}
     >
       {rects.map((rect) => {

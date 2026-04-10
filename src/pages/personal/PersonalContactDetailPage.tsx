@@ -148,7 +148,6 @@ export function PersonalContactDetailPage() {
         <PageHeader
           title={(
             <span className="inline-flex min-w-0 items-center gap-2">
-              <UserAvatar src={null} name={loadingDisplayName} size="w-8" textSize="text-sm" bgClass="bg-neutral text-neutral-content" />
               <span className="truncate text-lg font-bold">{loadingDisplayName}</span>
             </span>
           )}
@@ -161,13 +160,13 @@ export function PersonalContactDetailPage() {
         />
 
         <div className="px-4 mt-4">
-          <div className="stats stats-horizontal w-full border border-base-300 bg-base-100">
-            <div className="stat py-3 px-4">
+          <div className="stats stats-horizontal w-full flex border border-base-300 bg-base-100">
+            <div className="stat flex-1 py-3 px-4 min-w-0">
               <div className="skeleton h-3 w-20" />
               <div className="skeleton h-8 w-28 mt-2" />
               <div className="skeleton h-3 w-24 mt-2" />
             </div>
-            <div className="stat py-3 px-4 border-l border-base-300">
+            <div className="stat flex-1 py-3 px-4 border-l border-base-300 min-w-0">
               <div className="skeleton h-3 w-20" />
               <div className="skeleton h-8 w-28 mt-2" />
               <div className="skeleton h-3 w-24 mt-2" />
@@ -205,7 +204,6 @@ export function PersonalContactDetailPage() {
       <PageHeader
         title={(
           <span className="inline-flex min-w-0 items-center gap-2">
-            <UserAvatar src={currentContact?.avatarUrl} name={displayName} size="w-8" textSize="text-sm" />
             {editingName ? (
               <span className="inline-flex items-center gap-1">
                 <input
@@ -265,18 +263,18 @@ export function PersonalContactDetailPage() {
 
       {/* Net Amount Card */}
       <div className="px-4 mt-4">
-        <div className="stats stats-horizontal w-full border border-base-300 bg-base-100">
-          <div className="stat py-3 px-4">
+        <div className="stats stats-horizontal w-full flex border border-base-300 bg-base-100">
+          <div className="stat flex-1 py-3 px-4 min-w-0">
             <div className="stat-title text-success">{t('personal.owedToYouTotal')}</div>
-            <div className="stat-value text-success text-2xl">
+            <div className="stat-value text-success text-2xl truncate">
               NT${(netAmount > 0 ? netAmount : 0).toLocaleString()}
             </div>
             <div className="stat-desc truncate">{t('personal.owesYou', { name: displayName })}</div>
           </div>
 
-          <div className="stat py-3 px-4 border-l border-base-300">
+          <div className="stat flex-1 py-3 px-4 border-l border-base-300 min-w-0">
             <div className="stat-title text-warning">{t('personal.youOweTotal')}</div>
-            <div className="stat-value text-warning text-2xl">
+            <div className="stat-value text-warning text-2xl truncate">
               NT${(netAmount < 0 ? Math.abs(netAmount) : 0).toLocaleString()}
             </div>
             <div className="stat-desc truncate">{t('personal.youOwe', { name: displayName })}</div>
@@ -375,8 +373,6 @@ function ExpenseCard({
   const { t } = useTranslation();
   const isSelfPaid = expense.paidBy === 'self';
   const user = useAuthStore((s) => s.user);
-  const payerName = isSelfPaid ? (user?.displayName ?? '?') : contactName;
-  const payerAvatarUrl = isSelfPaid ? (user?.avatarUrl ?? null) : (contactAvatarUrl ?? null);
   const isSettlement = (expense as unknown as Record<string, unknown>).isSettlement === true;
   const dateStr = expense.date
     ? new Date(
@@ -409,13 +405,12 @@ function ExpenseCard({
             : t('personal.contactPaidByName', { name: contactName })}
         </p>
       </div>
-      <div className="flex flex-col items-end gap-1 flex-shrink-0">
+      <div className="flex flex-col items-end flex-shrink-0">
         <span
           className={`font-bold ${isSelfPaid ? 'text-success' : 'text-warning'}`}
         >
           {isSelfPaid ? '+' : '-'}NT${expense.amount.toLocaleString()}
         </span>
-        <UserAvatar src={payerAvatarUrl} name={payerName} size="w-6" textSize="text-[8px]" />
       </div>
     </button>
   );

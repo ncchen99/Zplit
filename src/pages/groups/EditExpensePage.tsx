@@ -260,7 +260,7 @@ export function EditExpensePage() {
         sticky
         rightAction={(
           <HeaderIconButton
-            onClick={() => handleSubmit({ preventDefault: () => {} } as React.FormEvent)}
+            onClick={() => handleSubmit({ preventDefault: () => { } } as React.FormEvent)}
             disabled={!isValid || saving}
             loading={saving}
             tone="primary"
@@ -517,13 +517,13 @@ export function EditExpensePage() {
         </div>
 
         <div>
-          <div className="divider" />
-          <h3 className="font-semibold text-sm text-error/70 uppercase tracking-wider mb-3">
+          <div className="divider mt-1 mb-1" />
+          {/* <h3 className="font-semibold text-sm text-error/70 uppercase tracking-wider mb-3">
             {t('group.settings.dangerZone')}
-          </h3>
+          </h3> */}
           <button
             type="button"
-            className="btn w-full btn-soft btn-error mt-4"
+            className="btn w-full btn-soft btn-error mt-4 mb-4"
             onClick={() => setShowDeleteModal(true)}
           >
             <TrashIcon className="h-4 w-4" />

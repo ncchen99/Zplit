@@ -103,14 +103,14 @@ export function PersonalPage() {
 
       {/* Net Summary */}
       {contactsWithNet.length > 0 && (totalOwed > 0 || totalOwe > 0) && (
-        <div className="mt-4 stats stats-horizontal w-full border border-base-300 bg-base-100">
-          <div className="stat py-3 px-4">
+        <div className="mt-4 stats stats-horizontal w-full flex border border-base-300 bg-base-100">
+          <div className="stat flex-1 py-3 px-4 min-w-0">
             <div className="stat-title text-success">{t('personal.owedToYouTotal')}</div>
-            <div className="stat-value text-success text-2xl">NT${totalOwed.toLocaleString()}</div>
+            <div className="stat-value text-success text-2xl truncate">NT${totalOwed.toLocaleString()}</div>
           </div>
-          <div className="stat py-3 px-4 border-l border-base-300">
+          <div className="stat flex-1 py-3 px-4 border-l border-base-300 min-w-0">
             <div className="stat-title text-warning">{t('personal.youOweTotal')}</div>
-            <div className="stat-value text-warning text-2xl">NT${totalOwe.toLocaleString()}</div>
+            <div className="stat-value text-warning text-2xl truncate">NT${totalOwe.toLocaleString()}</div>
           </div>
         </div>
       )}

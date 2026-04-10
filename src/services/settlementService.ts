@@ -51,11 +51,11 @@ export async function recalculateSettlements(groupId: string): Promise<void> {
     }
 
     await batch.commit();
-    logger.info('settlement.recalculate', '清算重算完成', {
+    logger.info('settlement.recalculate', '結算重算完成', {
       groupId,
       count: newSettlements.length,
     });
   } catch (err) {
-    logger.error('settlement.recalculate', '清算重算失敗', { groupId, err });
+    logger.error('settlement.recalculate', '結算重算失敗', { groupId, err });
   }
 }

@@ -57,7 +57,7 @@ export function SettleTab() {
         updatedAt: serverTimestamp(),
       });
     } catch (err) {
-      logger.error('settle.markDone', '標記清算完成失敗', err);
+      logger.error('settle.markDone', '標記結算完成失敗', err);
       showToast(t('common.error'), 'error');
     }
   };
@@ -73,7 +73,7 @@ export function SettleTab() {
         updatedAt: serverTimestamp(),
       });
     } catch (err) {
-      logger.error('settle.undo', '撤銷清算失敗', err);
+      logger.error('settle.undo', '撤銷結算失敗', err);
       showToast(t('common.error'), 'error');
     }
   };
@@ -108,43 +108,59 @@ export function SettleTab() {
   }
 
   return (
-    <div>
-      {/* Progress */}
-      <div className="mb-4 py-4 border-b border-base-200">
-        <div className="flex items-center justify-between text-sm mb-2">
-          <span className="font-semibold">{t('group.settle.progress')}</span>
-          <span className="font-bold text-primary">{Math.round(progress)}%</span>
-        </div>
-        <progress className="progress progress-primary w-full" value={progress} max={100} />
-        <p className="text-xs text-base-content/50 mt-1">
-          {t('group.settle.progressDetail', {
-            completed: completedCount,
-            total: totalCount,
-          })}
-        </p>
-      </div>
+    <div className="space-y-6">
+      {/* Progress Card */}
+      <div className="stats stats-horizontal w-full flex border border-base-300 bg-base-100">
+        <div className="stat py-3.5 px-4 min-w-0">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-bold text-base-content/70 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+              {t('group.settle.progress')}
+            </h3>
+            <span className="text-sm font-black text-primary px-2 py-0.5 rounded-full">
+              {Math.round(progress)}%
+            </span>
+          </div>
 
-      {/* Mark All Done */}
-      {completedCount < totalCount && (
-        <button
-          className="btn btn-outline btn-primary btn-sm btn-block mb-4"
-          onClick={() => setShowMarkAllConfirm(true)}
-        >
-          {t('group.settle.markAllDone')}
-        </button>
-      )}
+          <progress
+            className="progress progress-primary w-full h-2.5"
+            value={progress}
+            max={100}
+          />
+
+          <div className="flex justify-between items-center mt-3">
+            <span className="text-xs font-medium text-base-content/50">
+              {t('group.settle.progressDetail', {
+                completed: completedCount,
+                total: totalCount,
+              })}
+            </span>
+            {completedCount < totalCount && (
+              <button
+                className="btn btn-ghost btn-xs text-primary hover:bg-primary/10 px-2"
+                onClick={() => setShowMarkAllConfirm(true)}
+              >
+                {t('group.settle.markAllDone')}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
 
       <ConfirmModal
         open={showMarkAllConfirm}
         message={t('group.settle.markAllDone') + '?'}
         confirmLabel={t('common.button.confirm')}
         cancelLabel={t('common.button.cancel')}
-        onConfirm={() => { setShowMarkAllConfirm(false); handleMarkAllDone(); }}
+        onConfirm={() => {
+          setShowMarkAllConfirm(false);
+          handleMarkAllDone();
+        }}
         onCancel={() => setShowMarkAllConfirm(false)}
       />
 
       {/* Settlement list */}
-      <div className="flex flex-col">
+      <div className="space-y-3">
         {computedDebts.map((debt, i) => {
           const matchingSettlement = settlements.find(
             (s) => s.from === debt.from && s.to === debt.to && s.amount === debt.amount

@@ -87,7 +87,7 @@ export function GroupDetailPage() {
         })) as Settlement[];
         setSettlements(settlements);
       },
-      (err) => logger.error('settlements.subscribe', '清算監聽失敗', err)
+      (err) => logger.error('settlements.subscribe', '結算監聽失敗', err)
     );
     setUnsubscribeSettlements(settlementsUnsub);
 

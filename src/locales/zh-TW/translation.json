@@ -143,14 +143,14 @@
       "sortByDate": "依日期"
     },
     "settle": {
-      "title": "清算",
+      "title": "結算",
       "noDebts": "所有債務已結清！",
       "transfer": "{{from}} 支付給 {{to}}",
       "markDone": "標記完成",
       "markAllDone": "全部標記完成",
       "undoComplete": "撤銷完成",
       "completed": "已完成",
-      "progress": "清算進度",
+      "progress": "結算進度",
       "progressDetail": "{{completed}} 筆完成 / 共 {{total}} 筆"
     },
     "members": {

@@ -94,11 +94,6 @@ export function PersonalExpenseDetailPage() {
           {/* Split skeleton */}
           <div>
             <div className="skeleton h-3 w-20 mb-2" />
-            <div className="flex items-center gap-3 py-2 border-b border-base-200">
-              <div className="skeleton h-8 w-8 rounded-full" />
-              <div className="skeleton h-4 w-24 flex-1" />
-              <div className="skeleton h-4 w-20" />
-            </div>
             <div className="flex items-center gap-3 py-2">
               <div className="skeleton h-8 w-8 rounded-full" />
               <div className="skeleton h-4 w-24 flex-1" />
@@ -170,14 +165,16 @@ export function PersonalExpenseDetailPage() {
           <h3 className="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-2">
             {t('expense.splitWith')}
           </h3>
-          <div className="flex items-center gap-3 py-2 border-b border-base-200">
-            <UserAvatar src={user?.avatarUrl ?? null} name={user?.displayName ?? '?'} size="w-8" textSize="text-xs" />
-            <span className="text-sm font-medium flex-1">{user?.displayName ?? '?'}</span>
-            <span className="text-sm font-bold">NT${expense.amount.toLocaleString()}</span>
-          </div>
           <div className="flex items-center gap-3 py-2">
-            <UserAvatar src={contact?.avatarUrl ?? null} name={contactName} size="w-8" textSize="text-xs" />
-            <span className="text-sm font-medium flex-1">{contactName}</span>
+            <UserAvatar 
+              src={!isSelfPaid ? (user?.avatarUrl ?? null) : (contact?.avatarUrl ?? null)} 
+              name={!isSelfPaid ? (user?.displayName ?? '?') : contactName} 
+              size="w-8" 
+              textSize="text-xs" 
+            />
+            <span className="text-sm font-medium flex-1">
+              {!isSelfPaid ? (user?.displayName ?? '?') : contactName}
+            </span>
             <span className="text-sm font-bold">NT${expense.amount.toLocaleString()}</span>
           </div>
         </div>
