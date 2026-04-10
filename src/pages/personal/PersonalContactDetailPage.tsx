@@ -10,6 +10,7 @@ import {
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { PageHeader, HeaderIconButton } from "@/components/ui/PageHeader";
 import { UserAvatar } from "@/components/ui/UserAvatar";
+import { ActionSheet } from "@/components/ui/ActionSheet";
 import { useAuthStore } from "@/store/authStore";
 import { usePersonalStore } from "@/store/personalStore";
 import { useUIStore } from "@/store/uiStore";
@@ -19,9 +20,11 @@ import {
   computePersonalNetAmount,
   settleAllWithContact,
   deleteContact,
+  syncPersonalContactNameByReference,
   updateContact,
   type PersonalExpense,
 } from "@/services/personalLedgerService";
+import { syncGroupMemberNameByReference } from "@/services/groupService";
 import { logger } from "@/utils/logger";
 
 export function PersonalContactDetailPage() {
@@ -135,11 +138,35 @@ export function PersonalContactDetailPage() {
 
   const handleUpdateName = async () => {
     if (!user || !contactId || !editName.trim()) return;
+    const normalizedName = editName.trim();
+    const previousName = currentContact?.displayName?.trim() ?? "";
+
     try {
       await updateContact(user.uid, contactId, {
-        displayName: editName.trim(),
+        displayName: normalizedName,
       });
-      setCurrentContact({ ...currentContact!, displayName: editName.trim() });
+
+      if (previousName && previousName.toLowerCase() !== normalizedName.toLowerCase()) {
+        try {
+          await Promise.all([
+            syncGroupMemberNameByReference(user.uid, {
+              previousDisplayName: previousName,
+              nextDisplayName: normalizedName,
+              linkedUserId: currentContact?.linkedUserId,
+            }),
+            // Keep same-identity contact records consistent across local lists.
+            syncPersonalContactNameByReference(user.uid, {
+              previousDisplayName: previousName,
+              nextDisplayName: normalizedName,
+              linkedUserId: currentContact?.linkedUserId,
+            }),
+          ]);
+        } catch (syncErr) {
+          logger.warn("personal.updateName.sync", "名稱跨區同步失敗", syncErr);
+        }
+      }
+
+      setCurrentContact({ ...currentContact!, displayName: normalizedName });
       setEditingName(false);
       showToast(t("common.button.done"), "success");
     } catch (err) {
@@ -220,45 +247,9 @@ export function PersonalContactDetailPage() {
         }
         onBack={() => navigate("/personal")}
         rightAction={
-          <span className="dropdown dropdown-end">
-            <HeaderIconButton onClick={() => setShowMenu(!showMenu)}>
-              <EllipsisVerticalIcon className="h-5 w-5" />
-            </HeaderIconButton>
-            {showMenu && (
-              <ul className="dropdown-content z-50 mt-1 w-40 overflow-hidden rounded-xl border border-base-200 bg-base-100 py-1 shadow-lg">
-                {netAmount !== 0 && (
-                  <li>
-                    <button
-                      className="flex w-full items-center rounded-none px-3 py-2 text-left text-xs font-medium transition-colors hover:bg-base-200 active:bg-base-300"
-                      onClick={handleSettleAll}
-                    >
-                      {t("personal.settleAll")}
-                    </button>
-                  </li>
-                )}
-                <li>
-                  <button
-                    className="flex w-full items-center rounded-none px-3 py-2 text-left text-xs font-medium transition-colors hover:bg-base-200 active:bg-base-300"
-                    onClick={() => {
-                      setShowMenu(false);
-                      setEditName(currentContact?.displayName ?? "");
-                      setEditingName(true);
-                    }}
-                  >
-                    {t("personal.editContactName")}
-                  </button>
-                </li>
-                <li>
-                  <button
-                    className="flex w-full items-center rounded-none px-3 py-2 text-left text-xs font-medium text-error transition-colors hover:bg-base-200 active:bg-base-300"
-                    onClick={handleDeleteContact}
-                  >
-                    {t("personal.deleteContact")}
-                  </button>
-                </li>
-              </ul>
-            )}
-          </span>
+          <HeaderIconButton onClick={() => setShowMenu(true)}>
+            <EllipsisVerticalIcon className="h-5 w-5" />
+          </HeaderIconButton>
         }
       />
 
@@ -354,13 +345,38 @@ export function PersonalContactDetailPage() {
         </button>
       </div>
 
-      {/* Backdrop */}
-      {showMenu && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setShowMenu(false)}
-        />
-      )}
+      <ActionSheet
+        open={showMenu}
+        onClose={() => setShowMenu(false)}
+        items={[
+          ...(netAmount !== 0
+            ? [
+                {
+                  key: "settle-all",
+                  label: t("personal.settleAll"),
+                  tone: "default" as const,
+                  onClick: handleSettleAll,
+                },
+              ]
+            : []),
+          {
+            key: "edit-name",
+            label: t("personal.editContactName"),
+            tone: "default" as const,
+            onClick: () => {
+              setShowMenu(false);
+              setEditName(currentContact?.displayName ?? "");
+              setEditingName(true);
+            },
+          },
+          {
+            key: "delete-contact",
+            label: t("personal.deleteContact"),
+            tone: "danger" as const,
+            onClick: handleDeleteContact,
+          },
+        ]}
+      />
 
       <ConfirmModal
         open={confirmModal.open}

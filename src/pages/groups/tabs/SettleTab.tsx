@@ -29,6 +29,11 @@ export function SettleTab() {
 
   const memberMap = useMemo(() => {
     const map = new Map<string, string>();
+    Object.entries(currentGroup?.memberNameMap ?? {}).forEach(
+      ([memberId, displayName]) => {
+        map.set(memberId, displayName);
+      },
+    );
     currentGroup?.members?.forEach((m) => {
       map.set(m.memberId, m.displayName);
     });
@@ -51,7 +56,8 @@ export function SettleTab() {
   const totalCount = computedDebts.length;
   const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 100;
 
-  const getName = (memberId: string) => memberMap.get(memberId) ?? memberId;
+  const getName = (memberId: string) =>
+    memberMap.get(memberId) ?? t("group.members.unknownMember");
 
   const handleMarkDone = async (settlementId: string) => {
     if (!currentGroup || !user) return;

@@ -21,6 +21,11 @@ export interface Group {
   lastExpenseAt?: Timestamp | null;
   members: GroupMember[];
   /**
+   * 成員名稱快照（memberId -> displayName）。
+   * 即使成員已被移除，仍可用來在歷史資料中顯示名字。
+   */
+  memberNameMap?: Record<string, string>;
+  /**
    * Firestore Security Rules 查詢用的 Map。
    * 結構：{ [userId]: true }，只包含 isBound=true 的成員。
    *

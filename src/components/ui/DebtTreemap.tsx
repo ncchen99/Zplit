@@ -167,31 +167,42 @@ function computeAdaptiveHeight(n: number): number {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Colour helpers — soft pastel palette                               */
+/*  Colour helpers — theme-aware debt heat palettes                    */
 /* ------------------------------------------------------------------ */
 
-/**
- * Soft pastel heatmap: 0 → pale cream, 1 → muted rose/salmon
- * Deliberately low saturation for a gentle look.
- */
-function heatColor(t: number): string {
-  // hue: 40 (warm cream) → 0 (rose)
-  const hue = Math.round(40 * (1 - t));
-  // saturation: 20% → 55%
-  const sat = Math.round(20 + 35 * t);
-  // lightness: 95% → 72%
-  const light = Math.round(95 - 23 * t);
-  return `hsl(${hue}, ${sat}%, ${light}%)`;
+interface HeatTone {
+  fill: string;
+  text: string;
+  subText: string;
 }
 
-function textColorForHeat(t: number): string {
-  const light = 95 - 23 * t;
-  return light < 60 ? "#ffffff" : "#2d2d2d";
-}
+// Refined light palette tuned to match the Amber Night design language.
+const LIGHT_HEAT_TONES: HeatTone[] = [
+  { fill: "#F8F5EC", text: "#1F2937", subText: "rgba(31,41,55,0.62)" },
+  { fill: "#F4E9CE", text: "#1F2937", subText: "rgba(31,41,55,0.62)" },
+  { fill: "#EED8AC", text: "#1F2937", subText: "rgba(31,41,55,0.62)" },
+  { fill: "#E2BE83", text: "#1F2937", subText: "rgba(31,41,55,0.65)" },
+  { fill: "#D19664", text: "#111827", subText: "rgba(17,24,39,0.68)" },
+  { fill: "#BF7359", text: "#F9FAFB", subText: "rgba(249,250,251,0.82)" },
+  { fill: "#A84F48", text: "#F9FAFB", subText: "rgba(249,250,251,0.82)" },
+];
 
-function subTextColorForHeat(t: number): string {
-  const light = 95 - 23 * t;
-  return light < 60 ? "rgba(255,255,255,0.8)" : "rgba(45,45,45,0.55)";
+// Dark mode: Amber Night palette requested by product design.
+const AMBER_NIGHT_HEAT_TONES: HeatTone[] = [
+  { fill: "#E7EBF0", text: "#161A22", subText: "rgba(22,26,34,0.64)" },
+  { fill: "#F2DFA2", text: "#161A22", subText: "rgba(22,26,34,0.64)" },
+  { fill: "#E8B96E", text: "#161A22", subText: "rgba(22,26,34,0.66)" },
+  { fill: "#D98A57", text: "#F3F4F6", subText: "rgba(243,244,246,0.82)" },
+  { fill: "#C85A47", text: "#F3F4F6", subText: "rgba(243,244,246,0.82)" },
+  { fill: "#B6453F", text: "#F3F4F6", subText: "rgba(243,244,246,0.84)" },
+  { fill: "#9F2F2F", text: "#F3F4F6", subText: "rgba(243,244,246,0.84)" },
+];
+
+function pickHeatTone(t: number, isDarkTheme: boolean): HeatTone {
+  const tones = isDarkTheme ? AMBER_NIGHT_HEAT_TONES : LIGHT_HEAT_TONES;
+  const clamped = Math.max(0, Math.min(1, t));
+  const idx = Math.min(tones.length - 1, Math.floor(clamped * tones.length));
+  return tones[idx];
 }
 
 /* ------------------------------------------------------------------ */
@@ -212,6 +223,7 @@ export function DebtTreemap({
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
+  const [isDarkTheme, setIsDarkTheme] = useState(false);
 
   const fmt = (amount: number) =>
     formatAmount ? formatAmount(amount) : `-$${amount.toLocaleString()}`;
@@ -225,6 +237,25 @@ export function DebtTreemap({
       }
     });
     observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const root = document.documentElement;
+
+    const updateTheme = () => {
+      const theme = root.getAttribute("data-theme") ?? "";
+      setIsDarkTheme(theme === "dim");
+    };
+
+    updateTheme();
+
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(root, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+
     return () => observer.disconnect();
   }, []);
 
@@ -270,9 +301,7 @@ export function DebtTreemap({
         if (innerW <= 0 || innerH <= 0) return null;
 
         const t = maxOwed > 0 ? rect.entry.owed / maxOwed : 0;
-        const bg = heatColor(t);
-        const fg = textColorForHeat(t);
-        const fgSub = subTextColorForHeat(t);
+        const tone = pickHeatTone(t, isDarkTheme);
 
         const area = innerW * innerH;
         const showFull = area > 2400 && innerW > 50 && innerH > 36;
@@ -294,7 +323,7 @@ export function DebtTreemap({
               top: rect.y + GAP / 2,
               width: innerW,
               height: innerH,
-              backgroundColor: bg,
+              backgroundColor: tone.fill,
             }}
             onClick={() => onBlockClick?.(rect.entry)}
           >
@@ -302,13 +331,13 @@ export function DebtTreemap({
               <div className="flex flex-col items-center justify-center px-2 text-center">
                 <span
                   className="font-semibold leading-tight truncate max-w-full"
-                  style={{ color: fg, fontSize: BASE_NAME_SIZE }}
+                  style={{ color: tone.text, fontSize: BASE_NAME_SIZE }}
                 >
                   {rect.entry.name}
                 </span>
                 <span
                   className="leading-tight truncate max-w-full mt-0.5"
-                  style={{ color: fgSub, fontSize: BASE_AMOUNT_SIZE }}
+                  style={{ color: tone.subText, fontSize: BASE_AMOUNT_SIZE }}
                 >
                   {fmt(rect.entry.owed)}
                 </span>
@@ -318,13 +347,13 @@ export function DebtTreemap({
               <div className="flex flex-col items-center justify-center px-1 text-center">
                 <span
                   className="font-semibold leading-tight truncate max-w-full"
-                  style={{ color: fg, fontSize: SMALL_NAME_SIZE }}
+                  style={{ color: tone.text, fontSize: SMALL_NAME_SIZE }}
                 >
                   {rect.entry.name}
                 </span>
                 <span
                   className="leading-tight truncate max-w-full mt-0.5"
-                  style={{ color: fgSub, fontSize: SMALL_AMOUNT_SIZE }}
+                  style={{ color: tone.subText, fontSize: SMALL_AMOUNT_SIZE }}
                 >
                   {fmt(rect.entry.owed)}
                 </span>
@@ -333,7 +362,7 @@ export function DebtTreemap({
             {showInitial && (
               <span
                 className="font-bold"
-                style={{ color: fg, fontSize: SMALL_NAME_SIZE }}
+                style={{ color: tone.text, fontSize: SMALL_NAME_SIZE }}
               >
                 {rect.entry.name.charAt(0)}
               </span>

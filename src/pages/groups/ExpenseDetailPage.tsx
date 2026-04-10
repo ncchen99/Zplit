@@ -78,6 +78,11 @@ export function ExpenseDetailPage() {
 
   const memberMap = useMemo(() => {
     const map = new Map<string, string>();
+    Object.entries(currentGroup?.memberNameMap ?? {}).forEach(
+      ([memberId, displayName]) => {
+        map.set(memberId, displayName);
+      },
+    );
     currentGroup?.members?.forEach((m) => map.set(m.memberId, m.displayName));
     return map;
   }, [currentGroup]);
@@ -172,7 +177,8 @@ export function ExpenseDetailPage() {
     );
   }
 
-  const payerName = memberMap.get(expense.paidBy) ?? expense.paidBy;
+  const payerName =
+    memberMap.get(expense.paidBy) ?? t("group.members.unknownMember");
   const payerAvatar = memberAvatarMap.get(expense.paidBy) ?? null;
   const date = expense.date?.seconds
     ? new Date(expense.date.seconds * 1000).toLocaleString()
@@ -219,7 +225,8 @@ export function ExpenseDetailPage() {
           </h3>
           <div className="flex flex-col">
             {expense.splits.map((split) => {
-              const name = memberMap.get(split.memberId) ?? split.memberId;
+              const name =
+                memberMap.get(split.memberId) ?? t("group.members.unknownMember");
               const avatar = memberAvatarMap.get(split.memberId) ?? null;
               return (
                 <div

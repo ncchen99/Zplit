@@ -182,6 +182,8 @@
       "linkCopied": "已複製邀請連結",
       "editName": "編輯名稱",
       "removeMember": "移除成員",
+      "removeBlockedPending": "成員尚有未結清款項，無法移除",
+      "unknownMember": "已移除成員",
       "activityAction": {
         "created": "新增「{{title}} NT${{amount}}」",
         "updated": "修改「{{title}} NT${{amount}}」",

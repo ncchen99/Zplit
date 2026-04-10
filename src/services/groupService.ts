@@ -10,11 +10,15 @@ import {
   updateDoc,
   arrayUnion,
   deleteDoc,
+  deleteField,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { nanoid } from "nanoid";
-import type { Group, GroupMember } from "@/store/groupStore";
-import { ensureContact } from "@/services/personalLedgerService";
+import type { Group, GroupMember, Settlement } from "@/store/groupStore";
+import {
+  ensureContact,
+  syncPersonalContactNameByReference,
+} from "@/services/personalLedgerService";
 import { logger } from "@/utils/logger";
 import { ZplitError } from "@/utils/errors";
 
@@ -32,6 +36,14 @@ function buildMemberUids(members: GroupMember[]): Record<string, true> {
     if (m.isBound && m.userId) {
       map[m.userId] = true;
     }
+  }
+  return map;
+}
+
+function buildMemberNameMap(members: GroupMember[]): Record<string, string> {
+  const map: Record<string, string> = {};
+  for (const member of members) {
+    map[member.memberId] = member.displayName;
   }
   return map;
 }
@@ -62,6 +74,7 @@ export async function createGroup(
     inviteCode,
     createdBy,
     members: initialMembers,
+    memberNameMap: buildMemberNameMap(initialMembers),
     memberUids: buildMemberUids(initialMembers),
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
@@ -132,6 +145,7 @@ export async function addMemberToGroup(
 
   const updateData: Record<string, unknown> = {
     members: arrayUnion(member),
+    [`memberNameMap.${member.memberId}`]: member.displayName,
     updatedAt: serverTimestamp(),
   };
 
@@ -203,6 +217,7 @@ export async function addPlaceholderMember(
   const ref = doc(db, "groups", groupId);
   await updateDoc(ref, {
     members: arrayUnion(member),
+    [`memberNameMap.${member.memberId}`]: member.displayName,
     updatedAt: serverTimestamp(),
   });
 
@@ -227,6 +242,7 @@ export async function bindMemberToUser(
 
   await updateDoc(doc(db, "groups", groupId), {
     members: updatedMembers,
+    [`memberNameMap.${memberId}`]: displayName,
     // 同步更新 memberUids，讓 Security Rules 可以驗證此使用者的成員身份
     [`memberUids.${userId}`]: true,
     updatedAt: serverTimestamp(),
@@ -236,5 +252,180 @@ export async function bindMemberToUser(
     groupId,
     memberId,
     userId,
+  });
+}
+
+export async function renameGroupMember(
+  groupId: string,
+  memberId: string,
+  displayName: string,
+  options?: {
+    ownerUserId?: string;
+    memberUserId?: string | null;
+  },
+): Promise<void> {
+  const normalizedName = displayName.trim();
+  if (!normalizedName) {
+    throw new ZplitError("EXPENSE_SAVE_FAILED", "成員名稱不可為空");
+  }
+
+  const group = await getGroupById(groupId);
+  if (!group) throw new ZplitError("GROUP_NOT_FOUND", "群組不存在");
+
+  let previousDisplayName = "";
+  const updatedMembers = group.members.map((member) => {
+    if (member.memberId !== memberId) return member;
+    previousDisplayName = member.displayName;
+    return { ...member, displayName: normalizedName };
+  });
+
+  if (!previousDisplayName) {
+    throw new ZplitError("GROUP_NOT_FOUND", "成員不存在");
+  }
+
+  await updateDoc(doc(db, "groups", groupId), {
+    members: updatedMembers,
+    [`memberNameMap.${memberId}`]: normalizedName,
+    updatedAt: serverTimestamp(),
+  });
+
+  logger.info("groupService.renameMember", "成員名稱更新成功", {
+    groupId,
+    memberId,
+  });
+
+  const ownerUserId = options?.ownerUserId;
+  if (ownerUserId) {
+    try {
+      await syncPersonalContactNameByReference(ownerUserId, {
+        previousDisplayName,
+        nextDisplayName: normalizedName,
+        linkedUserId: options?.memberUserId,
+      });
+    } catch (err) {
+      logger.warn("groupService.renameMember.syncPersonal", "群組改名後同步個人聯絡人失敗", {
+        groupId,
+        memberId,
+        ownerUserId,
+        err,
+      });
+    }
+  }
+}
+
+export async function syncGroupMemberNameByReference(
+  ownerUserId: string,
+  options: {
+    previousDisplayName: string;
+    nextDisplayName: string;
+    linkedUserId?: string | null;
+  },
+): Promise<number> {
+  const previousDisplayName = options.previousDisplayName.trim();
+  const nextDisplayName = options.nextDisplayName.trim();
+  const linkedUserId = options.linkedUserId ?? null;
+
+  if (!previousDisplayName || !nextDisplayName) return 0;
+  if (previousDisplayName.toLowerCase() === nextDisplayName.toLowerCase()) return 0;
+
+  const groups = await getUserGroups(ownerUserId);
+  const previousLower = previousDisplayName.toLowerCase();
+  let updatedGroupCount = 0;
+
+  await Promise.all(
+    groups.map(async (group) => {
+      let changed = false;
+      const nextMembers = group.members.map((member) => {
+        const matchedByLinkedUser =
+          !!linkedUserId && !!member.userId && member.userId === linkedUserId;
+        const matchedByName =
+          !member.isBound && member.displayName.trim().toLowerCase() === previousLower;
+
+        if (!matchedByLinkedUser && !matchedByName) return member;
+        changed = true;
+        return {
+          ...member,
+          displayName: nextDisplayName,
+        };
+      });
+
+      if (!changed) return;
+
+      const nextMemberNameMap = {
+        ...(group.memberNameMap ?? {}),
+        ...buildMemberNameMap(nextMembers),
+      };
+
+      await updateDoc(doc(db, "groups", group.groupId), {
+        members: nextMembers,
+        memberNameMap: nextMemberNameMap,
+        updatedAt: serverTimestamp(),
+      });
+      updatedGroupCount += 1;
+    }),
+  );
+
+  if (updatedGroupCount > 0) {
+    logger.info("groupService.syncMemberName", "同步群組成員名稱成功", {
+      ownerUserId,
+      updatedGroupCount,
+    });
+  }
+
+  return updatedGroupCount;
+}
+
+export async function removeGroupMember(
+  groupId: string,
+  memberId: string,
+): Promise<void> {
+  const group = await getGroupById(groupId);
+  if (!group) throw new ZplitError("GROUP_NOT_FOUND", "群組不存在");
+
+  const targetMember = group.members.find((member) => member.memberId === memberId);
+  if (!targetMember) {
+    throw new ZplitError("GROUP_NOT_FOUND", "成員不存在");
+  }
+
+  const settlementsSnap = await getDocs(
+    collection(db, `groups/${groupId}/settlements`),
+  );
+  const hasPendingSettlements = settlementsSnap.docs.some((docSnap) => {
+    const settlement = docSnap.data() as Settlement;
+    return (
+      !settlement.completed &&
+      settlement.amount > 0 &&
+      (settlement.from === memberId || settlement.to === memberId)
+    );
+  });
+
+  if (hasPendingSettlements) {
+    throw new ZplitError(
+      "GROUP_MEMBER_HAS_PENDING_SETTLEMENTS",
+      "成員尚有未結清款項，無法移除",
+    );
+  }
+
+  const updatedMembers = group.members.filter((member) => member.memberId !== memberId);
+
+  const updateData: Record<string, unknown> = {
+    members: updatedMembers,
+    updatedAt: serverTimestamp(),
+  };
+
+  if (targetMember.isBound && targetMember.userId) {
+    const stillExists = updatedMembers.some(
+      (member) => member.userId === targetMember.userId,
+    );
+    if (!stillExists) {
+      updateData[`memberUids.${targetMember.userId}`] = deleteField();
+    }
+  }
+
+  await updateDoc(doc(db, "groups", groupId), updateData);
+
+  logger.info("groupService.removeMember", "成員移除成功", {
+    groupId,
+    memberId,
   });
 }

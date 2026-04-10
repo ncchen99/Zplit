@@ -182,6 +182,8 @@
       "linkCopied": "Invite link copied",
       "editName": "Edit Name",
       "removeMember": "Remove Member",
+      "removeBlockedPending": "This member still has unsettled balances and cannot be removed",
+      "unknownMember": "Removed member",
       "activityAction": {
         "created": "added \"{{title}} NT${{amount}}\"",
         "updated": "updated \"{{title}} NT${{amount}}\"",

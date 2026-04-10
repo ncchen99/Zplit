@@ -182,6 +182,50 @@ export async function updateContact(
   }
 }
 
+export async function syncPersonalContactNameByReference(
+  userId: string,
+  options: {
+    previousDisplayName: string;
+    nextDisplayName: string;
+    linkedUserId?: string | null;
+  },
+): Promise<number> {
+  const previousDisplayName = options.previousDisplayName.trim();
+  const nextDisplayName = options.nextDisplayName.trim();
+  const linkedUserId = options.linkedUserId ?? null;
+
+  if (!previousDisplayName || !nextDisplayName) return 0;
+  if (previousDisplayName.toLowerCase() === nextDisplayName.toLowerCase()) return 0;
+
+  const contacts = await getContacts(userId);
+  const previousLower = previousDisplayName.toLowerCase();
+
+  const targets = contacts.filter((contact) => {
+    if (linkedUserId && contact.linkedUserId && contact.linkedUserId === linkedUserId) {
+      return true;
+    }
+    return contact.displayName.trim().toLowerCase() === previousLower;
+  });
+
+  if (targets.length === 0) return 0;
+
+  const batch = writeBatch(db);
+  for (const target of targets) {
+    batch.update(doc(db, `personalLedger/${userId}/contacts/${target.contactId}`), {
+      displayName: nextDisplayName,
+      updatedAt: serverTimestamp(),
+    });
+  }
+  await batch.commit();
+
+  logger.info("personal.syncContactName", "同步個人聯絡人名稱成功", {
+    userId,
+    updatedCount: targets.length,
+  });
+
+  return targets.length;
+}
+
 export async function deleteContact(
   userId: string,
   contactId: string,

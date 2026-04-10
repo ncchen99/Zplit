@@ -13,7 +13,15 @@ import {
 import { logger } from "@/utils/logger";
 import { LinkIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { StarIcon } from "@heroicons/react/24/solid";
+import {
+  EllipsisVerticalIcon,
+} from "@heroicons/react/24/outline";
 import { UserAvatar } from "@/components/ui/UserAvatar";
+import type { GroupMember } from "@/store/groupStore";
+import { ActionSheet } from "@/components/ui/ActionSheet";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import { removeGroupMember, renameGroupMember } from "@/services/groupService";
+import { ZplitError } from "@/utils/errors";
 
 interface ActivityItem {
   id: string;
@@ -36,6 +44,7 @@ export function MembersTab() {
   const { t } = useTranslation();
   const currentGroup = useGroupStore((s) => s.currentGroup);
   const expenses = useGroupStore((s) => s.expenses);
+  const settlements = useGroupStore((s) => s.settlements);
   const user = useAuthStore((s) => s.user);
   const showToast = useUIStore((s) => s.showToast);
 
@@ -48,6 +57,13 @@ export function MembersTab() {
     MemberSuggestion[]
   >([]);
   const [groupActivities, setGroupActivities] = useState<ActivityItem[]>([]);
+  const [selectedMember, setSelectedMember] = useState<GroupMember | null>(null);
+  const [showMemberActionSheet, setShowMemberActionSheet] = useState(false);
+  const [showRenameModal, setShowRenameModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showRemoveBlockedModal, setShowRemoveBlockedModal] = useState(false);
+  const [editingName, setEditingName] = useState("");
+  const [actionLoading, setActionLoading] = useState(false);
 
   const loadMemberSuggestions = useCallback(async () => {
     if (!user) return;
@@ -201,11 +217,17 @@ export function MembersTab() {
   }, [expenses, groupActivities]);
 
   const memberMap = useMemo(
-    () =>
-      new Map(
-        currentGroup?.members?.map((m) => [m.memberId, m.displayName]) ?? [],
-      ),
-    [currentGroup?.members],
+    () => {
+      const map = new Map<string, string>();
+      Object.entries(currentGroup?.memberNameMap ?? {}).forEach(
+        ([memberId, displayName]) => {
+          map.set(memberId, displayName);
+        },
+      );
+      currentGroup?.members?.forEach((m) => map.set(m.memberId, m.displayName));
+      return map;
+    },
+    [currentGroup?.memberNameMap, currentGroup?.members],
   );
 
   const userMap = useMemo(
@@ -217,6 +239,16 @@ export function MembersTab() {
       ),
     [currentGroup?.members],
   );
+
+  const unsettledCountByMember = useMemo(() => {
+    const map = new Map<string, number>();
+    settlements.forEach((settlement) => {
+      if (settlement.completed || settlement.amount <= 0) return;
+      map.set(settlement.from, (map.get(settlement.from) ?? 0) + 1);
+      map.set(settlement.to, (map.get(settlement.to) ?? 0) + 1);
+    });
+    return map;
+  }, [settlements]);
 
   const formatActivityText = (log: ActivityItem): string => {
     if (log.description) return log.description;
@@ -230,6 +262,94 @@ export function MembersTab() {
       return t("group.members.activityAction.deleted", { title, amount });
     }
     return t("group.members.activityAction.created", { title, amount });
+  };
+
+  const closeMemberActionSheet = () => {
+    setShowMemberActionSheet(false);
+    setSelectedMember(null);
+  };
+
+  const openMemberActions = (member: GroupMember) => {
+    setSelectedMember(member);
+    setShowMemberActionSheet(true);
+  };
+
+  const isCreatorMember =
+    !!selectedMember && selectedMember.userId === currentGroup?.createdBy;
+  const selectedMemberUnsettledCount = selectedMember
+    ? (unsettledCountByMember.get(selectedMember.memberId) ?? 0)
+    : 0;
+  const canRenameSelected = !!selectedMember && !selectedMember.isBound;
+  const canOpenRemoveAction = !!selectedMember && !isCreatorMember;
+
+  const handleOpenRenameModal = () => {
+    if (!selectedMember || !canRenameSelected) return;
+    setEditingName(selectedMember.displayName);
+    setShowMemberActionSheet(false);
+    setShowRenameModal(true);
+  };
+
+  const handleRenameMember = async () => {
+    if (!currentGroup || !selectedMember) return;
+
+    const normalizedName = editingName.trim();
+    if (!normalizedName) return;
+
+    setActionLoading(true);
+    try {
+      await renameGroupMember(
+        currentGroup.groupId,
+        selectedMember.memberId,
+        normalizedName,
+        {
+          ownerUserId: user?.uid,
+          memberUserId: selectedMember.userId,
+        },
+      );
+      setShowRenameModal(false);
+      setSelectedMember(null);
+      showToast(t("common.toast.saved"), "success");
+    } catch (err) {
+      logger.error("members.rename", "修改成員名稱失敗", err);
+      showToast(t("common.error"), "error");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleOpenDeleteModal = () => {
+    if (!selectedMember || !canOpenRemoveAction) return;
+    setShowMemberActionSheet(false);
+    if (selectedMemberUnsettledCount > 0) {
+      setShowRemoveBlockedModal(true);
+      return;
+    }
+    setShowDeleteModal(true);
+  };
+
+  const handleRemoveMember = async () => {
+    if (!currentGroup || !selectedMember) return;
+
+    setActionLoading(true);
+    try {
+      await removeGroupMember(currentGroup.groupId, selectedMember.memberId);
+      setShowDeleteModal(false);
+      setSelectedMember(null);
+      showToast(t("common.button.done"), "success");
+    } catch (err) {
+      logger.error("members.remove", "移除成員失敗", err);
+      if (
+        err instanceof ZplitError &&
+        err.code === "GROUP_MEMBER_HAS_PENDING_SETTLEMENTS"
+      ) {
+        setShowDeleteModal(false);
+        setShowRemoveBlockedModal(true);
+      } else {
+        showToast(t("common.error"), "error");
+      }
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   return (
@@ -278,6 +398,14 @@ export function MembersTab() {
                   )}
                 </div>
               </div>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm btn-circle text-base-content/55"
+                aria-label={t("group.detail.more")}
+                onClick={() => openMemberActions(m)}
+              >
+                <EllipsisVerticalIcon className="h-4 w-4" />
+              </button>
             </div>
           );
         })}
@@ -371,9 +499,7 @@ export function MembersTab() {
               const actorName =
                 (log.memberId ? memberMap.get(log.memberId) : undefined) ??
                 (log.actorUid ? userMap.get(log.actorUid) : undefined) ??
-                log.memberId ??
-                log.actorUid ??
-                "-";
+                t("group.members.unknownMember");
               const time = log.timestamp?.seconds
                 ? new Date(log.timestamp.seconds * 1000).toLocaleString()
                 : "";
@@ -393,6 +519,100 @@ export function MembersTab() {
           </div>
         )}
       </div>
+
+      <ActionSheet
+        open={showMemberActionSheet}
+        onClose={closeMemberActionSheet}
+        items={[
+          {
+            key: "rename",
+            label: t("group.members.editName"),
+            tone: "default",
+            disabled: !canRenameSelected,
+            onClick: handleOpenRenameModal,
+          },
+          {
+            key: "remove",
+            label: t("group.members.removeMember"),
+            tone: "danger",
+            disabled: !canOpenRemoveAction,
+            onClick: handleOpenDeleteModal,
+          },
+        ]}
+      />
+
+      {showRemoveBlockedModal && (
+        <div className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg mb-2">
+              {t("group.members.removeMember")}
+            </h3>
+            <p className="text-sm">{t("group.members.removeBlockedPending")}</p>
+            <div className="modal-action">
+              <button
+                className="btn-white-soft"
+                onClick={() => setShowRemoveBlockedModal(false)}
+              >
+                {t("common.button.confirm")}
+              </button>
+            </div>
+          </div>
+          <div
+            className="modal-backdrop"
+            onClick={() => setShowRemoveBlockedModal(false)}
+          />
+        </div>
+      )}
+
+      {showRenameModal && (
+        <div className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg mb-3">{t("group.members.editName")}</h3>
+            <input
+              type="text"
+              className="input w-full"
+              value={editingName}
+              onChange={(event) => setEditingName(event.target.value)}
+              maxLength={30}
+            />
+            <div className="modal-action">
+              <button
+                className="btn-white-soft"
+                disabled={actionLoading}
+                onClick={() => setShowRenameModal(false)}
+              >
+                {t("common.button.cancel")}
+              </button>
+              <button
+                className="btn-theme-green gap-1"
+                disabled={actionLoading || !editingName.trim()}
+                onClick={() => {
+                  void handleRenameMember();
+                }}
+              >
+                {actionLoading ? (
+                  <span className="loading loading-spinner loading-xs" />
+                ) : null}
+                {t("common.button.save")}
+              </button>
+            </div>
+          </div>
+          <div className="modal-backdrop" onClick={() => setShowRenameModal(false)} />
+        </div>
+      )}
+
+      <ConfirmModal
+        open={showDeleteModal}
+        title={t("group.members.removeMember")}
+        message={selectedMember?.displayName ?? ""}
+        confirmLabel={t("common.button.delete")}
+        cancelLabel={t("common.button.cancel")}
+        confirmVariant="btn-error"
+        onConfirm={() => {
+          void handleRemoveMember();
+        }}
+        onCancel={() => setShowDeleteModal(false)}
+      />
     </div>
   );
 }
