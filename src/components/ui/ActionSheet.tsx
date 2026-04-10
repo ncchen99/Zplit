@@ -18,10 +18,12 @@ interface ActionSheetProps {
 
 function resolveButtonClass(tone: ActionTone | undefined): string {
   if (tone === "active") {
-    return "join-item btn border-base-300 bg-base-300 text-base-content/85 hover:border-base-300 hover:bg-base-300";
+    return "join-item btn btn-active border-base-300 bg-base-300 text-base-content/85 font-semibold hover:border-base-300 hover:bg-base-300";
   }
-  if (tone === "danger") return "join-item btn btn-danger-soft";
-  return "join-item btn btn-white-soft";
+  if (tone === "danger") {
+    return "join-item btn btn-danger-soft text-base-content/85 font-medium";
+  }
+  return "join-item btn btn-white-soft text-base-content/55 font-medium hover:text-base-content/65";
 }
 
 export function ActionSheet({ open, items, onClose }: ActionSheetProps) {
@@ -41,16 +43,9 @@ export function ActionSheet({ open, items, onClose }: ActionSheetProps) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <button
-        type="button"
-        aria-label="close"
-        className="absolute inset-0 bg-base-content/20"
-        onClick={onClose}
-      />
-
-      <div className="relative z-10 w-full max-w-sm">
-        <div className="join join-vertical w-full gap-2 bg-base-100">
+    <div className="modal modal-open z-50">
+      <div className="modal-box w-full max-w-64 p-0 shadow-2xl rounded-2xl">
+        <div className="join join-vertical w-full overflow-hidden rounded-2xl bg-base-100">
           {items.map((item) => (
             <button
               key={item.key}
@@ -64,6 +59,12 @@ export function ActionSheet({ open, items, onClose }: ActionSheetProps) {
           ))}
         </div>
       </div>
+      <button
+        type="button"
+        aria-label="close"
+        className="modal-backdrop"
+        onClick={onClose}
+      />
     </div>
   );
 }
