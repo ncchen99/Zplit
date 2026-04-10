@@ -172,6 +172,7 @@
       "activity": "近期動態",
       "addMember": "新增成員",
       "memberName": "成員名稱",
+      "memberNamePlaceholder": "搜尋或輸入新增的成員名字...",
       "unbound": "未綁定帳號",
       "bound": "已連結",
       "creator": "建立者",

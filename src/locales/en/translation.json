@@ -172,6 +172,7 @@
       "activity": "Recent Activity",
       "addMember": "Add Member",
       "memberName": "Member name",
+      "memberNamePlaceholder": "Search or enter a new member name...",
       "unbound": "Not linked",
       "bound": "Linked",
       "creator": "Creator",

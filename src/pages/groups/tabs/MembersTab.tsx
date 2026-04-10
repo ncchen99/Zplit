@@ -288,8 +288,8 @@ export function MembersTab() {
         <div className="relative">
           <input
             type="text"
-            className="input input-sm w-full"
-            placeholder={t("group.members.memberName")}
+            className="input w-full"
+            placeholder={t("group.members.memberNamePlaceholder")}
             value={newName}
             onChange={(e) => {
               setNewName(e.target.value);
@@ -340,7 +340,7 @@ export function MembersTab() {
         {canAddTypedName && (
           <button
             type="button"
-            className="btn-theme-green btn-sm mt-2"
+            className="btn btn-ghost btn-sm mt-2 text-primary w-full justify-start"
             onClick={() => {
               void handleAddMember();
             }}
