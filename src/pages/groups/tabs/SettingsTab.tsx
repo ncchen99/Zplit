@@ -44,7 +44,7 @@ export function SettingsTab() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Cover Photo — clickable to edit */}
+      {/* Cover Photo */}
       {currentGroup?.coverUrl && (
         <div>
           <h3 className="font-semibold text-sm text-base-content/60 uppercase tracking-wider mb-3">

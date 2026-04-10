@@ -180,7 +180,7 @@ export function AddPersonalExpensePage() {
                   setShowContactDropdown(true);
                 }}
                 onFocus={() => setShowContactDropdown(true)}
-                onBlur={() => setShowContactDropdown(false)}
+                onBlur={() => setTimeout(() => setShowContactDropdown(false), 150)}
                 autoComplete="off"
               />
               {loadingContacts && (
