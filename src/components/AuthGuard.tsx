@@ -30,7 +30,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   if (status === "loading") {
     return (
-      <div className="flex min-h-[100dvh] md:min-h-[inherit] items-center justify-center">
+      <div className="flex min-h-[100dvh] items-center justify-center md:min-h-[min(var(--app-frame-height),calc(100vh-2rem))]">
         <span className="loading loading-spinner loading-lg text-primary" />
       </div>
     );

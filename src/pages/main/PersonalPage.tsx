@@ -80,6 +80,8 @@ export function PersonalPage() {
 
   const unsettled = filtered.filter((c) => c.netAmount !== 0);
   const settled = filtered.filter((c) => c.netAmount === 0);
+  const isSearching = search.trim().length > 0;
+  const shouldShowSettled = showSettled || (isSearching && settled.length > 0);
 
   const totalOwed = unsettled
     .filter((c) => c.netAmount > 0)
@@ -186,10 +188,10 @@ export function PersonalPage() {
               >
                 {t("personal.settledSection")}（{settled.length}）
                 <ChevronDownIcon
-                  className={`h-3 w-3 transition-transform ${showSettled ? "rotate-180" : ""}`}
+                  className={`h-3 w-3 transition-transform ${shouldShowSettled ? "rotate-180" : ""}`}
                 />
               </button>
-              {showSettled && (
+              {shouldShowSettled && (
                 <div className="mt-2 flex flex-col">
                   {settled.map((c) => (
                     <ContactCard

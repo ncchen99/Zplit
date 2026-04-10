@@ -215,36 +215,7 @@ export function PersonalContactDetailPage() {
       <PageHeader
         title={
           <span className="inline-flex min-w-0 items-center gap-2">
-            {editingName ? (
-              <span className="inline-flex items-center gap-1">
-                <input
-                  type="text"
-                  className="input input-sm input-bordered w-32"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleUpdateName();
-                    if (e.key === "Escape") setEditingName(false);
-                  }}
-                  autoFocus
-                  maxLength={30}
-                />
-                <button
-                  className="btn btn-primary btn-xs"
-                  onClick={handleUpdateName}
-                >
-                  {t("common.button.save")}
-                </button>
-                <button
-                  className="btn btn-ghost btn-xs"
-                  onClick={() => setEditingName(false)}
-                >
-                  {t("common.button.cancel")}
-                </button>
-              </span>
-            ) : (
-              <span className="truncate text-lg font-bold">{displayName}</span>
-            )}
+            <span className="truncate text-lg font-bold">{displayName}</span>
           </span>
         }
         onBack={() => navigate("/personal")}
@@ -270,6 +241,7 @@ export function PersonalContactDetailPage() {
                     className="flex w-full items-center rounded-none px-3 py-2 text-left text-xs font-medium transition-colors hover:bg-base-200 active:bg-base-300"
                     onClick={() => {
                       setShowMenu(false);
+                      setEditName(currentContact?.displayName ?? "");
                       setEditingName(true);
                     }}
                   >
@@ -400,6 +372,49 @@ export function PersonalContactDetailPage() {
         onConfirm={confirmModal.onConfirm}
         onCancel={closeConfirm}
       />
+
+      {editingName && (
+        <div className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg mb-3">{t("personal.editContactName")}</h3>
+            <fieldset className="fieldset w-full">
+              <legend className="fieldset-legend">{t("personal.contact")}</legend>
+              <input
+                type="text"
+                className="input w-full"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    void handleUpdateName();
+                  }
+                  if (e.key === "Escape") {
+                    setEditingName(false);
+                  }
+                }}
+                autoFocus
+                maxLength={30}
+                placeholder={t("personal.contactPlaceholder")}
+              />
+            </fieldset>
+            <div className="modal-action">
+              <button className="btn-white-soft" onClick={() => setEditingName(false)}>
+                {t("common.button.cancel")}
+              </button>
+              <button
+                className="btn-theme-green"
+                onClick={() => {
+                  void handleUpdateName();
+                }}
+                disabled={!editName.trim()}
+              >
+                {t("common.button.save")}
+              </button>
+            </div>
+          </div>
+          <div className="modal-backdrop" onClick={() => setEditingName(false)} />
+        </div>
+      )}
     </div>
   );
 }
