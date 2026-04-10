@@ -27,6 +27,11 @@
     },
     "loading": "載入中...",
     "error": "發生錯誤",
+    "errorDetail": {
+      "invalidRepeatEndDate": "重複記帳的結束日期不可早於帳務日期",
+      "invalidTurnstile": "人機驗證失敗，請再試一次",
+      "loadFailed": "載入失敗，請稍後重試"
+    },
     "retry": "重試",
     "offline": "目前離線，部分功能可能無法使用",
     "online": "已恢復連線",
@@ -299,6 +304,7 @@
     "bindGoogle": "綁定 Google 帳號",
     "bindGoogleHint": "綁定後可保留所有資料",
     "bindSuccess": "Google 帳號綁定成功！",
+    "bindGoogleCta": "立即綁定",
     "logout": "登出",
     "logoutConfirm": "確定要登出嗎？",
     "deleteAccount": "刪除帳號",

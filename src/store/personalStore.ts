@@ -1,5 +1,8 @@
-import { create } from 'zustand';
-import type { PersonalContact, PersonalExpense } from '@/services/personalLedgerService';
+import { create } from "zustand";
+import type {
+  PersonalContact,
+  PersonalExpense,
+} from "@/services/personalLedgerService";
 
 interface PersonalStore {
   contacts: PersonalContact[];
@@ -35,5 +38,9 @@ export const usePersonalStore = create<PersonalStore>((set) => ({
   setIsLoadingExpenses: (loading) => set({ isLoadingExpenses: loading }),
 
   clearCurrentContact: () =>
-    set({ currentContact: null, currentExpenses: [], isLoadingExpenses: false }),
+    set({
+      currentContact: null,
+      currentExpenses: [],
+      isLoadingExpenses: false,
+    }),
 }));

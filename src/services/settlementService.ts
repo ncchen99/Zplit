@@ -6,17 +6,20 @@ import {
   where,
   writeBatch,
   serverTimestamp,
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { computeBalances, computeSettlements } from '@/lib/algorithm/settlement';
-import { logger } from '@/utils/logger';
-import type { Expense } from '@/store/groupStore';
+} from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import {
+  computeBalances,
+  computeSettlements,
+} from "@/lib/algorithm/settlement";
+import { logger } from "@/utils/logger";
+import type { Expense } from "@/store/groupStore";
 
 export async function recalculateSettlements(groupId: string): Promise<void> {
   try {
     // Read all expenses
     const expensesSnap = await getDocs(
-      collection(db, `groups/${groupId}/expenses`)
+      collection(db, `groups/${groupId}/expenses`),
     );
     const expenses = expensesSnap.docs.map((d) => d.data() as Expense);
 
@@ -27,7 +30,7 @@ export async function recalculateSettlements(groupId: string): Promise<void> {
     const settlementsRef = collection(db, `groups/${groupId}/settlements`);
     // Get all existing incomplete settlements to delete
     const incompleteSnap = await getDocs(
-      query(settlementsRef, where('completed', '==', false))
+      query(settlementsRef, where("completed", "==", false)),
     );
 
     const batch = writeBatch(db);
@@ -51,11 +54,11 @@ export async function recalculateSettlements(groupId: string): Promise<void> {
     }
 
     await batch.commit();
-    logger.info('settlement.recalculate', '結算重算完成', {
+    logger.info("settlement.recalculate", "結算重算完成", {
       groupId,
       count: newSettlements.length,
     });
   } catch (err) {
-    logger.error('settlement.recalculate', '結算重算失敗', { groupId, err });
+    logger.error("settlement.recalculate", "結算重算失敗", { groupId, err });
   }
 }

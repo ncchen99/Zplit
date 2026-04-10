@@ -1,36 +1,38 @@
-import { useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   collection,
   query,
   orderBy,
   onSnapshot,
   doc,
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { useGroupStore, type Expense, type Settlement, type Group } from '@/store/groupStore';
-import { useUIStore } from '@/store/uiStore';
-import { logger } from '@/utils/logger';
-import { SummaryTab } from './tabs/SummaryTab';
-import { SettleTab } from './tabs/SettleTab';
-import { MembersTab } from './tabs/MembersTab';
-import { SettingsTab } from './tabs/SettingsTab';
-import { PageHeader, HeaderIconButton } from '@/components/ui/PageHeader';
-import { useState } from 'react';
+} from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import {
-  Plus as PlusIcon,
-  Share2 as ShareIcon,
-} from 'lucide-react';
+  useGroupStore,
+  type Expense,
+  type Settlement,
+  type Group,
+} from "@/store/groupStore";
+import { useUIStore } from "@/store/uiStore";
+import { logger } from "@/utils/logger";
+import { SummaryTab } from "./tabs/SummaryTab";
+import { SettleTab } from "./tabs/SettleTab";
+import { MembersTab } from "./tabs/MembersTab";
+import { SettingsTab } from "./tabs/SettingsTab";
+import { PageHeader, HeaderIconButton } from "@/components/ui/PageHeader";
+import { useState } from "react";
+import { Plus as PlusIcon, Share2 as ShareIcon } from "lucide-react";
 
-type TabKey = 'summary' | 'settle' | 'members' | 'settings';
+type TabKey = "summary" | "settle" | "members" | "settings";
 
 export function GroupDetailPage() {
   const { t } = useTranslation();
   const { groupId } = useParams<{ groupId: string }>();
   const navigate = useNavigate();
   const showToast = useUIStore((s) => s.showToast);
-  const [activeTab, setActiveTab] = useState<TabKey>('summary');
+  const [activeTab, setActiveTab] = useState<TabKey>("summary");
 
   const currentGroup = useGroupStore((s) => s.currentGroup);
   const setCurrentGroup = useGroupStore((s) => s.setCurrentGroup);
@@ -39,7 +41,9 @@ export function GroupDetailPage() {
   const clearCurrentGroup = useGroupStore((s) => s.clearCurrentGroup);
   const unsubscribeListeners = useGroupStore((s) => s.unsubscribeListeners);
   const setUnsubscribeExpenses = useGroupStore((s) => s.setUnsubscribeExpenses);
-  const setUnsubscribeSettlements = useGroupStore((s) => s.setUnsubscribeSettlements);
+  const setUnsubscribeSettlements = useGroupStore(
+    (s) => s.setUnsubscribeSettlements,
+  );
   const setUnsubscribeGroup = useGroupStore((s) => s.setUnsubscribeGroup);
 
   useEffect(() => {
@@ -52,20 +56,20 @@ export function GroupDetailPage() {
     }
 
     const groupUnsub = onSnapshot(
-      doc(db, 'groups', groupId),
+      doc(db, "groups", groupId),
       (snap) => {
         if (snap.exists()) {
           setCurrentGroup({ groupId: snap.id, ...snap.data() } as Group);
         }
       },
-      (err) => logger.error('group.subscribe', '群組監聽失敗', err)
+      (err) => logger.error("group.subscribe", "群組監聽失敗", err),
     );
     setUnsubscribeGroup(groupUnsub);
 
     const expensesUnsub = onSnapshot(
       query(
         collection(db, `groups/${groupId}/expenses`),
-        orderBy('date', 'desc')
+        orderBy("date", "desc"),
       ),
       (snap) => {
         const expenses = snap.docs.map((d) => ({
@@ -74,7 +78,7 @@ export function GroupDetailPage() {
         })) as Expense[];
         setExpenses(expenses);
       },
-      (err) => logger.error('expenses.subscribe', '帳務監聽失敗', err)
+      (err) => logger.error("expenses.subscribe", "帳務監聽失敗", err),
     );
     setUnsubscribeExpenses(expensesUnsub);
 
@@ -87,7 +91,7 @@ export function GroupDetailPage() {
         })) as Settlement[];
         setSettlements(settlements);
       },
-      (err) => logger.error('settlements.subscribe', '結算監聽失敗', err)
+      (err) => logger.error("settlements.subscribe", "結算監聽失敗", err),
     );
     setUnsubscribeSettlements(settlementsUnsub);
 
@@ -103,8 +107,8 @@ export function GroupDetailPage() {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: t('group.detail.shareTitle', { name: currentGroup.name }),
-          text: t('group.detail.shareText'),
+          title: t("group.detail.shareTitle", { name: currentGroup.name }),
+          text: t("group.detail.shareText"),
           url: inviteUrl,
         });
       } catch {
@@ -112,28 +116,28 @@ export function GroupDetailPage() {
       }
     } else {
       navigator.clipboard.writeText(inviteUrl);
-      showToast(t('group.members.linkCopied'), 'success');
+      showToast(t("group.members.linkCopied"), "success");
     }
   };
 
   const tabs: { key: TabKey; label: string }[] = [
-    { key: 'summary', label: t('group.summary.title') },
-    { key: 'settle', label: t('group.settle.title') },
-    { key: 'members', label: t('group.members.title') },
-    { key: 'settings', label: t('group.settings.title') },
+    { key: "summary", label: t("group.summary.title") },
+    { key: "settle", label: t("group.settle.title") },
+    { key: "members", label: t("group.members.title") },
+    { key: "settings", label: t("group.settings.title") },
   ];
 
   if (!currentGroup) {
     return (
-      <div className="flex min-h-screen flex-col">
+      <div className="relative flex min-h-[100dvh] md:min-h-[inherit] flex-col">
         <PageHeader
-          title={t('group.summary.title')}
-          onBack={() => navigate('/home')}
-          rightAction={(
+          title={t("group.summary.title")}
+          onBack={() => navigate("/home")}
+          rightAction={
             <HeaderIconButton onClick={() => {}} disabled>
               <ShareIcon className="h-5 w-5" />
             </HeaderIconButton>
-          )}
+          }
         />
 
         <div role="tablist" className="tabs tabs-border px-4">
@@ -141,7 +145,7 @@ export function GroupDetailPage() {
             <button
               key={tab.key}
               role="tab"
-              className={`tab ${tab.key === 'summary' ? 'tab-active' : ''}`}
+              className={`tab ${tab.key === "summary" ? "tab-active" : ""}`}
               disabled
             >
               {tab.label}
@@ -167,7 +171,7 @@ export function GroupDetailPage() {
           </div>
         </div>
 
-        <div className="fixed bottom-6 right-4 z-50" aria-hidden="true">
+        <div className="fab-in-frame" aria-hidden="true">
           <div className="skeleton h-16 w-16 rounded-full" />
         </div>
       </div>
@@ -175,24 +179,26 @@ export function GroupDetailPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="relative flex min-h-[100dvh] md:min-h-[inherit] flex-col">
       <PageHeader
-        title={(
+        title={
           <span className="inline-flex max-w-full flex-col items-center justify-center leading-none">
             <span className="max-w-full truncate text-base font-bold leading-tight">
               {currentGroup.name}
             </span>
             <span className="mt-0.5 text-[11px] font-medium leading-none text-base-content/60">
-              {t('common.members_count', { count: currentGroup.members?.length ?? 0 })}
+              {t("common.members_count", {
+                count: currentGroup.members?.length ?? 0,
+              })}
             </span>
           </span>
-        )}
-        onBack={() => navigate('/home')}
-        rightAction={(
+        }
+        onBack={() => navigate("/home")}
+        rightAction={
           <HeaderIconButton onClick={handleShare}>
             <ShareIcon className="h-5 w-5" />
           </HeaderIconButton>
-        )}
+        }
       />
 
       {/* Tabs */}
@@ -201,7 +207,7 @@ export function GroupDetailPage() {
           <button
             key={tab.key}
             role="tab"
-            className={`tab ${activeTab === tab.key ? 'tab-active' : ''}`}
+            className={`tab ${activeTab === tab.key ? "tab-active" : ""}`}
             onClick={() => setActiveTab(tab.key)}
           >
             {tab.label}
@@ -211,18 +217,20 @@ export function GroupDetailPage() {
 
       {/* Tab Content */}
       <div className="flex-1 px-4 pt-4 pb-24">
-        {activeTab === 'summary' && <SummaryTab onNavigateSettle={() => setActiveTab('settle')} />}
-        {activeTab === 'settle' && <SettleTab />}
-        {activeTab === 'members' && <MembersTab />}
-        {activeTab === 'settings' && <SettingsTab />}
+        {activeTab === "summary" && (
+          <SummaryTab onNavigateSettle={() => setActiveTab("settle")} />
+        )}
+        {activeTab === "settle" && <SettleTab />}
+        {activeTab === "members" && <MembersTab />}
+        {activeTab === "settings" && <SettingsTab />}
       </div>
 
       {/* FAB - Add Expense */}
-      <div className="fixed bottom-6 right-4 z-50">
+        <div className="fab-in-frame">
         <button
           className="btn btn-primary btn-circle btn-lg shadow-xl"
           onClick={() => navigate(`/groups/${groupId}/expense/new`)}
-          aria-label={t('expense.add')}
+          aria-label={t("expense.add")}
         >
           <PlusIcon className="h-6 w-6" />
         </button>

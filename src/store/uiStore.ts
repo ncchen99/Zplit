@@ -1,6 +1,6 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
-type ToastType = 'success' | 'error' | 'info';
+type ToastType = "success" | "error" | "info";
 
 interface Toast {
   message: string;
@@ -9,7 +9,7 @@ interface Toast {
   closing?: boolean;
 }
 
-type ThemeMode = 'light' | 'dark' | 'system';
+type ThemeMode = "light" | "dark" | "system";
 
 interface UIStore {
   toasts: Toast[];
@@ -36,7 +36,9 @@ export const useUIStore = create<UIStore>((set, get) => ({
     if (!target || target.closing) return;
 
     set({
-      toasts: get().toasts.map((t) => (t.id === id ? { ...t, closing: true } : t)),
+      toasts: get().toasts.map((t) =>
+        t.id === id ? { ...t, closing: true } : t,
+      ),
     });
 
     setTimeout(() => {
@@ -44,10 +46,10 @@ export const useUIStore = create<UIStore>((set, get) => ({
     }, 220);
   },
 
-  themeMode: (localStorage.getItem('zplit-theme') as ThemeMode) ?? 'system',
+  themeMode: (localStorage.getItem("zplit-theme") as ThemeMode) ?? "system",
 
   setThemeMode: (mode) => {
-    localStorage.setItem('zplit-theme', mode);
+    localStorage.setItem("zplit-theme", mode);
     set({ themeMode: mode });
   },
 }));

@@ -1,22 +1,25 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { useEffect, useMemo, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   collection,
   query,
   orderBy,
   onSnapshot,
   doc,
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { useGroupStore, type Expense, type Group } from '@/store/groupStore';
-import { PageHeader, HeaderIconButton } from '@/components/ui/PageHeader';
-import { Pencil as PencilIcon, RotateCw as ArrowPathIcon } from 'lucide-react';
-import { UserAvatar } from '@/components/ui/UserAvatar';
+} from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { useGroupStore, type Expense, type Group } from "@/store/groupStore";
+import { PageHeader, HeaderIconButton } from "@/components/ui/PageHeader";
+import { Pencil as PencilIcon, RotateCw as ArrowPathIcon } from "lucide-react";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 
 export function ExpenseDetailPage() {
   const { t } = useTranslation();
-  const { groupId, expenseId } = useParams<{ groupId: string; expenseId: string }>();
+  const { groupId, expenseId } = useParams<{
+    groupId: string;
+    expenseId: string;
+  }>();
   const navigate = useNavigate();
 
   const storeGroup = useGroupStore((s) => s.currentGroup);
@@ -24,10 +27,15 @@ export function ExpenseDetailPage() {
   const setCurrentGroup = useGroupStore((s) => s.setCurrentGroup);
   const setExpenses = useGroupStore((s) => s.setExpenses);
 
-  const [loading, setLoading] = useState(true);
+  const needsFetch =
+    !storeGroup || storeGroup.groupId !== groupId || storeExpenses.length === 0;
+  const [loading, setLoading] = useState(needsFetch);
 
   useEffect(() => {
-    if (!groupId) return;
+    if (!groupId || !needsFetch) {
+      setLoading(false);
+      return;
+    }
 
     let groupLoaded = false;
     let expensesLoaded = false;
@@ -35,25 +43,28 @@ export function ExpenseDetailPage() {
       if (groupLoaded && expensesLoaded) setLoading(false);
     };
 
-    const groupUnsub = onSnapshot(
-      doc(db, 'groups', groupId),
-      (snap) => {
-        if (snap.exists()) {
-          setCurrentGroup({ groupId: snap.id, ...snap.data() } as Group);
-        }
-        groupLoaded = true;
-        tryFinish();
+    const groupUnsub = onSnapshot(doc(db, "groups", groupId), (snap) => {
+      if (snap.exists()) {
+        setCurrentGroup({ groupId: snap.id, ...snap.data() } as Group);
       }
-    );
+      groupLoaded = true;
+      tryFinish();
+    });
 
     const expensesUnsub = onSnapshot(
-      query(collection(db, `groups/${groupId}/expenses`), orderBy('date', 'desc')),
+      query(
+        collection(db, `groups/${groupId}/expenses`),
+        orderBy("date", "desc"),
+      ),
       (snap) => {
-        const expenses = snap.docs.map((d) => ({ ...d.data(), expenseId: d.id })) as Expense[];
+        const expenses = snap.docs.map((d) => ({
+          ...d.data(),
+          expenseId: d.id,
+        })) as Expense[];
         setExpenses(expenses);
         expensesLoaded = true;
         tryFinish();
-      }
+      },
     );
 
     return () => {
@@ -77,25 +88,32 @@ export function ExpenseDetailPage() {
     return map;
   }, [currentGroup]);
 
+  // Always show header
   const header = (
     <PageHeader
-      title={t('expense.detail.title')}
+      title={t("expense.detail.title")}
       onBack={() => navigate(`/groups/${groupId}`)}
-      rightAction={expense ? (
-        <HeaderIconButton onClick={() => navigate(`/groups/${groupId}/expense/${expenseId}/edit`)}>
-          <PencilIcon className="h-5 w-5" />
-        </HeaderIconButton>
-      ) : (
-        <HeaderIconButton onClick={() => {}} disabled>
-          <PencilIcon className="h-5 w-5" />
-        </HeaderIconButton>
-      )}
+      rightAction={
+        expense ? (
+          <HeaderIconButton
+            onClick={() =>
+              navigate(`/groups/${groupId}/expense/${expenseId}/edit`)
+            }
+          >
+            <PencilIcon className="h-5 w-5" />
+          </HeaderIconButton>
+        ) : (
+          <HeaderIconButton onClick={() => {}} disabled>
+            <PencilIcon className="h-5 w-5" />
+          </HeaderIconButton>
+        )
+      }
     />
   );
 
   if (loading || !expense) {
     return (
-      <div className="flex min-h-screen flex-col">
+      <div className="flex min-h-[100dvh] md:min-h-[inherit] flex-col">
         {header}
 
         <div className="px-4 pb-16 flex flex-col gap-5 mt-4">
@@ -158,11 +176,12 @@ export function ExpenseDetailPage() {
   const payerAvatar = memberAvatarMap.get(expense.paidBy) ?? null;
   const date = expense.date?.seconds
     ? new Date(expense.date.seconds * 1000).toLocaleString()
-    : '';
-  const isRepeat = expense.repeat && (expense.repeat as { type?: string }).type !== 'none';
+    : "";
+  const isRepeat =
+    expense.repeat && (expense.repeat as { type?: string }).type !== "none";
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-[100dvh] md:min-h-[inherit] flex-col">
       {header}
 
       <div className="px-4 pb-16 flex flex-col gap-5 mt-4">
@@ -171,7 +190,9 @@ export function ExpenseDetailPage() {
           <div className="stat">
             <div className="stat-title flex items-center gap-2">
               {expense.title}
-              {isRepeat && <ArrowPathIcon className="h-4 w-4 text-base-content/50" />}
+              {isRepeat && (
+                <ArrowPathIcon className="h-4 w-4 text-base-content/50" />
+              )}
             </div>
             <div className="stat-value text-warning">
               NT${expense.amount.toLocaleString()}
@@ -183,7 +204,7 @@ export function ExpenseDetailPage() {
         {/* Payer */}
         <div>
           <h3 className="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-2">
-            {t('expense.paidBy')}
+            {t("expense.paidBy")}
           </h3>
           <div className="flex items-center gap-3 py-2">
             <UserAvatar src={payerAvatar} name={payerName} />
@@ -194,7 +215,7 @@ export function ExpenseDetailPage() {
         {/* Split Details */}
         <div>
           <h3 className="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-2">
-            {t('expense.splitWith')}
+            {t("expense.splitWith")}
           </h3>
           <div className="flex flex-col">
             {expense.splits.map((split) => {
@@ -206,10 +227,17 @@ export function ExpenseDetailPage() {
                   className="flex items-center justify-between py-3 border-b border-base-200 last:border-b-0"
                 >
                   <div className="flex items-center gap-3">
-                    <UserAvatar src={avatar} name={name} size="w-8" textSize="text-xs" />
+                    <UserAvatar
+                      src={avatar}
+                      name={name}
+                      size="w-8"
+                      textSize="text-xs"
+                    />
                     <span className="text-sm font-medium">{name}</span>
                   </div>
-                  <span className="text-sm font-bold">NT${split.amount.toLocaleString()}</span>
+                  <span className="text-sm font-bold">
+                    NT${split.amount.toLocaleString()}
+                  </span>
                 </div>
               );
             })}
@@ -220,7 +248,7 @@ export function ExpenseDetailPage() {
         {expense.description && (
           <div>
             <h3 className="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-2">
-              {t('expense.description')}
+              {t("expense.description")}
             </h3>
             <p className="text-sm">{expense.description}</p>
           </div>
@@ -230,7 +258,7 @@ export function ExpenseDetailPage() {
         {expense.imageUrl && (
           <div>
             <h3 className="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-2">
-              {t('expense.receipt')}
+              {t("expense.receipt")}
             </h3>
             <div className="rounded-xl overflow-hidden bg-base-200">
               <img

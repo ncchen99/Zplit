@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useGroupStore } from '@/store/groupStore';
-import { useUIStore } from '@/store/uiStore';
-import { updateGroup } from '@/services/groupService';
-import { logger } from '@/utils/logger';
-import { PageHeader, HeaderIconButton } from '@/components/ui/PageHeader';
-import { Check as CheckIcon } from 'lucide-react';
-import { ImageUpload } from '@/components/ui/ImageUpload';
+import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate, useParams } from "react-router-dom";
+import { useGroupStore } from "@/store/groupStore";
+import { useUIStore } from "@/store/uiStore";
+import { updateGroup } from "@/services/groupService";
+import { logger } from "@/utils/logger";
+import { PageHeader, HeaderIconButton } from "@/components/ui/PageHeader";
+import { Check as CheckIcon } from "lucide-react";
+import { ImageUpload } from "@/components/ui/ImageUpload";
 
 export function EditGroupPage() {
   const { t } = useTranslation();
@@ -16,20 +16,20 @@ export function EditGroupPage() {
   const currentGroup = useGroupStore((s) => s.currentGroup);
   const showToast = useUIStore((s) => s.showToast);
 
-  const [name, setName] = useState(currentGroup?.name ?? '');
-  const [coverUrl, setCoverUrl] = useState(currentGroup?.coverUrl ?? '');
+  const [name, setName] = useState(currentGroup?.name ?? "");
+  const [coverUrl, setCoverUrl] = useState(currentGroup?.coverUrl ?? "");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (currentGroup) {
       setName(currentGroup.name);
-      setCoverUrl(currentGroup.coverUrl ?? '');
+      setCoverUrl(currentGroup.coverUrl ?? "");
     }
   }, [currentGroup]);
 
   const hasChanges =
-    name !== (currentGroup?.name ?? '') ||
-    coverUrl !== (currentGroup?.coverUrl ?? '');
+    name !== (currentGroup?.name ?? "") ||
+    coverUrl !== (currentGroup?.coverUrl ?? "");
 
   const handleSave = async () => {
     if (!groupId || !name.trim()) return;
@@ -39,23 +39,23 @@ export function EditGroupPage() {
         name: name.trim(),
         coverUrl: coverUrl.trim() || null,
       });
-      showToast(t('group.edit.saved'), 'success');
-      logger.info('editGroup', '群組資料更新完成');
+      showToast(t("group.edit.saved"), "success");
+      logger.info("editGroup", "群組資料更新完成");
       navigate(-1);
     } catch (err) {
-      logger.error('editGroup', '更新失敗', err);
-      showToast(t('common.error'), 'error');
+      logger.error("editGroup", "更新失敗", err);
+      showToast(t("common.error"), "error");
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-[100dvh]  flex-col">
       <PageHeader
-        title={t('group.edit.title')}
+        title={t("group.edit.title")}
         onBack={() => navigate(-1)}
-        rightAction={(
+        rightAction={
           <HeaderIconButton
             onClick={handleSave}
             disabled={!name.trim() || !hasChanges || saving}
@@ -64,16 +64,16 @@ export function EditGroupPage() {
           >
             <CheckIcon className="h-5 w-5" />
           </HeaderIconButton>
-        )}
+        }
       />
 
       <div className="flex-1 px-4 pt-6 flex flex-col gap-4">
         <fieldset className="fieldset w-full">
-          <legend className="fieldset-legend">{t('group.edit.name')}</legend>
+          <legend className="fieldset-legend">{t("group.edit.name")}</legend>
           <input
             type="text"
             className="input w-full"
-            placeholder={t('group.create.namePlaceholder')}
+            placeholder={t("group.create.namePlaceholder")}
             value={name}
             onChange={(e) => setName(e.target.value)}
             maxLength={50}
@@ -82,14 +82,14 @@ export function EditGroupPage() {
 
         <div>
           <label className="text-sm font-medium text-base-content/60 mb-2 block">
-            {t('group.edit.coverUrl')}
+            {t("group.edit.coverUrl")}
           </label>
           <ImageUpload
             currentUrl={coverUrl}
             onUpload={setCoverUrl}
-            onRemove={() => setCoverUrl('')}
+            onRemove={() => setCoverUrl("")}
             shape="rect"
-            label={t('group.edit.coverUrl')}
+            label={t("group.edit.coverUrl")}
             className="w-full"
           />
         </div>

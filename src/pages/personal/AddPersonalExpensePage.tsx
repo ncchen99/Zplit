@@ -1,20 +1,23 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useParams, useNavigate } from 'react-router-dom';
-import { PlusIcon, CheckIcon } from '@heroicons/react/24/outline';
-import { useAuthStore } from '@/store/authStore';
-import { usePersonalStore } from '@/store/personalStore';
-import { useUIStore } from '@/store/uiStore';
-import { PageHeader, HeaderIconButton } from '@/components/ui/PageHeader';
-import { UserAvatar } from '@/components/ui/UserAvatar';
+import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useParams, useNavigate } from "react-router-dom";
+import { PlusIcon, CheckIcon } from "@heroicons/react/24/outline";
+import { useAuthStore } from "@/store/authStore";
+import { usePersonalStore } from "@/store/personalStore";
+import { useUIStore } from "@/store/uiStore";
+import { PageHeader, HeaderIconButton } from "@/components/ui/PageHeader";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 import {
   addPersonalExpense,
   getContacts,
   createContact,
   type PersonalContact,
-} from '@/services/personalLedgerService';
-import { logger } from '@/utils/logger';
-import { getTaipeiDateTimeLocalString, parseTaipeiDateTimeLocalString } from '@/utils/datetime';
+} from "@/services/personalLedgerService";
+import { logger } from "@/utils/logger";
+import {
+  getTaipeiDateTimeLocalString,
+  parseTaipeiDateTimeLocalString,
+} from "@/utils/datetime";
 
 export function AddPersonalExpensePage() {
   const { t } = useTranslation();
@@ -27,16 +30,17 @@ export function AddPersonalExpensePage() {
 
   // ── 聯絡人選取狀態（僅在無 contactId 時使用）──
   const [contacts, setContacts] = useState<PersonalContact[]>(storeContacts);
-  const [contactSearch, setContactSearch] = useState('');
-  const [selectedContact, setSelectedContact] = useState<PersonalContact | null>(null);
+  const [contactSearch, setContactSearch] = useState("");
+  const [selectedContact, setSelectedContact] =
+    useState<PersonalContact | null>(null);
   const [showContactDropdown, setShowContactDropdown] = useState(false);
   const [loadingContacts, setLoadingContacts] = useState(false);
 
   // 表單欄位
-  const [title, setTitle] = useState('');
-  const [amount, setAmount] = useState('');
-  const [paidBy, setPaidBy] = useState<'self' | 'contact'>('self');
-  const [description, setDescription] = useState('');
+  const [title, setTitle] = useState("");
+  const [amount, setAmount] = useState("");
+  const [paidBy, setPaidBy] = useState<"self" | "contact">("self");
+  const [description, setDescription] = useState("");
   const [date, setDate] = useState(() => getTaipeiDateTimeLocalString());
   const [saving, setSaving] = useState(false);
 
@@ -48,7 +52,7 @@ export function AddPersonalExpensePage() {
       const list = await getContacts(user.uid);
       setContacts(list);
     } catch (err) {
-      logger.error('addPersonalExpense.loadContacts', '載入聯絡人失敗', err);
+      logger.error("addPersonalExpense.loadContacts", "載入聯絡人失敗", err);
     } finally {
       setLoadingContacts(false);
     }
@@ -65,22 +69,25 @@ export function AddPersonalExpensePage() {
     ? contacts.find((c) => c.contactId === contactId)
     : null;
   const resolvedContactName = contactId
-    ? (currentContact?.displayName ?? selectedContactFromStore?.displayName ?? '')
-    : (selectedContact?.displayName ?? '');
+    ? (currentContact?.displayName ??
+      selectedContactFromStore?.displayName ??
+      "")
+    : (selectedContact?.displayName ?? "");
 
   const isContactSelected = !!contactId || !!selectedContact;
-  const isValid = isContactSelected && title.trim() && amount && Number(amount) > 0;
+  const isValid =
+    isContactSelected && title.trim() && amount && Number(amount) > 0;
 
   const trimmedSearch = contactSearch.trim();
   const filteredContacts = trimmedSearch
     ? contacts.filter((c) =>
-        c.displayName.toLowerCase().includes(trimmedSearch.toLowerCase())
+        c.displayName.toLowerCase().includes(trimmedSearch.toLowerCase()),
       )
     : contacts;
   const showNewContactOption =
     trimmedSearch &&
     !contacts.some(
-      (c) => c.displayName.toLowerCase() === trimmedSearch.toLowerCase()
+      (c) => c.displayName.toLowerCase() === trimmedSearch.toLowerCase(),
     );
 
   const handleSelectContact = (contact: PersonalContact) => {
@@ -98,8 +105,8 @@ export function AddPersonalExpensePage() {
       setContactSearch(newContact.displayName);
       setShowContactDropdown(false);
     } catch (err) {
-      logger.error('addPersonalExpense.createContact', '新增聯絡人失敗', err);
-      showToast(t('common.error'), 'error');
+      logger.error("addPersonalExpense.createContact", "新增聯絡人失敗", err);
+      showToast(t("common.error"), "error");
     } finally {
       setSaving(false);
     }
@@ -113,7 +120,7 @@ export function AddPersonalExpensePage() {
 
     const amountNum = Math.round(Number(amount));
     if (amountNum <= 0 || isNaN(amountNum)) {
-      showToast(t('expense.splitValidation.mismatch'), 'error');
+      showToast(t("expense.splitValidation.mismatch"), "error");
       return;
     }
 
@@ -127,11 +134,11 @@ export function AddPersonalExpensePage() {
         imageUrl: null,
         date: parseTaipeiDateTimeLocalString(date),
       });
-      showToast(t('common.toast.recordAdded'), 'success');
+      showToast(t("common.toast.recordAdded"), "success");
       navigate(`/personal/${resolvedContactId}`);
     } catch (err) {
-      logger.error('personal.addExpense', '新增個人帳務失敗', err);
-      showToast(t('common.error'), 'error');
+      logger.error("personal.addExpense", "新增個人帳務失敗", err);
+      showToast(t("common.error"), "error");
     } finally {
       setSaving(false);
     }
@@ -141,16 +148,16 @@ export function AddPersonalExpensePage() {
     if (contactId) {
       navigate(`/personal/${contactId}`);
     } else {
-      navigate('/personal');
+      navigate("/personal");
     }
   };
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-[100dvh] md:min-h-[inherit] flex-col">
       <PageHeader
-        title={t('personal.addExpense')}
+        title={t("personal.addExpense")}
         onBack={handleBack}
-        rightAction={(
+        rightAction={
           <HeaderIconButton
             onClick={handleSave}
             disabled={!isValid || saving}
@@ -159,19 +166,21 @@ export function AddPersonalExpensePage() {
           >
             <CheckIcon className="h-6 w-6" />
           </HeaderIconButton>
-        )}
+        }
       />
 
       <div className="flex-1 px-4 mt-4 flex flex-col gap-4">
         {/* 聯絡人選取（僅在無 contactId 時顯示）*/}
         {!contactId && (
           <fieldset className="fieldset w-full relative">
-            <legend className="fieldset-legend">{t('personal.selectContact')}</legend>
+            <legend className="fieldset-legend">
+              {t("personal.selectContact")}
+            </legend>
             <div className="relative">
               <input
                 type="text"
                 className="input input-bordered w-full"
-                placeholder={t('personal.contactPlaceholder')}
+                placeholder={t("personal.contactPlaceholder")}
                 value={contactSearch}
                 onChange={(e) => {
                   setContactSearch(e.target.value);
@@ -179,7 +188,9 @@ export function AddPersonalExpensePage() {
                   setShowContactDropdown(true);
                 }}
                 onFocus={() => setShowContactDropdown(true)}
-                onBlur={() => setTimeout(() => setShowContactDropdown(false), 150)}
+                onBlur={() =>
+                  setTimeout(() => setShowContactDropdown(false), 150)
+                }
                 autoComplete="off"
               />
               {loadingContacts && (
@@ -188,52 +199,67 @@ export function AddPersonalExpensePage() {
             </div>
 
             {/* 下拉選單 */}
-            {showContactDropdown && (filteredContacts.length > 0 || showNewContactOption) && (
-              <div className="absolute top-full left-0 right-0 z-50 mt-1 rounded-xl bg-base-100 shadow-lg border border-base-200 overflow-hidden">
-                {filteredContacts.slice(0, 5).map((c) => (
-                  <button
-                    key={c.contactId}
-                    className={`flex w-full items-center gap-2 rounded-none px-4 py-3 text-left transition-colors hover:bg-base-200 active:bg-base-300 ${
-                      selectedContact?.contactId === c.contactId ? 'bg-base-200' : ''
-                    }`}
-                    onMouseDown={(e) => { e.preventDefault(); handleSelectContact(c); }}
-                  >
-                    <UserAvatar
-                      src={c.avatarUrl}
-                      name={c.displayName}
-                      size="w-7"
-                      textSize="text-[10px]"
-                    />
-                    <span className="text-sm font-medium">{c.displayName}</span>
-                  </button>
-                ))}
-                {showNewContactOption && (
-                  <button
-                    className="flex w-full items-center gap-2 rounded-none px-4 py-3 text-left text-primary transition-colors hover:bg-base-200 active:bg-base-300"
-                    onMouseDown={(e) => { e.preventDefault(); handleCreateAndSelect(); }}
-                  >
-                    <PlusIcon className="h-4 w-4" />
-                    <span className="text-sm font-medium">
-                      {t('personal.addAsNewContact', { name: trimmedSearch })}
-                    </span>
-                  </button>
-                )}
-              </div>
-            )}
+            {showContactDropdown &&
+              (filteredContacts.length > 0 || showNewContactOption) && (
+                <div className="absolute top-full left-0 right-0 z-50 mt-1 rounded-xl bg-base-100 shadow-lg border border-base-200 overflow-hidden">
+                  {filteredContacts.slice(0, 5).map((c) => (
+                    <button
+                      key={c.contactId}
+                      className={`flex w-full items-center gap-2 rounded-none px-4 py-3 text-left transition-colors hover:bg-base-200 active:bg-base-300 ${
+                        selectedContact?.contactId === c.contactId
+                          ? "bg-base-200"
+                          : ""
+                      }`}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleSelectContact(c);
+                      }}
+                    >
+                      <UserAvatar
+                        src={c.avatarUrl}
+                        name={c.displayName}
+                        size="w-7"
+                        textSize="text-[10px]"
+                      />
+                      <span className="text-sm font-medium">
+                        {c.displayName}
+                      </span>
+                    </button>
+                  ))}
+                  {showNewContactOption && (
+                    <button
+                      className="flex w-full items-center gap-2 rounded-none px-4 py-3 text-left text-primary transition-colors hover:bg-base-200 active:bg-base-300"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleCreateAndSelect();
+                      }}
+                    >
+                      <PlusIcon className="h-4 w-4" />
+                      <span className="text-sm font-medium">
+                        {t("personal.addAsNewContact", { name: trimmedSearch })}
+                      </span>
+                    </button>
+                  )}
+                </div>
+              )}
 
             {selectedContact && (
-              <p className="mt-1 text-xs text-success">{t('personal.contactSelected', { name: selectedContact.displayName })}</p>
+              <p className="mt-1 text-xs text-success">
+                {t("personal.contactSelected", {
+                  name: selectedContact.displayName,
+                })}
+              </p>
             )}
           </fieldset>
         )}
 
         {/* Title */}
         <fieldset className="fieldset w-full">
-          <legend className="fieldset-legend">{t('expense.title')}</legend>
+          <legend className="fieldset-legend">{t("expense.title")}</legend>
           <input
             type="text"
             className="input w-full"
-            placeholder={t('expense.titlePlaceholder')}
+            placeholder={t("expense.titlePlaceholder")}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             maxLength={50}
@@ -243,13 +269,13 @@ export function AddPersonalExpensePage() {
 
         {/* Amount */}
         <fieldset className="fieldset w-full">
-          <legend className="fieldset-legend">{t('expense.amount')}</legend>
+          <legend className="fieldset-legend">{t("expense.amount")}</legend>
           <div className="input flex items-center gap-2 w-full">
             <span className="text-base-content/50 font-semibold">NT$</span>
             <input
               type="number"
               className="grow"
-              placeholder={t('expense.amountPlaceholder')}
+              placeholder={t("expense.amountPlaceholder")}
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               min="1"
@@ -260,32 +286,32 @@ export function AddPersonalExpensePage() {
 
         {/* Paid By */}
         <fieldset className="fieldset w-full">
-          <legend className="fieldset-legend">{t('expense.paidBy')}</legend>
+          <legend className="fieldset-legend">{t("expense.paidBy")}</legend>
           <div className="join w-full">
             <button
               type="button"
-              className={`join-item btn btn-sm flex-1 ${paidBy === 'self' ? 'btn-active text-base-content/85' : 'text-base-content/55 hover:text-base-content/65'}`}
-              onClick={() => setPaidBy('self')}
+              className={`join-item btn btn-sm flex-1 ${paidBy === "self" ? "btn-active text-base-content/85" : "text-base-content/55 hover:text-base-content/65"}`}
+              onClick={() => setPaidBy("self")}
             >
               {resolvedContactName
-                ? t('personal.paidFor', { name: resolvedContactName })
-                : t('personal.paidForPlaceholder')}
+                ? t("personal.paidFor", { name: resolvedContactName })
+                : t("personal.paidForPlaceholder")}
             </button>
             <button
               type="button"
-              className={`join-item btn btn-sm flex-1 ${paidBy === 'contact' ? 'btn-active text-base-content/85' : 'text-base-content/55 hover:text-base-content/65'}`}
-              onClick={() => setPaidBy('contact')}
+              className={`join-item btn btn-sm flex-1 ${paidBy === "contact" ? "btn-active text-base-content/85" : "text-base-content/55 hover:text-base-content/65"}`}
+              onClick={() => setPaidBy("contact")}
             >
               {resolvedContactName
-                ? t('personal.contactPaidByName', { name: resolvedContactName })
-                : t('personal.contactPaidPlaceholder')}
+                ? t("personal.contactPaidByName", { name: resolvedContactName })
+                : t("personal.contactPaidPlaceholder")}
             </button>
           </div>
         </fieldset>
 
         {/* Date */}
         <fieldset className="fieldset w-full">
-          <legend className="fieldset-legend">{t('expense.date')}</legend>
+          <legend className="fieldset-legend">{t("expense.date")}</legend>
           <input
             type="datetime-local"
             className="input w-full"
@@ -296,17 +322,18 @@ export function AddPersonalExpensePage() {
 
         {/* Description */}
         <fieldset className="fieldset w-full">
-          <legend className="fieldset-legend">{t('expense.description')}</legend>
+          <legend className="fieldset-legend">
+            {t("expense.description")}
+          </legend>
           <textarea
             className="textarea w-full"
-            placeholder={t('expense.descriptionPlaceholder')}
+            placeholder={t("expense.descriptionPlaceholder")}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={2}
           />
         </fieldset>
       </div>
-
     </div>
   );
 }

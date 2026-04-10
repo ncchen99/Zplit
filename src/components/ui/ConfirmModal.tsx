@@ -14,18 +14,18 @@ export function ConfirmModal({
   open,
   title,
   message,
-  confirmLabel = 'Confirm',
-  cancelLabel = 'Cancel',
-  confirmVariant = 'btn-primary',
+  confirmLabel = "Confirm",
+  cancelLabel = "Cancel",
+  confirmVariant = "btn-primary",
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
   if (!open) return null;
 
   const resolvedConfirmClass = (() => {
-    if (confirmVariant.includes('error')) return 'btn-danger-soft';
-    if (confirmVariant.includes('primary')) return 'btn-theme-green';
-    if (confirmVariant.includes('outline')) return 'btn-muted';
+    if (confirmVariant.includes("error")) return "btn-danger-soft";
+    if (confirmVariant.includes("primary")) return "btn-theme-green";
+    if (confirmVariant.includes("outline")) return "btn-muted";
     return `btn ${confirmVariant}`;
   })();
 

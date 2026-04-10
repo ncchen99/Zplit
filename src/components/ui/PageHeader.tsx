@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
-import { ArrowLeft as ArrowLeftIcon } from 'lucide-react';
+import type { ReactNode } from "react";
+import { ArrowLeft as ArrowLeftIcon } from "lucide-react";
 
 interface PageHeaderProps {
   title: ReactNode;
@@ -12,7 +12,7 @@ interface HeaderIconButtonProps {
   onClick: () => void;
   disabled?: boolean;
   loading?: boolean;
-  tone?: 'default' | 'primary';
+  tone?: "default" | "primary";
   children: ReactNode;
 }
 
@@ -20,10 +20,11 @@ export function HeaderIconButton({
   onClick,
   disabled,
   loading,
-  tone = 'default',
+  tone = "default",
   children,
 }: HeaderIconButtonProps) {
-  const toneClass = tone === 'primary' ? 'text-base-content/50' : 'text-base-content/50';
+  const toneClass =
+    tone === "primary" ? "text-base-content/50" : "text-base-content/50";
 
   return (
     <button
@@ -31,16 +32,25 @@ export function HeaderIconButton({
       onClick={onClick}
       disabled={disabled}
     >
-      {loading ? <span className="loading loading-spinner loading-xs" /> : children}
+      {loading ? (
+        <span className="loading loading-spinner loading-xs" />
+      ) : (
+        children
+      )}
     </button>
   );
 }
 
-export function PageHeader({ title, onBack, rightAction, sticky = false }: PageHeaderProps) {
+export function PageHeader({
+  title,
+  onBack,
+  rightAction,
+  sticky = false,
+}: PageHeaderProps) {
   return (
     <div
       className={`flex items-center px-4 pt-4 pb-2 ${
-        sticky ? 'sticky top-0 bg-base-100 z-10' : ''
+        sticky ? "sticky top-0 bg-base-100 z-10" : ""
       }`}
     >
       <div className="flex w-10 justify-start">
@@ -53,7 +63,9 @@ export function PageHeader({ title, onBack, rightAction, sticky = false }: PageH
         </button>
       </div>
 
-      <h1 className="flex-1 truncate px-2 text-center text-lg font-bold">{title}</h1>
+      <h1 className="flex-1 truncate px-2 text-center text-lg font-bold">
+        {title}
+      </h1>
 
       <div className="flex w-10 justify-end">
         {rightAction ?? <span className="h-9 w-9" aria-hidden="true" />}

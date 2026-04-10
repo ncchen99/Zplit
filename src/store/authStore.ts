@@ -1,10 +1,10 @@
-import { create } from 'zustand';
-import type { User as FirebaseUser } from 'firebase/auth';
-import { signOut } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
-import { logger } from '@/utils/logger';
+import { create } from "zustand";
+import type { User as FirebaseUser } from "firebase/auth";
+import { signOut } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { logger } from "@/utils/logger";
 
-export type AuthStatus = 'loading' | 'guest' | 'onboarding' | 'ready';
+export type AuthStatus = "loading" | "guest" | "onboarding" | "ready";
 
 export interface AppUser {
   uid: string;
@@ -24,7 +24,7 @@ interface AuthStore {
 }
 
 export const useAuthStore = create<AuthStore>((set) => ({
-  status: 'loading',
+  status: "loading",
   user: null,
   firebaseUser: null,
 
@@ -35,10 +35,10 @@ export const useAuthStore = create<AuthStore>((set) => ({
   logout: async () => {
     try {
       await signOut(auth);
-      set({ status: 'guest', user: null, firebaseUser: null });
-      logger.info('auth.logout', '使用者已登出');
+      set({ status: "guest", user: null, firebaseUser: null });
+      logger.info("auth.logout", "使用者已登出");
     } catch (err) {
-      logger.error('auth.logout', '登出失敗', err);
+      logger.error("auth.logout", "登出失敗", err);
     }
   },
 }));

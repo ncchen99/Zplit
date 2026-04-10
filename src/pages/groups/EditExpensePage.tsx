@@ -1,33 +1,43 @@
-import { useState, useMemo, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useState, useMemo, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   collection,
   query,
   orderBy,
   onSnapshot,
   doc,
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { useGroupStore, type Expense, type Group } from '@/store/groupStore';
-import { useAuthStore } from '@/store/authStore';
-import { useUIStore } from '@/store/uiStore';
-import { updateExpense, deleteExpense } from '@/services/expenseService';
-import { recalculateSettlements } from '@/services/settlementService';
-import { logger } from '@/utils/logger';
-import { getTaipeiDateTimeLocalString, parseTaipeiDateTimeLocalString } from '@/utils/datetime';
-import { ImageUpload } from '@/components/ui/ImageUpload';
-import { PageHeader, HeaderIconButton } from '@/components/ui/PageHeader';
-import { UserAvatar } from '@/components/ui/UserAvatar';
-import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import { Check as CheckIcon, Trash2 as TrashIcon, CircleCheck as CheckCircleIcon } from 'lucide-react';
+} from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { useGroupStore, type Expense, type Group } from "@/store/groupStore";
+import { useAuthStore } from "@/store/authStore";
+import { useUIStore } from "@/store/uiStore";
+import { updateExpense, deleteExpense } from "@/services/expenseService";
+import { recalculateSettlements } from "@/services/settlementService";
+import { logger } from "@/utils/logger";
+import {
+  getTaipeiDateTimeLocalString,
+  parseTaipeiDateTimeLocalString,
+} from "@/utils/datetime";
+import { ImageUpload } from "@/components/ui/ImageUpload";
+import { PageHeader, HeaderIconButton } from "@/components/ui/PageHeader";
+import { UserAvatar } from "@/components/ui/UserAvatar";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import {
+  Check as CheckIcon,
+  Trash2 as TrashIcon,
+  CircleCheck as CheckCircleIcon,
+} from "lucide-react";
 
-type SplitMode = 'equal' | 'amount' | 'percent';
+type SplitMode = "equal" | "amount" | "percent";
 
 export function EditExpensePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { groupId, expenseId } = useParams<{ groupId: string; expenseId: string }>();
+  const { groupId, expenseId } = useParams<{
+    groupId: string;
+    expenseId: string;
+  }>();
   const storeGroup = useGroupStore((s) => s.currentGroup);
   const storeExpenses = useGroupStore((s) => s.expenses);
   const setCurrentGroup = useGroupStore((s) => s.setCurrentGroup);
@@ -35,7 +45,8 @@ export function EditExpensePage() {
   const user = useAuthStore((s) => s.user);
   const showToast = useUIStore((s) => s.showToast);
 
-  const needsFetch = !storeGroup || storeGroup.groupId !== groupId || storeExpenses.length === 0;
+  const needsFetch =
+    !storeGroup || storeGroup.groupId !== groupId || storeExpenses.length === 0;
   const [loading, setLoading] = useState(needsFetch);
 
   // Fetch from Firestore when store is empty (e.g. page refresh)
@@ -51,25 +62,28 @@ export function EditExpensePage() {
       if (groupLoaded && expensesLoaded) setLoading(false);
     };
 
-    const groupUnsub = onSnapshot(
-      doc(db, 'groups', groupId),
-      (snap) => {
-        if (snap.exists()) {
-          setCurrentGroup({ groupId: snap.id, ...snap.data() } as Group);
-        }
-        groupLoaded = true;
-        tryFinish();
+    const groupUnsub = onSnapshot(doc(db, "groups", groupId), (snap) => {
+      if (snap.exists()) {
+        setCurrentGroup({ groupId: snap.id, ...snap.data() } as Group);
       }
-    );
+      groupLoaded = true;
+      tryFinish();
+    });
 
     const expensesUnsub = onSnapshot(
-      query(collection(db, `groups/${groupId}/expenses`), orderBy('date', 'desc')),
+      query(
+        collection(db, `groups/${groupId}/expenses`),
+        orderBy("date", "desc"),
+      ),
       (snap) => {
-        const expenses = snap.docs.map((d) => ({ ...d.data(), expenseId: d.id })) as Expense[];
+        const expenses = snap.docs.map((d) => ({
+          ...d.data(),
+          expenseId: d.id,
+        })) as Expense[];
         setExpenses(expenses);
         expensesLoaded = true;
         tryFinish();
-      }
+      },
     );
 
     return () => {
@@ -81,18 +95,22 @@ export function EditExpensePage() {
   const currentGroup = storeGroup?.groupId === groupId ? storeGroup : null;
   const expense = storeExpenses.find((e) => e.expenseId === expenseId);
 
-  const [title, setTitle] = useState('');
-  const [amount, setAmount] = useState('');
-  const [paidBy, setPaidBy] = useState('');
-  const [splitMode, setSplitMode] = useState<SplitMode>('equal');
+  const [title, setTitle] = useState("");
+  const [amount, setAmount] = useState("");
+  const [paidBy, setPaidBy] = useState("");
+  const [splitMode, setSplitMode] = useState<SplitMode>("equal");
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [initialized, setInitialized] = useState(false);
-  const [customAmounts, setCustomAmounts] = useState<Record<string, string>>({});
-  const [customPercents, setCustomPercents] = useState<Record<string, string>>({});
-  const [description, setDescription] = useState('');
+  const [customAmounts, setCustomAmounts] = useState<Record<string, string>>(
+    {},
+  );
+  const [customPercents, setCustomPercents] = useState<Record<string, string>>(
+    {},
+  );
+  const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
-  const [expenseDate, setExpenseDate] = useState('');
+  const [expenseDate, setExpenseDate] = useState("");
   const [saving, setSaving] = useState(false);
   const [showDiscardModal, setShowDiscardModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -107,25 +125,31 @@ export function EditExpensePage() {
     setPaidBy(expense.paidBy);
     setSplitMode(expense.splitMode);
     setSelectedMembers(expense.splits.map((s) => s.memberId));
-    setDescription(expense.description ?? '');
+    setDescription(expense.description ?? "");
     setImageUrl(expense.imageUrl ?? null);
     if (expense.description || expense.imageUrl) setShowDetails(true);
 
-    if (expense.splitMode === 'amount') {
+    if (expense.splitMode === "amount") {
       const amounts: Record<string, string> = {};
-      expense.splits.forEach((s) => { amounts[s.memberId] = String(s.amount); });
+      expense.splits.forEach((s) => {
+        amounts[s.memberId] = String(s.amount);
+      });
       setCustomAmounts(amounts);
     }
-    if (expense.splitMode === 'percent') {
+    if (expense.splitMode === "percent") {
       const percents: Record<string, string> = {};
       expense.splits.forEach((s) => {
-        percents[s.memberId] = String(Math.round((s.amount / expense.amount) * 100));
+        percents[s.memberId] = String(
+          Math.round((s.amount / expense.amount) * 100),
+        );
       });
       setCustomPercents(percents);
     }
 
     if (expense.date?.seconds) {
-      setExpenseDate(getTaipeiDateTimeLocalString(new Date(expense.date.seconds * 1000)));
+      setExpenseDate(
+        getTaipeiDateTimeLocalString(new Date(expense.date.seconds * 1000)),
+      );
     }
     setInitialized(true);
   }, [expense, initialized]);
@@ -135,7 +159,7 @@ export function EditExpensePage() {
   const splits = useMemo(() => {
     if (!amountNum || selectedMembers.length === 0) return [];
     switch (splitMode) {
-      case 'equal': {
+      case "equal": {
         const perPerson = Math.floor(amountNum / selectedMembers.length);
         const remainder = amountNum - perPerson * selectedMembers.length;
         return selectedMembers.map((memberId, i) => ({
@@ -143,14 +167,14 @@ export function EditExpensePage() {
           amount: perPerson + (i < remainder ? 1 : 0),
         }));
       }
-      case 'amount':
+      case "amount":
         return selectedMembers.map((memberId) => ({
           memberId,
-          amount: parseInt(customAmounts[memberId] ?? '0') || 0,
+          amount: parseInt(customAmounts[memberId] ?? "0") || 0,
         }));
-      case 'percent':
+      case "percent":
         return selectedMembers.map((memberId) => {
-          const pct = parseFloat(customPercents[memberId] ?? '0') || 0;
+          const pct = parseFloat(customPercents[memberId] ?? "0") || 0;
           return { memberId, amount: Math.round((amountNum * pct) / 100) };
         });
       default:
@@ -160,18 +184,24 @@ export function EditExpensePage() {
 
   const splitTotal = splits.reduce((sum, s) => sum + s.amount, 0);
   const percentTotal = useMemo(() => {
-    if (splitMode !== 'percent') return 0;
+    if (splitMode !== "percent") return 0;
     return selectedMembers.reduce(
-      (sum, id) => sum + (parseFloat(customPercents[id] ?? '0') || 0),
-      0
+      (sum, id) => sum + (parseFloat(customPercents[id] ?? "0") || 0),
+      0,
     );
   }, [splitMode, selectedMembers, customPercents]);
 
-  const isValid = title.trim() && amountNum > 0 && splits.length > 0 && splitTotal === amountNum;
+  const isValid =
+    title.trim() &&
+    amountNum > 0 &&
+    splits.length > 0 &&
+    splitTotal === amountNum;
 
   const toggleMember = (memberId: string) => {
     setSelectedMembers((prev) =>
-      prev.includes(memberId) ? prev.filter((id) => id !== memberId) : [...prev, memberId]
+      prev.includes(memberId)
+        ? prev.filter((id) => id !== memberId)
+        : [...prev, memberId],
     );
   };
 
@@ -180,7 +210,7 @@ export function EditExpensePage() {
 
   const handleSplitModeChange = (mode: SplitMode) => {
     setSplitMode(mode);
-    if (mode !== 'equal') {
+    if (mode !== "equal") {
       setSelectedMembers(members.map((m) => m.memberId));
     }
     setCustomAmounts({});
@@ -197,23 +227,28 @@ export function EditExpensePage() {
 
     setSaving(true);
     try {
-      await updateExpense(groupId, expenseId, {
-        title: title.trim(),
-        amount: amountNum,
-        paidBy,
-        splitMode,
-        splits,
-        description: description.trim() || null,
-        imageUrl,
-        date: parseTaipeiDateTimeLocalString(expenseDate),
-      }, user.uid);
+      await updateExpense(
+        groupId,
+        expenseId,
+        {
+          title: title.trim(),
+          amount: amountNum,
+          paidBy,
+          splitMode,
+          splits,
+          description: description.trim() || null,
+          imageUrl,
+          date: parseTaipeiDateTimeLocalString(expenseDate),
+        },
+        user.uid,
+      );
 
       await recalculateSettlements(groupId);
-      showToast(t('common.toast.saved'), 'success');
+      showToast(t("common.toast.saved"), "success");
       navigate(`/groups/${groupId}/expenses/${expenseId}`, { replace: true });
     } catch (err) {
-      logger.error('expense.edit', 'Failed to update expense', err);
-      showToast(t('common.error'), 'error');
+      logger.error("expense.edit", "Failed to update expense", err);
+      showToast(t("common.error"), "error");
     } finally {
       setSaving(false);
     }
@@ -230,14 +265,14 @@ export function EditExpensePage() {
           title: expense.title,
           amount: expense.amount,
         },
-        user.uid
+        user.uid,
       );
       await recalculateSettlements(groupId);
-      showToast(t('common.button.done'), 'success');
+      showToast(t("common.button.done"), "success");
       navigate(`/groups/${groupId}`, { replace: true });
     } catch (err) {
-      logger.error('expense.delete', 'Failed to delete expense', err);
-      showToast(t('common.error'), 'error');
+      logger.error("expense.delete", "Failed to delete expense", err);
+      showToast(t("common.error"), "error");
     } finally {
       setSaving(false);
     }
@@ -245,11 +280,8 @@ export function EditExpensePage() {
 
   if (loading || !expense) {
     return (
-      <div className="flex min-h-screen flex-col">
-        <PageHeader
-          title={t('expense.edit')}
-          onBack={() => navigate(-1)}
-        />
+      <div className="flex min-h-[100dvh] md:min-h-[inherit] flex-col">
+        <PageHeader title={t("expense.edit")} onBack={() => navigate(-1)} />
         <div className="px-4 pt-4 space-y-4">
           <div className="skeleton h-12 w-full rounded-xl" />
           <div className="skeleton h-12 w-full rounded-xl" />
@@ -261,31 +293,36 @@ export function EditExpensePage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-[100dvh] md:min-h-[inherit] flex-col">
       <PageHeader
-        title={t('expense.edit')}
+        title={t("expense.edit")}
         onBack={handleBack}
         sticky
-        rightAction={(
+        rightAction={
           <HeaderIconButton
-            onClick={() => handleSubmit({ preventDefault: () => { } } as React.FormEvent)}
+            onClick={() =>
+              handleSubmit({ preventDefault: () => {} } as React.FormEvent)
+            }
             disabled={!isValid || saving}
             loading={saving}
             tone="primary"
           >
             <CheckIcon className="h-5 w-5" />
           </HeaderIconButton>
-        )}
+        }
       />
 
-      <form onSubmit={handleSubmit} className="flex-1 px-4 pb-8 flex flex-col gap-4">
+      <form
+        onSubmit={handleSubmit}
+        className="flex-1 px-4 pb-8 flex flex-col gap-4"
+      >
         {/* Title */}
         <fieldset className="fieldset w-full">
-          <legend className="fieldset-legend">{t('expense.title')}</legend>
+          <legend className="fieldset-legend">{t("expense.title")}</legend>
           <input
             type="text"
             className="input w-full"
-            placeholder={t('expense.titlePlaceholder')}
+            placeholder={t("expense.titlePlaceholder")}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             maxLength={50}
@@ -295,13 +332,13 @@ export function EditExpensePage() {
 
         {/* Amount */}
         <fieldset className="fieldset w-full">
-          <legend className="fieldset-legend">{t('expense.amount')}</legend>
+          <legend className="fieldset-legend">{t("expense.amount")}</legend>
           <div className="input flex items-center gap-2 w-full">
             <span className="text-base-content/50 font-semibold">NT$</span>
             <input
               type="number"
               className="grow"
-              placeholder={t('expense.amountPlaceholder')}
+              placeholder={t("expense.amountPlaceholder")}
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               min={1}
@@ -312,7 +349,7 @@ export function EditExpensePage() {
 
         {/* Paid By */}
         <fieldset className="fieldset w-full">
-          <legend className="fieldset-legend">{t('expense.paidBy')}</legend>
+          <legend className="fieldset-legend">{t("expense.paidBy")}</legend>
           <select
             className="select w-full"
             value={paidBy}
@@ -328,7 +365,7 @@ export function EditExpensePage() {
 
         {/* Date */}
         <fieldset className="fieldset w-full">
-          <legend className="fieldset-legend">{t('expense.date')}</legend>
+          <legend className="fieldset-legend">{t("expense.date")}</legend>
           <input
             type="datetime-local"
             className="input w-full"
@@ -339,43 +376,55 @@ export function EditExpensePage() {
 
         {/* Split Mode */}
         <fieldset className="fieldset w-full">
-          <legend className="fieldset-legend">{t('expense.splitMode.label')}</legend>
+          <legend className="fieldset-legend">
+            {t("expense.splitMode.label")}
+          </legend>
           <select
             className="select w-full"
             value={splitMode}
             onChange={(e) => handleSplitModeChange(e.target.value as SplitMode)}
           >
-            <option value="equal">{t('expense.splitMode.equal')}</option>
-            <option value="amount">{t('expense.splitMode.amount')}</option>
-            <option value="percent">{t('expense.splitMode.percent')}</option>
+            <option value="equal">{t("expense.splitMode.equal")}</option>
+            <option value="amount">{t("expense.splitMode.amount")}</option>
+            <option value="percent">{t("expense.splitMode.percent")}</option>
           </select>
         </fieldset>
 
         {/* Split With */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">{t('expense.splitWith')}</span>
-            {splitMode === 'equal' && (
+            <span className="text-sm font-medium">
+              {t("expense.splitWith")}
+            </span>
+            {splitMode === "equal" && (
               <div className="flex gap-2">
-                <button type="button" className="btn btn-ghost btn-xs" onClick={selectAll}>
-                  {t('common.button.selectAll')}
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-xs"
+                  onClick={selectAll}
+                >
+                  {t("common.button.selectAll")}
                 </button>
                 <span className="text-base-content/20">|</span>
-                <button type="button" className="btn btn-ghost btn-xs" onClick={clearAll}>
-                  {t('common.button.clearAll')}
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-xs"
+                  onClick={clearAll}
+                >
+                  {t("common.button.clearAll")}
                 </button>
               </div>
             )}
           </div>
 
-          {splitMode === 'equal' && (
+          {splitMode === "equal" && (
             <form className="filter mb-3 flex w-full flex-wrap gap-2">
               {members.map((m) => {
                 const isSelected = selectedMembers.includes(m.memberId);
                 return (
                   <label
                     key={m.memberId}
-                    className={`btn h-auto min-h-11 gap-2 bg-base-100 px-3 text-base-content hover:bg-base-200 ${isSelected ? 'border-success' : 'border-base-300'}`}
+                    className={`btn h-auto min-h-11 gap-2 bg-base-100 px-3 text-base-content hover:bg-base-200 ${isSelected ? "border-success" : "border-base-300"}`}
                   >
                     <input
                       type="checkbox"
@@ -401,17 +450,20 @@ export function EditExpensePage() {
                         bgClass="bg-base-300 text-base-content"
                       />
                     )}
-                    <span className="max-w-24 truncate text-xs">{m.displayName}</span>
+                    <span className="max-w-24 truncate text-xs">
+                      {m.displayName}
+                    </span>
                   </label>
                 );
               })}
             </form>
           )}
 
-          {splitMode !== 'equal' && (
+          {splitMode !== "equal" && (
             <div className="flex flex-col gap-2">
               {members.map((m) => {
-                const splitAmount = splits.find((s) => s.memberId === m.memberId)?.amount ?? 0;
+                const splitAmount =
+                  splits.find((s) => s.memberId === m.memberId)?.amount ?? 0;
                 return (
                   <div key={m.memberId} className="flex items-center gap-3">
                     <div className="label gap-2 flex-1 min-w-0">
@@ -424,43 +476,57 @@ export function EditExpensePage() {
                       />
                       <span className="label-text flex-1 truncate">
                         {m.displayName}
-                        {splitMode === 'percent' && amountNum > 0 && splitAmount > 0 && (
-                          <span className="ml-2 text-xs text-base-content/50">
-                            <span className="mx-1 text-base-content/30">|</span>
-                            NT${splitAmount}
-                          </span>
-                        )}
+                        {splitMode === "percent" &&
+                          amountNum > 0 &&
+                          splitAmount > 0 && (
+                            <span className="ml-2 text-xs text-base-content/50">
+                              <span className="mx-1 text-base-content/30">
+                                |
+                              </span>
+                              NT${splitAmount}
+                            </span>
+                          )}
                       </span>
                     </div>
 
-                    {splitMode === 'amount' && (
+                    {splitMode === "amount" && (
                       <div className="input input-sm flex items-center gap-1 w-28 flex-shrink-0">
-                        <span className="text-xs text-base-content/40">NT$</span>
+                        <span className="text-xs text-base-content/40">
+                          NT$
+                        </span>
                         <input
                           type="number"
                           className="grow w-full"
                           placeholder="0"
-                          value={customAmounts[m.memberId] ?? ''}
+                          value={customAmounts[m.memberId] ?? ""}
                           onChange={(e) =>
-                            setCustomAmounts((prev) => ({ ...prev, [m.memberId]: e.target.value }))
+                            setCustomAmounts((prev) => ({
+                              ...prev,
+                              [m.memberId]: e.target.value,
+                            }))
                           }
                         />
                       </div>
                     )}
 
-                    {splitMode === 'percent' && (
+                    {splitMode === "percent" && (
                       <div className="flex items-center gap-1 flex-shrink-0">
                         <div className="input input-sm flex items-center gap-1 w-20">
                           <input
                             type="number"
                             className="grow w-full"
                             placeholder="0"
-                            value={customPercents[m.memberId] ?? ''}
+                            value={customPercents[m.memberId] ?? ""}
                             onChange={(e) =>
-                              setCustomPercents((prev) => ({ ...prev, [m.memberId]: e.target.value }))
+                              setCustomPercents((prev) => ({
+                                ...prev,
+                                [m.memberId]: e.target.value,
+                              }))
                             }
                           />
-                          <span className="text-xs text-base-content/40">%</span>
+                          <span className="text-xs text-base-content/40">
+                            %
+                          </span>
                         </div>
                       </div>
                     )}
@@ -471,17 +537,33 @@ export function EditExpensePage() {
           )}
 
           {/* Split validation */}
-          {amountNum > 0 && splitMode === 'amount' && (
-            <div className={`text-sm mt-2 flex items-center gap-2 ${splitTotal === amountNum ? 'text-success' : 'text-error'}`}>
-              <span>{t('expense.splitValidation.total', { total: splitTotal })}</span>
+          {amountNum > 0 && splitMode === "amount" && (
+            <div
+              className={`text-sm mt-2 flex items-center gap-2 ${splitTotal === amountNum ? "text-success" : "text-error"}`}
+            >
+              <span>
+                {t("expense.splitValidation.total", { total: splitTotal })}
+              </span>
               <span>|</span>
-              <span>{t('expense.splitValidation.remaining', { remaining: amountNum - splitTotal })}</span>
-              {splitTotal === amountNum && <CheckCircleIcon className="h-4 w-4" />}
+              <span>
+                {t("expense.splitValidation.remaining", {
+                  remaining: amountNum - splitTotal,
+                })}
+              </span>
+              {splitTotal === amountNum && (
+                <CheckCircleIcon className="h-4 w-4" />
+              )}
             </div>
           )}
-          {amountNum > 0 && splitMode === 'percent' && (
-            <div className={`text-sm mt-2 inline-flex items-center gap-1 ${percentTotal === 100 ? 'text-success' : 'text-error'}`}>
-              <span>{t('expense.splitValidation.percentTotal', { percent: percentTotal })}</span>
+          {amountNum > 0 && splitMode === "percent" && (
+            <div
+              className={`text-sm mt-2 inline-flex items-center gap-1 ${percentTotal === 100 ? "text-success" : "text-error"}`}
+            >
+              <span>
+                {t("expense.splitValidation.percentTotal", {
+                  percent: percentTotal,
+                })}
+              </span>
               {percentTotal === 100 && <CheckCircleIcon className="h-4 w-4" />}
             </div>
           )}
@@ -495,14 +577,16 @@ export function EditExpensePage() {
             onChange={(e) => setShowDetails(e.target.checked)}
           />
           <div className="collapse-title font-medium text-sm">
-            {t('expense.details')}
+            {t("expense.details")}
           </div>
           <div className="collapse-content flex flex-col gap-4">
             <fieldset className="fieldset w-full">
-              <legend className="fieldset-legend">{t('expense.description')}</legend>
+              <legend className="fieldset-legend">
+                {t("expense.description")}
+              </legend>
               <textarea
                 className="textarea w-full"
-                placeholder={t('expense.descriptionPlaceholder')}
+                placeholder={t("expense.descriptionPlaceholder")}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={2}
@@ -510,14 +594,14 @@ export function EditExpensePage() {
             </fieldset>
             <div>
               <label className="text-sm font-medium text-base-content/60 mb-2 block">
-                {t('expense.receipt')}
+                {t("expense.receipt")}
               </label>
               <ImageUpload
                 currentUrl={imageUrl}
                 onUpload={setImageUrl}
                 onRemove={() => setImageUrl(null)}
                 shape="rect"
-                label={t('expense.receiptUpload')}
+                label={t("expense.receiptUpload")}
                 className="w-full"
               />
             </div>
@@ -535,7 +619,7 @@ export function EditExpensePage() {
             onClick={() => setShowDeleteModal(true)}
           >
             <TrashIcon className="h-4 w-4" />
-            {t('common.button.delete')}
+            {t("common.button.delete")}
           </button>
         </div>
       </form>
@@ -544,30 +628,41 @@ export function EditExpensePage() {
       {showDiscardModal && (
         <div className="modal modal-open">
           <div className="modal-box">
-            <h3 className="font-bold">{t('common.discard.title')}</h3>
-            <p className="mt-2 text-sm text-base-content/70">{t('common.discard.message')}</p>
+            <h3 className="font-bold">{t("common.discard.title")}</h3>
+            <p className="mt-2 text-sm text-base-content/70">
+              {t("common.discard.message")}
+            </p>
             <div className="modal-action">
-              <button className="btn-white-soft" onClick={() => setShowDiscardModal(false)}>
-                {t('common.discard.cancel')}
+              <button
+                className="btn-white-soft"
+                onClick={() => setShowDiscardModal(false)}
+              >
+                {t("common.discard.cancel")}
               </button>
               <button className="btn-danger-soft" onClick={() => navigate(-1)}>
-                {t('common.discard.confirm')}
+                {t("common.discard.confirm")}
               </button>
             </div>
           </div>
-          <div className="modal-backdrop" onClick={() => setShowDiscardModal(false)} />
+          <div
+            className="modal-backdrop"
+            onClick={() => setShowDiscardModal(false)}
+          />
         </div>
       )}
 
       {/* Delete modal */}
       <ConfirmModal
         open={showDeleteModal}
-        title={t('common.button.delete')}
-        message={t('expense.deleteConfirm')}
-        confirmLabel={t('common.button.delete')}
+        title={t("common.button.delete")}
+        message={t("expense.deleteConfirm")}
+        confirmLabel={t("common.button.delete")}
         confirmVariant="btn-error"
-        cancelLabel={t('common.button.cancel')}
-        onConfirm={() => { setShowDeleteModal(false); handleDelete(); }}
+        cancelLabel={t("common.button.cancel")}
+        onConfirm={() => {
+          setShowDeleteModal(false);
+          handleDelete();
+        }}
         onCancel={() => setShowDeleteModal(false)}
       />
     </div>

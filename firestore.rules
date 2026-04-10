@@ -21,6 +21,10 @@ service cloud.firestore {
       return group.data.memberUids[request.auth.uid] == true;
     }
 
+    function hasOnlyKeys(data, allowedKeys) {
+      return data.keys().hasOnly(allowedKeys);
+    }
+
     // ── users ──────────────────────────────────────────────
     match /users/{userId} {
       // 已登入的使用者可查看其他人（顯示頭像、名稱用）
@@ -33,7 +37,9 @@ service cloud.firestore {
     match /inviteCodes/{code} {
       allow read: if isSignedIn();
       // 已登入使用者可建立邀請碼（建立群組時使用）
-      allow create: if isSignedIn();
+      allow create: if isSignedIn()
+        && hasOnlyKeys(request.resource.data, ['groupId'])
+        && request.resource.data.groupId is string;
       allow update, delete: if false;
     }
 
@@ -46,10 +52,20 @@ service cloud.firestore {
 
       // 任何已登入使用者可建立新群組（建立者欄位必須是自己）
       allow create: if isSignedIn()
-        && request.resource.data.createdBy == request.auth.uid;
+        && request.resource.data.createdBy == request.auth.uid
+        && hasOnlyKeys(
+          request.resource.data,
+          ['name', 'coverUrl', 'inviteCode', 'createdBy', 'members', 'memberUids', 'createdAt', 'updatedAt']
+        );
 
       // 群組成員可更新（新增成員、修改名稱、封面等）
-      allow update: if isGroupMember(groupId);
+      allow update: if isGroupMember(groupId)
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.inviteCode == resource.data.inviteCode
+        && hasOnlyKeys(
+          request.resource.data,
+          ['name', 'coverUrl', 'inviteCode', 'createdBy', 'members', 'memberUids', 'createdAt', 'updatedAt']
+        );
 
       // 禁止直接刪除群組
       allow delete: if false;
@@ -58,22 +74,38 @@ service cloud.firestore {
       match /expenses/{expenseId} {
         allow read: if isGroupMember(groupId);
         allow create: if isGroupMember(groupId)
-          && request.resource.data.createdBy == request.auth.uid;
-        allow update: if isGroupMember(groupId);
+          && request.resource.data.createdBy == request.auth.uid
+          && hasOnlyKeys(
+            request.resource.data,
+            ['title', 'amount', 'paidBy', 'splitMode', 'splits', 'description', 'imageUrl', 'date', 'createdBy', 'repeat', 'expenseId', 'editLog', 'createdAt', 'updatedAt']
+          );
+        allow update: if isGroupMember(groupId)
+          && hasOnlyKeys(
+            request.resource.data,
+            ['title', 'amount', 'paidBy', 'splitMode', 'splits', 'description', 'imageUrl', 'date', 'createdBy', 'repeat', 'expenseId', 'editLog', 'createdAt', 'updatedAt']
+          );
         allow delete: if isGroupMember(groupId);
       }
 
       // ── settlements 子集合 ───────────────────────────────
       match /settlements/{settlementId} {
         allow read: if isGroupMember(groupId);
-        allow write: if isGroupMember(groupId);
+        allow write: if isGroupMember(groupId)
+          && hasOnlyKeys(
+            request.resource.data,
+            ['settlementId', 'from', 'to', 'amount', 'completed', 'completedBy', 'completedAt', 'createdAt', 'updatedAt']
+          );
       }
 
       // ── activity 子集合 ──────────────────────────────────
       match /activity/{activityId} {
         allow read: if isGroupMember(groupId);
         allow create: if isGroupMember(groupId)
-          && request.resource.data.actorUid == request.auth.uid;
+          && request.resource.data.actorUid == request.auth.uid
+          && hasOnlyKeys(
+            request.resource.data,
+            ['activityId', 'expenseId', 'actorUid', 'action', 'title', 'amount', 'description', 'timestamp', 'createdAt']
+          );
         allow update, delete: if false;
       }
     }

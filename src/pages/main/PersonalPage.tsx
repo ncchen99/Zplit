@@ -1,18 +1,24 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
-import { Plus as PlusIcon, Search as MagnifyingGlassIcon, ChevronDown as ChevronDownIcon, Banknote as BanknotesIcon, CircleCheck as CheckCircleIcon } from 'lucide-react';
-import { UserAvatar } from '@/components/ui/UserAvatar';
-import { useAuthStore } from '@/store/authStore';
-import { usePersonalStore } from '@/store/personalStore';
+import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+import {
+  Plus as PlusIcon,
+  Search as MagnifyingGlassIcon,
+  ChevronDown as ChevronDownIcon,
+  Banknote as BanknotesIcon,
+  CircleCheck as CheckCircleIcon,
+} from "lucide-react";
+import { UserAvatar } from "@/components/ui/UserAvatar";
+import { useAuthStore } from "@/store/authStore";
+import { usePersonalStore } from "@/store/personalStore";
 import {
   getContacts,
   getPersonalExpenses,
   computePersonalNetAmount,
   type PersonalContact,
-} from '@/services/personalLedgerService';
-import { useUIStore } from '@/store/uiStore';
-import { logger } from '@/utils/logger';
+} from "@/services/personalLedgerService";
+import { useUIStore } from "@/store/uiStore";
+import { logger } from "@/utils/logger";
 
 interface ContactWithNet extends PersonalContact {
   netAmount: number;
@@ -29,7 +35,7 @@ export function PersonalPage() {
   const isLoading = usePersonalStore((s) => s.isLoadingContacts);
   const setIsLoading = usePersonalStore((s) => s.setIsLoadingContacts);
 
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [showSettled, setShowSettled] = useState(false);
   const [contactsWithNet, setContactsWithNet] = useState<ContactWithNet[]>([]);
 
@@ -45,18 +51,20 @@ export function PersonalPage() {
         rawContacts.map(async (c) => {
           const expenses = await getPersonalExpenses(user.uid, c.contactId);
           const netAmount = computePersonalNetAmount(expenses);
-          const lastDate = expenses.length > 0
-            ? new Date(
-                ((expenses[0].date as { seconds: number })?.seconds ?? 0) * 1000
-              )
-            : null;
+          const lastDate =
+            expenses.length > 0
+              ? new Date(
+                  ((expenses[0].date as { seconds: number })?.seconds ?? 0) *
+                    1000,
+                )
+              : null;
           return { ...c, netAmount, lastInteraction: lastDate };
-        })
+        }),
       );
       setContactsWithNet(withNet);
     } catch (err) {
-      logger.error('personal.load', '載入個人記錄失敗', err);
-      showToast(t('common.error'), 'error');
+      logger.error("personal.load", "載入個人記錄失敗", err);
+      showToast(t("common.error"), "error");
     } finally {
       setIsLoading(false);
     }
@@ -67,7 +75,7 @@ export function PersonalPage() {
   }, [loadContacts]);
 
   const filtered = contactsWithNet.filter((c) =>
-    c.displayName.toLowerCase().includes(search.toLowerCase())
+    c.displayName.toLowerCase().includes(search.toLowerCase()),
   );
 
   const unsettled = filtered.filter((c) => c.netAmount !== 0);
@@ -84,7 +92,9 @@ export function PersonalPage() {
     <div className="px-4 pt-4 pb-24">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">{t('personal.title')}</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          {t("personal.title")}
+        </h1>
       </div>
 
       {/* Search */}
@@ -94,7 +104,7 @@ export function PersonalPage() {
           <input
             type="text"
             className="grow"
-            placeholder={t('personal.search')}
+            placeholder={t("personal.search")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -105,12 +115,20 @@ export function PersonalPage() {
       {contactsWithNet.length > 0 && (totalOwed > 0 || totalOwe > 0) && (
         <div className="mt-4 stats stats-horizontal w-full flex border border-base-300 bg-base-100">
           <div className="stat flex-1 py-3 px-4 min-w-0">
-            <div className="stat-title text-success">{t('personal.owedToYouTotal')}</div>
-            <div className="stat-value text-success text-2xl truncate">NT${totalOwed.toLocaleString()}</div>
+            <div className="stat-title text-success">
+              {t("personal.owedToYouTotal")}
+            </div>
+            <div className="stat-value text-success text-2xl truncate">
+              NT${totalOwed.toLocaleString()}
+            </div>
           </div>
           <div className="stat flex-1 py-3 px-4 border-l border-base-300 min-w-0">
-            <div className="stat-title text-warning">{t('personal.youOweTotal')}</div>
-            <div className="stat-value text-warning text-2xl truncate">NT${totalOwe.toLocaleString()}</div>
+            <div className="stat-title text-warning">
+              {t("personal.youOweTotal")}
+            </div>
+            <div className="stat-value text-warning text-2xl truncate">
+              NT${totalOwe.toLocaleString()}
+            </div>
           </div>
         </div>
       )}
@@ -134,8 +152,8 @@ export function PersonalPage() {
       ) : contactsWithNet.length === 0 ? (
         <div className="mt-16 text-center text-base-content/40">
           <BanknotesIcon className="mx-auto mb-3 h-12 w-12" />
-          <p>{t('personal.noContacts')}</p>
-          <p className="text-sm mt-1">{t('personal.noContactsHint')}</p>
+          <p>{t("personal.noContacts")}</p>
+          <p className="text-sm mt-1">{t("personal.noContactsHint")}</p>
         </div>
       ) : (
         <>
@@ -143,9 +161,9 @@ export function PersonalPage() {
           {unsettled.length > 0 && (
             <div className="mt-4">
               <h2 className="text-xs font-semibold text-base-content/50 uppercase tracking-wider">
-                {t('personal.unsettled')}
+                {t("personal.unsettled")}
               </h2>
-              <div className="mt-2 flex flex-col md:gap-2">
+              <div className="mt-2 flex flex-col">
                 {unsettled
                   .sort((a, b) => Math.abs(b.netAmount) - Math.abs(a.netAmount))
                   .map((c) => (
@@ -166,13 +184,13 @@ export function PersonalPage() {
                 className="flex w-full items-center gap-1 text-xs font-semibold text-base-content/50 uppercase tracking-wider"
                 onClick={() => setShowSettled(!showSettled)}
               >
-                {t('personal.settledSection')}（{settled.length}）
+                {t("personal.settledSection")}（{settled.length}）
                 <ChevronDownIcon
-                  className={`h-3 w-3 transition-transform ${showSettled ? 'rotate-180' : ''}`}
+                  className={`h-3 w-3 transition-transform ${showSettled ? "rotate-180" : ""}`}
                 />
               </button>
               {showSettled && (
-                <div className="mt-2 flex flex-col md:gap-2">
+                <div className="mt-2 flex flex-col">
                   {settled.map((c) => (
                     <ContactCard
                       key={c.contactId}
@@ -188,11 +206,11 @@ export function PersonalPage() {
       )}
 
       {/* FAB - 新增個人分帳 */}
-      <div className="fixed bottom-20 right-4 z-50">
+      <div className="fab-in-frame fab-in-frame-nav">
         <button
           className="btn btn-primary btn-circle btn-lg shadow-xl"
-          onClick={() => navigate('/personal/expense/new')}
-          aria-label={t('personal.addExpense')}
+          onClick={() => navigate("/personal/expense/new")}
+          aria-label={t("personal.addExpense")}
         >
           <PlusIcon className="h-6 w-6" />
         </button>
@@ -214,16 +232,18 @@ function ContactCard({
 
   return (
     <div
-      className="flex items-center gap-3 py-3 cursor-pointer active:bg-base-200/50 transition-colors border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:border-0 md:active:bg-base-300"
+      className="flex items-center gap-3 py-3 cursor-pointer active:bg-base-200/50 transition-colors border-b border-base-200 last:border-b-0"
       onClick={onClick}
     >
-      <div className="flex items-center gap-3 w-full md:card-body md:p-3">
+      <div className="flex items-center gap-3 w-full">
         <UserAvatar src={contact.avatarUrl} name={contact.displayName} />
         <div className="flex-1 min-w-0">
           <p className="font-semibold truncate">{contact.displayName}</p>
           {contact.lastInteraction && (
             <p className="text-xs text-base-content/40">
-              {t('personal.lastRecordCreated', { time: formatRelativeTime(contact.lastInteraction, t) })}
+              {t("personal.lastRecordCreated", {
+                time: formatRelativeTime(contact.lastInteraction, t),
+              })}
             </p>
           )}
         </div>
@@ -231,17 +251,25 @@ function ContactCard({
           {isSettled ? (
             <span className="inline-flex items-center gap-1 text-sm text-base-content/40">
               <CheckCircleIcon className="h-4 w-4" />
-              {t('personal.settled')}
+              {t("personal.settled")}
             </span>
           ) : isOwed ? (
             <div>
-              <p className="text-xs text-success">{t('personal.owedToYouTotal')}</p>
-              <p className="font-bold text-success">NT${contact.netAmount.toLocaleString()}</p>
+              <p className="text-xs text-success">
+                {t("personal.owedToYouTotal")}
+              </p>
+              <p className="font-bold text-success">
+                NT${contact.netAmount.toLocaleString()}
+              </p>
             </div>
           ) : (
             <div>
-              <p className="text-xs text-warning">{t('personal.youOweTotal')}</p>
-              <p className="font-bold text-warning">NT${Math.abs(contact.netAmount).toLocaleString()}</p>
+              <p className="text-xs text-warning">
+                {t("personal.youOweTotal")}
+              </p>
+              <p className="font-bold text-warning">
+                NT${Math.abs(contact.netAmount).toLocaleString()}
+              </p>
             </div>
           )}
         </div>
@@ -252,12 +280,12 @@ function ContactCard({
 
 function formatRelativeTime(
   date: Date,
-  t: (key: string, options?: Record<string, unknown>) => string
+  t: (key: string, options?: Record<string, unknown>) => string,
 ): string {
   const diff = Date.now() - date.getTime();
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  if (days < 1) return t('common.today');
-  if (days < 7) return t('common.daysAgo', { count: days });
+  if (days < 1) return t("common.today");
+  if (days < 7) return t("common.daysAgo", { count: days });
   const weeks = Math.floor(days / 7);
-  return t('common.weeksAgo', { count: weeks });
+  return t("common.weeksAgo", { count: weeks });
 }

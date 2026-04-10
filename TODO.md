@@ -433,12 +433,15 @@ Squarified 排版（避免細長條）：
 
 - [ ] 完成 TaskMD 裡面 M5 的進階功能與 UX 收尾這個部分
 
+
+- [x] /personal/expense/new 下拉式 avatar 沒有使用 avatar componant
+
+- [x] /personal/expense/new pagination 樣式參考設定頁面 文字顏色與選中顏色變化
+
+- [x] 統一 select 下拉式選單（選擇聯絡人） 更多 的選單 的樣式
+
+- [ ] 個人這邊編輯對象名稱,改成使用 modal 輸入
+
 - [ ] 群組成員要需要可以刪除，可以修改名子
 
-- [ ] /personal/expense/new 下拉式 avatar 沒有使用 avatar componant
-
-- [ ] /personal/expense/new pagination 樣式參考設定頁面 文字顏色與選中顏色變化
-
-- [ ] 統一 select 下拉式選單（選擇聯絡人） 更多 的選單 的樣式
-
-個人編輯對象名稱
+- [ ] 右側「更多」圖示 ＋ 底部彈出選單 (Bottom Sheet)

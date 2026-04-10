@@ -1,15 +1,15 @@
-import { useState, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
-import { uploadImage } from '@/services/uploadService';
-import { useAuthStore } from '@/store/authStore';
-import { useUIStore } from '@/store/uiStore';
-import { Camera as CameraIcon, X as XMarkIcon } from 'lucide-react';
+import { useState, useRef } from "react";
+import { useTranslation } from "react-i18next";
+import { uploadImage } from "@/services/uploadService";
+import { useAuthStore } from "@/store/authStore";
+import { useUIStore } from "@/store/uiStore";
+import { Camera as CameraIcon, X as XMarkIcon } from "lucide-react";
 
 interface ImageUploadProps {
   currentUrl?: string | null;
   onUpload: (url: string) => void;
   onRemove?: () => void;
-  shape?: 'circle' | 'rect';
+  shape?: "circle" | "rect";
   label?: string;
   className?: string;
 }
@@ -18,9 +18,9 @@ export function ImageUpload({
   currentUrl,
   onUpload,
   onRemove,
-  shape = 'rect',
+  shape = "rect",
   label,
-  className = '',
+  className = "",
 }: ImageUploadProps) {
   const { t } = useTranslation();
   const firebaseUser = useAuthStore((s) => s.firebaseUser);
@@ -44,11 +44,11 @@ export function ImageUpload({
       onUpload(url);
     } catch {
       setPreview(currentUrl ?? null);
-      showToast(t('common.error'), 'error');
+      showToast(t("common.error"), "error");
     } finally {
       setUploading(false);
       // Reset input so same file can be re-selected
-      if (fileRef.current) fileRef.current.value = '';
+      if (fileRef.current) fileRef.current.value = "";
     }
   };
 
@@ -57,10 +57,12 @@ export function ImageUpload({
     onRemove?.();
   };
 
-  const isCircle = shape === 'circle';
+  const isCircle = shape === "circle";
 
   return (
-    <div className={`relative ${isCircle ? 'inline-flex' : 'flex w-full'} ${className}`}>
+    <div
+      className={`relative ${isCircle ? "inline-flex" : "flex w-full"} ${className}`}
+    >
       <input
         ref={fileRef}
         type="file"
@@ -73,11 +75,13 @@ export function ImageUpload({
         <div
           className={`relative group ${
             isCircle
-              ? 'h-24 w-24 rounded-full border-2 border-solid border-base-300'
-              : 'h-32 w-full rounded-xl border-2 border-solid border-base-300'
+              ? "h-24 w-24 rounded-full border-2 border-solid border-base-300"
+              : "h-32 w-full rounded-xl border-2 border-solid border-base-300"
           }`}
         >
-          <div className={`h-full w-full overflow-hidden ${isCircle ? 'rounded-full' : 'rounded-xl'}`}>
+          <div
+            className={`h-full w-full overflow-hidden ${isCircle ? "rounded-full" : "rounded-xl"}`}
+          >
             <img
               src={preview}
               alt=""
@@ -86,7 +90,9 @@ export function ImageUpload({
             />
           </div>
           {uploading && (
-            <div className={`absolute inset-0 flex items-center justify-center bg-base-100/65 ${isCircle ? 'rounded-full' : 'rounded-xl'}`}>
+            <div
+              className={`absolute inset-0 flex items-center justify-center bg-base-100/65 ${isCircle ? "rounded-full" : "rounded-xl"}`}
+            >
               <span className="loading loading-spinner loading-lg text-base-content/70" />
             </div>
           )}
@@ -105,8 +111,8 @@ export function ImageUpload({
           type="button"
           className={`flex items-center justify-center border-2 border-dashed border-base-300 bg-base-200 cursor-pointer transition-colors hover:border-primary/50 ${
             isCircle
-              ? 'h-24 w-24 rounded-full flex-col gap-1'
-              : 'h-32 w-full rounded-xl flex-col gap-2'
+              ? "h-24 w-24 rounded-full flex-col gap-1"
+              : "h-32 w-full rounded-xl flex-col gap-2"
           }`}
           onClick={() => fileRef.current?.click()}
           disabled={uploading}

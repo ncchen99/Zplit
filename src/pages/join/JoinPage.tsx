@@ -1,19 +1,23 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { useAuthStore } from '@/store/authStore';
-import { useUIStore } from '@/store/uiStore';
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { useAuthStore } from "@/store/authStore";
+import { useUIStore } from "@/store/uiStore";
 import {
   getGroupByInviteCode,
   addMemberToGroup,
   bindMemberToUser,
-} from '@/services/groupService';
-import type { Group, GroupMember } from '@/store/groupStore';
-import { logger } from '@/utils/logger';
-import { ChevronLeftIcon, UserPlusIcon, LinkIcon } from '@heroicons/react/24/outline';
-import { ExclamationCircleIcon } from '@heroicons/react/24/solid';
+} from "@/services/groupService";
+import type { Group, GroupMember } from "@/store/groupStore";
+import { logger } from "@/utils/logger";
+import {
+  ChevronLeftIcon,
+  UserPlusIcon,
+  LinkIcon,
+} from "@heroicons/react/24/outline";
+import { ExclamationCircleIcon } from "@heroicons/react/24/solid";
 
-type Step = 'info' | 'select' | 'confirm';
+type Step = "info" | "select" | "confirm";
 
 export function JoinPage() {
   const { t } = useTranslation();
@@ -26,27 +30,29 @@ export function JoinPage() {
   const [group, setGroup] = useState<Group | null>(null);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
-  const [step, setStep] = useState<Step>('info');
-  const [selectedMember, setSelectedMember] = useState<GroupMember | null>(null);
-  const [displayName, setDisplayName] = useState('');
+  const [step, setStep] = useState<Step>("info");
+  const [selectedMember, setSelectedMember] = useState<GroupMember | null>(
+    null,
+  );
+  const [displayName, setDisplayName] = useState("");
 
   useEffect(() => {
     if (!code) return;
     getGroupByInviteCode(code)
       .then(setGroup)
-      .catch((err) => logger.error('join.load', '載入群組失敗', err))
+      .catch((err) => logger.error("join.load", "載入群組失敗", err))
       .finally(() => setLoading(false));
   }, [code]);
 
   useEffect(() => {
     if (user) {
-      setDisplayName(user.displayName ?? '');
+      setDisplayName(user.displayName ?? "");
     }
   }, [user]);
 
   // If not logged in, redirect to login
   useEffect(() => {
-    if (status === 'guest' && !loading && group) {
+    if (status === "guest" && !loading && group) {
       navigate(`/login`, { state: { redirectTo: `/join/${code}` } });
     }
   }, [status, loading, group]);
@@ -54,13 +60,13 @@ export function JoinPage() {
   const handleSelectExisting = (member: GroupMember) => {
     setSelectedMember(member);
     setDisplayName(member.displayName);
-    setStep('confirm');
+    setStep("confirm");
   };
 
   const handleJoinAsNew = () => {
     setSelectedMember(null);
-    setDisplayName(user?.displayName ?? '');
-    setStep('confirm');
+    setDisplayName(user?.displayName ?? "");
+    setStep("confirm");
   };
 
   const handleConfirmJoin = async () => {
@@ -74,7 +80,7 @@ export function JoinPage() {
           selectedMember.memberId,
           user.uid,
           displayName.trim() || user.displayName,
-          user.avatarUrl
+          user.avatarUrl,
         );
       } else {
         // Join as new member
@@ -88,11 +94,11 @@ export function JoinPage() {
         };
         await addMemberToGroup(group.groupId, member);
       }
-      showToast(t('join.joined'), 'success');
+      showToast(t("join.joined"), "success");
       navigate(`/groups/${group.groupId}`, { replace: true });
     } catch (err) {
-      logger.error('join', '加入群組失敗', err);
-      showToast(t('common.error'), 'error');
+      logger.error("join", "加入群組失敗", err);
+      showToast(t("common.error"), "error");
     } finally {
       setJoining(false);
     }
@@ -100,7 +106,7 @@ export function JoinPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center px-6">
+      <div className="flex min-h-[100dvh] md:min-h-[inherit] items-center justify-center px-6">
         <div className="w-full max-w-sm space-y-4">
           <div className="flex justify-center gap-2">
             <div className="skeleton h-1.5 w-8 rounded-full" />
@@ -117,11 +123,14 @@ export function JoinPage() {
 
   if (!group) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
+      <div className="flex min-h-[100dvh] md:min-h-[inherit] flex-col items-center justify-center px-6 text-center">
         <ExclamationCircleIcon className="mb-4 h-10 w-10 text-warning" />
-        <p className="text-lg font-bold text-error">{t('join.invalidLink')}</p>
-        <button className="btn btn-primary mt-6" onClick={() => navigate('/home')}>
-          {t('join.backToHome')}
+        <p className="text-lg font-bold text-error">{t("join.invalidLink")}</p>
+        <button
+          className="btn btn-primary mt-6"
+          onClick={() => navigate("/home")}
+        >
+          {t("join.backToHome")}
         </button>
       </div>
     );
@@ -131,12 +140,12 @@ export function JoinPage() {
   const boundMembers = group.members?.filter((m) => m.isBound) ?? [];
 
   return (
-    <div className="flex min-h-screen flex-col px-6 pt-4 pb-8">
+    <div className="flex min-h-[100dvh] md:min-h-[inherit] flex-col px-6 pt-4 pb-8">
       {/* Back button (on steps 2 and 3) */}
-      {step !== 'info' && (
+      {step !== "info" && (
         <button
           className="btn btn-ghost btn-sm btn-circle self-start mb-4"
-          onClick={() => setStep(step === 'confirm' ? 'select' : 'info')}
+          onClick={() => setStep(step === "confirm" ? "select" : "info")}
         >
           <ChevronLeftIcon className="h-5 w-5" />
         </button>
@@ -144,11 +153,11 @@ export function JoinPage() {
 
       {/* Step indicator */}
       <div className="flex justify-center gap-2 mb-6">
-        {(['info', 'select', 'confirm'] as Step[]).map((s) => (
+        {(["info", "select", "confirm"] as Step[]).map((s) => (
           <div
             key={s}
             className={`h-1.5 w-8 rounded-full ${
-              s === step ? 'bg-primary' : 'bg-base-300'
+              s === step ? "bg-primary" : "bg-base-300"
             }`}
           />
         ))}
@@ -156,9 +165,11 @@ export function JoinPage() {
 
       <div className="mx-auto w-full max-w-sm flex-1">
         {/* Step 1: Group Info */}
-        {step === 'info' && (
+        {step === "info" && (
           <div className="text-center">
-            <p className="text-sm text-base-content/50">{t('join.invitedToJoin')}</p>
+            <p className="text-sm text-base-content/50">
+              {t("join.invitedToJoin")}
+            </p>
 
             {/* Group card */}
             <div className="card bg-base-200 mt-4">
@@ -176,25 +187,29 @@ export function JoinPage() {
                 )}
                 <h2 className="text-xl font-bold">{group.name}</h2>
                 <p className="text-sm text-base-content/50">
-                  {t('common.members_count', { count: group.members?.length ?? 0 })}
+                  {t("common.members_count", {
+                    count: group.members?.length ?? 0,
+                  })}
                 </p>
               </div>
             </div>
 
             <button
               className="btn btn-primary btn-block btn-lg mt-6"
-              onClick={() => setStep('select')}
+              onClick={() => setStep("select")}
             >
-              {t('join.title')}
+              {t("join.title")}
             </button>
           </div>
         )}
 
         {/* Step 2: Select Identity */}
-        {step === 'select' && (
+        {step === "select" && (
           <div>
-            <h2 className="text-lg font-bold">{t('join.question')}</h2>
-            <p className="text-sm text-base-content/50 mt-1">{t('join.selectMember')}</p>
+            <h2 className="text-lg font-bold">{t("join.question")}</h2>
+            <p className="text-sm text-base-content/50 mt-1">
+              {t("join.selectMember")}
+            </p>
 
             {/* Unbound members */}
             {unboundMembers.length > 0 && (
@@ -208,11 +223,15 @@ export function JoinPage() {
                   >
                     <div className="avatar placeholder">
                       <div className="w-8 rounded-full bg-base-300 text-base-content">
-                        <span className="text-sm">{m.displayName.charAt(0)}</span>
+                        <span className="text-sm">
+                          {m.displayName.charAt(0)}
+                        </span>
                       </div>
                     </div>
                     <span className="flex-1 text-left">{m.displayName}</span>
-                    <span className="badge badge-ghost badge-sm">{t('join.unboundMember')}</span>
+                    <span className="badge badge-ghost badge-sm">
+                      {t("join.unboundMember")}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -231,14 +250,16 @@ export function JoinPage() {
                         {m.avatarUrl ? (
                           <img src={m.avatarUrl} alt="" />
                         ) : (
-                          <span className="text-sm">{m.displayName.charAt(0)}</span>
+                          <span className="text-sm">
+                            {m.displayName.charAt(0)}
+                          </span>
                         )}
                       </div>
                     </div>
                     <span className="flex-1">{m.displayName}</span>
                     <span className="badge badge-success badge-sm gap-0.5">
                       <LinkIcon className="h-2.5 w-2.5" />
-                      {t('join.boundMember')}
+                      {t("join.boundMember")}
                     </span>
                   </div>
                 ))}
@@ -246,27 +267,31 @@ export function JoinPage() {
             )}
 
             {/* Join as new */}
-            <div className="divider text-xs text-base-content/30">{t('common.or')}</div>
+            <div className="divider text-xs text-base-content/30">
+              {t("common.or")}
+            </div>
             <button
               className="btn btn-primary btn-block"
               onClick={handleJoinAsNew}
               disabled={joining}
             >
               <UserPlusIcon className="h-5 w-5" />
-              {t('join.newMember')}
+              {t("join.newMember")}
             </button>
           </div>
         )}
 
         {/* Step 3: Confirm Name */}
-        {step === 'confirm' && (
+        {step === "confirm" && (
           <div>
-            <h2 className="text-lg font-bold">{t('join.confirmName')}</h2>
-            <p className="text-sm text-base-content/50 mt-1">{t('join.nameHint')}</p>
+            <h2 className="text-lg font-bold">{t("join.confirmName")}</h2>
+            <p className="text-sm text-base-content/50 mt-1">
+              {t("join.nameHint")}
+            </p>
 
             <div className="mt-6">
               <label className="text-sm font-medium text-base-content/60 mb-2 block">
-                {t('join.displayAs')}
+                {t("join.displayAs")}
               </label>
               <input
                 type="text"
@@ -283,8 +308,10 @@ export function JoinPage() {
               onClick={handleConfirmJoin}
               disabled={!displayName.trim() || joining}
             >
-              {joining && <span className="loading loading-spinner loading-sm" />}
-              {t('join.confirmJoin')}
+              {joining && (
+                <span className="loading loading-spinner loading-sm" />
+              )}
+              {t("join.confirmJoin")}
             </button>
           </div>
         )}

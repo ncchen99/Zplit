@@ -1,19 +1,22 @@
-import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '@/store/authStore';
-import type { Group } from '@/store/groupStore';
-import { getUserGroups, backfillInviteCodes } from '@/services/groupService';
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "@/store/authStore";
+import type { Group } from "@/store/groupStore";
+import { getUserGroups, backfillInviteCodes } from "@/services/groupService";
 import {
   getContacts,
   getPersonalExpenses,
   computePersonalNetAmount,
   type PersonalContact,
-} from '@/services/personalLedgerService';
-import { logger } from '@/utils/logger';
-import { ChevronRight as ChevronRightIcon, FileText as DocumentTextIcon } from 'lucide-react';
-import { UserAvatar } from '@/components/ui/UserAvatar';
-import { GroupListItem } from '@/components/ui/GroupListItem';
+} from "@/services/personalLedgerService";
+import { logger } from "@/utils/logger";
+import {
+  ChevronRight as ChevronRightIcon,
+  FileText as DocumentTextIcon,
+} from "lucide-react";
+import { UserAvatar } from "@/components/ui/UserAvatar";
+import { GroupListItem } from "@/components/ui/GroupListItem";
 
 export function HomePage() {
   const { t } = useTranslation();
@@ -32,10 +35,10 @@ export function HomePage() {
         const myGroups = await getUserGroups(user.uid);
         setGroups(myGroups);
         backfillInviteCodes(myGroups).catch((err) => {
-          logger.error('home.backfill', '補建 inviteCode 失敗', err);
+          logger.error("home.backfill", "補建 inviteCode 失敗", err);
         });
       } catch (err) {
-        logger.error('home.fetchGroups', '載入群組失敗', err);
+        logger.error("home.fetchGroups", "載入群組失敗", err);
       } finally {
         setLoading(false);
       }
@@ -48,11 +51,11 @@ export function HomePage() {
           contacts.slice(0, 5).map(async (c) => {
             const expenses = await getPersonalExpenses(user.uid, c.contactId);
             return { ...c, netAmount: computePersonalNetAmount(expenses) };
-          })
+          }),
         );
         setPersonalContacts(withNet.filter((c) => c.netAmount !== 0));
       } catch (err) {
-        logger.error('home.fetchPersonal', '載入個人記錄失敗', err);
+        logger.error("home.fetchPersonal", "載入個人記錄失敗", err);
       }
     };
     Promise.all([fetchGroups(), fetchPersonal()]);
@@ -66,16 +69,18 @@ export function HomePage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <img src="/favicon.svg" alt="Zplit Logo" className="w-8 h-8" />
-          <h1 className="text-xl font-bold tracking-tight text-primary">Zplit</h1>
+          <h1 className="text-xl font-bold tracking-tight text-primary">
+            Zplit
+          </h1>
         </div>
         <div className="flex items-center gap-2">
           <button
             className="btn btn-ghost btn-sm btn-circle"
-            onClick={() => navigate('/settings')}
+            onClick={() => navigate("/settings")}
           >
             <UserAvatar
               src={user?.avatarUrl}
-              name={user?.displayName ?? '?'}
+              name={user?.displayName ?? "?"}
               size="w-8"
               textSize="text-xs"
             />
@@ -86,12 +91,12 @@ export function HomePage() {
       {/* Welcome */}
       <div className="mt-4">
         <p className="text-lg font-semibold">
-          {t('home.welcome', { name: user?.displayName ?? '' })}
+          {t("home.welcome", { name: user?.displayName ?? "" })}
         </p>
         <p className="text-sm text-base-content/50">
           {groups.length > 0
-            ? t('home.pendingCount', { count: groups.length })
-            : t('home.noPending')}
+            ? t("home.pendingCount", { count: groups.length })
+            : t("home.noPending")}
         </p>
       </div>
 
@@ -110,10 +115,13 @@ export function HomePage() {
           </div>
         </div>
       ) : groups.length === 0 && personalContacts.length === 0 ? (
-        <div className="mt-16 text-center text-base-content/40 cursor-pointer" onClick={() => navigate('/groups/new')}>
+        <div
+          className="mt-16 text-center text-base-content/40 cursor-pointer"
+          onClick={() => navigate("/groups/new")}
+        >
           <DocumentTextIcon className="mx-auto mb-3 h-12 w-12" />
-          <p>{t('home.noGroups')}</p>
-          <p className="text-sm mt-1">{t('home.noGroupsHint')}</p>
+          <p>{t("home.noGroups")}</p>
+          <p className="text-sm mt-1">{t("home.noGroupsHint")}</p>
         </div>
       ) : (
         <>
@@ -122,18 +130,18 @@ export function HomePage() {
             <div className="mt-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-semibold text-base-content/60 uppercase tracking-wider">
-                  {t('home.groups')}
+                  {t("home.groups")}
                 </h2>
                 <button
                   className="btn-white-soft btn-xs flex items-center gap-0.5"
-                  onClick={() => navigate('/groups')}
+                  onClick={() => navigate("/groups")}
                 >
-                  {t('common.viewAll')}
+                  {t("common.viewAll")}
                   <ChevronRightIcon className="h-3 w-3" />
                 </button>
               </div>
 
-              <div className="mt-2 flex flex-col md:gap-2">
+              <div className="mt-2 flex flex-col">
                 {topGroups.map((g) => (
                   <GroupListItem
                     key={g.groupId}
@@ -150,28 +158,35 @@ export function HomePage() {
             <div className="mt-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-semibold text-base-content/60 uppercase tracking-wider">
-                  {t('home.personal')}
+                  {t("home.personal")}
                 </h2>
                 <button
                   className="btn-white-soft btn-xs flex items-center gap-0.5"
-                  onClick={() => navigate('/personal')}
+                  onClick={() => navigate("/personal")}
                 >
-                  {t('common.viewAll')}
+                  {t("common.viewAll")}
                   <ChevronRightIcon className="h-3 w-3" />
                 </button>
               </div>
 
-              <div className="mt-2 flex flex-col md:gap-2">
+              <div className="mt-2 flex flex-col">
                 {personalContacts.map((c) => (
                   <div
                     key={c.contactId}
-                    className="flex items-center gap-3 py-3 cursor-pointer active:bg-base-200/50 transition-colors border-b border-base-200 last:border-b-0 md:mx-0 md:card md:bg-base-200 md:rounded-xl md:px-0 md:py-0 md:mb-2 md:border-0 md:active:bg-base-300"
+                    className="flex items-center gap-3 py-3 cursor-pointer active:bg-base-200/50 transition-colors border-b border-base-200 last:border-b-0"
                     onClick={() => navigate(`/personal/${c.contactId}`)}
                   >
-                    <div className="flex items-center gap-3 w-full md:card-body md:p-3">
-                      <UserAvatar src={c.avatarUrl} name={c.displayName} size="w-10" textSize="text-sm" />
+                    <div className="flex items-center gap-3 w-full">
+                      <UserAvatar
+                        src={c.avatarUrl}
+                        name={c.displayName}
+                        size="w-10"
+                        textSize="text-sm"
+                      />
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold truncate">{c.displayName}</p>
+                        <p className="font-semibold truncate">
+                          {c.displayName}
+                        </p>
                       </div>
                       <div className="text-right">
                         {c.netAmount > 0 ? (

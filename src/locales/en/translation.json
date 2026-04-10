@@ -27,6 +27,11 @@
     },
     "loading": "Loading...",
     "error": "An error occurred",
+    "errorDetail": {
+      "invalidRepeatEndDate": "Repeat end date cannot be earlier than expense date",
+      "invalidTurnstile": "Verification failed. Please try again.",
+      "loadFailed": "Failed to load. Please try again later."
+    },
     "retry": "Retry",
     "offline": "You are offline. Some features may not work.",
     "online": "Back online",
@@ -299,6 +304,7 @@
     "bindGoogle": "Link Google Account",
     "bindGoogleHint": "Link to keep all your data",
     "bindSuccess": "Google account linked!",
+    "bindGoogleCta": "Link now",
     "logout": "Log Out",
     "logoutConfirm": "Are you sure you want to log out?",
     "deleteAccount": "Delete Account",

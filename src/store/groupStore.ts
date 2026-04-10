@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import type { Timestamp } from 'firebase/firestore';
+import { create } from "zustand";
+import type { Timestamp } from "firebase/firestore";
 
 export interface GroupMember {
   memberId: string;
@@ -23,7 +23,7 @@ export interface Group {
    * Firestore Security Rules 查詢用的 Map。
    * 結構：{ [userId]: true }，只包含 isBound=true 的成員。
    *
-  * 注意：不能只靠 members array 做 Rules 查詢——
+   * 注意：不能只靠 members array 做 Rules 查詢——
    *    hasAny([{userId: uid}]) 是完整物件比對，永遠不會匹配部分欄位。
    *    此 Map 讓 Rules 可以用 memberUids[uid] == true 做 O(1) 查詢。
    */
@@ -35,9 +35,19 @@ export interface ExpenseSplit {
   amount: number;
 }
 
+export type ExpenseRepeatType = "daily" | "weekly" | "monthly" | "custom";
+
+export interface ExpenseRepeat {
+  type: ExpenseRepeatType;
+  endDate: Timestamp | null;
+  nextRunAt: Timestamp;
+  intervalDays: number | null;
+  originExpenseId: string | null;
+}
+
 export interface EditLogEntry {
   memberId: string;
-  action: 'created' | 'updated' | 'deleted';
+  action: "created" | "updated" | "deleted";
   description: string;
   timestamp: Timestamp;
 }
@@ -47,12 +57,12 @@ export interface Expense {
   title: string;
   amount: number;
   paidBy: string;
-  splitMode: 'equal' | 'amount' | 'percent';
+  splitMode: "equal" | "amount" | "percent";
   splits: ExpenseSplit[];
   description: string | null;
   imageUrl: string | null;
   date: Timestamp;
-  repeat: null;
+  repeat: ExpenseRepeat | null;
   createdBy: string;
   editLog: EditLogEntry[];
   createdAt: Timestamp;

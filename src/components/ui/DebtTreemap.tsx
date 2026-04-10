@@ -1,4 +1,4 @@
-import { useMemo, useRef, useEffect, useState } from 'react';
+import { useMemo, useRef, useEffect, useState } from "react";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -53,7 +53,10 @@ interface LayoutItem {
 function layoutRow(
   row: LayoutItem[],
   rect: { x: number; y: number; w: number; h: number },
-): { rects: TreemapRect[]; remaining: { x: number; y: number; w: number; h: number } } {
+): {
+  rects: TreemapRect[];
+  remaining: { x: number; y: number; w: number; h: number };
+} {
   if (row.length === 0) return { rects: [], remaining: rect };
 
   const rowArea = row.reduce((s, r) => s + r.area, 0);
@@ -68,13 +71,21 @@ function layoutRow(
     const len = thickness > 0 ? item.area / thickness : 0;
     if (isHorizontal) {
       rects.push({
-        x: rect.x, y: rect.y + offset, w: thickness, h: len,
-        entry: item.entry, area: item.area,
+        x: rect.x,
+        y: rect.y + offset,
+        w: thickness,
+        h: len,
+        entry: item.entry,
+        area: item.area,
       });
     } else {
       rects.push({
-        x: rect.x + offset, y: rect.y, w: len, h: thickness,
-        entry: item.entry, area: item.area,
+        x: rect.x + offset,
+        y: rect.y,
+        w: len,
+        h: thickness,
+        entry: item.entry,
+        area: item.area,
       });
     }
     offset += len;
@@ -104,7 +115,11 @@ function squarify(
     const side = Math.min(rect.w, rect.h);
 
     if (remaining.length === 1) {
-      results.push({ ...rect, entry: remaining[0].entry, area: remaining[0].area });
+      results.push({
+        ...rect,
+        entry: remaining[0].entry,
+        area: remaining[0].area,
+      });
       break;
     }
 
@@ -171,12 +186,12 @@ function heatColor(t: number): string {
 
 function textColorForHeat(t: number): string {
   const light = 95 - 23 * t;
-  return light < 60 ? '#ffffff' : '#2d2d2d';
+  return light < 60 ? "#ffffff" : "#2d2d2d";
 }
 
 function subTextColorForHeat(t: number): string {
   const light = 95 - 23 * t;
-  return light < 60 ? 'rgba(255,255,255,0.8)' : 'rgba(45,45,45,0.55)';
+  return light < 60 ? "rgba(255,255,255,0.8)" : "rgba(45,45,45,0.55)";
 }
 
 /* ------------------------------------------------------------------ */
@@ -189,7 +204,12 @@ const BASE_AMOUNT_SIZE = 12;
 const SMALL_NAME_SIZE = 11;
 const SMALL_AMOUNT_SIZE = 10;
 
-export function DebtTreemap({ data, height: heightProp, formatAmount, onBlockClick }: Props) {
+export function DebtTreemap({
+  data,
+  height: heightProp,
+  formatAmount,
+  onBlockClick,
+}: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
 
@@ -231,14 +251,17 @@ export function DebtTreemap({ data, height: heightProp, formatAmount, onBlockCli
     return squarify(items, { x: 0, y: 0, w: containerWidth, h: height });
   }, [data, containerWidth, height]);
 
-  const maxOwed = useMemo(() => Math.max(...data.map((d) => d.owed), 1), [data]);
+  const maxOwed = useMemo(
+    () => Math.max(...data.map((d) => d.owed), 1),
+    [data],
+  );
 
   if (data.length === 0) return null;
 
   return (
     <div
       ref={containerRef}
-      className="relative w-full overflow-hidden rounded-box"
+      className="relative w-full max-w-4xl overflow-hidden rounded-box mx-auto"
       style={{ height }}
     >
       {rects.map((rect) => {
@@ -253,8 +276,13 @@ export function DebtTreemap({ data, height: heightProp, formatAmount, onBlockCli
 
         const area = innerW * innerH;
         const showFull = area > 2400 && innerW > 50 && innerH > 36;
-        const showSmall = !showFull && area > 1200 && innerW > 40 && innerH > 30;
-        const showInitial = !showFull && !showSmall && area > 400 && Math.min(innerW, innerH) > 20;
+        const showSmall =
+          !showFull && area > 1200 && innerW > 40 && innerH > 30;
+        const showInitial =
+          !showFull &&
+          !showSmall &&
+          area > 400 &&
+          Math.min(innerW, innerH) > 20;
 
         return (
           <button
@@ -303,7 +331,10 @@ export function DebtTreemap({ data, height: heightProp, formatAmount, onBlockCli
               </div>
             )}
             {showInitial && (
-              <span className="font-bold" style={{ color: fg, fontSize: SMALL_NAME_SIZE }}>
+              <span
+                className="font-bold"
+                style={{ color: fg, fontSize: SMALL_NAME_SIZE }}
+              >
                 {rect.entry.name.charAt(0)}
               </span>
             )}

@@ -1,5 +1,5 @@
-import React from 'react';
-import { logger } from '@/utils/logger';
+import React from "react";
+import { logger } from "@/utils/logger";
 
 interface Props {
   children: React.ReactNode;
@@ -20,7 +20,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
-    logger.error('ErrorBoundary', `渲染錯誤：${error.message}`, {
+    logger.error("ErrorBoundary", `渲染錯誤：${error.message}`, {
       stack: error.stack,
       componentStack: info.componentStack,
     });
@@ -29,10 +29,14 @@ export class ErrorBoundary extends React.Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex min-h-screen items-center justify-center p-4">
+        <div className="flex min-h-[100dvh]  items-center justify-center p-4">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-error">Something went wrong</h1>
-            <p className="mt-2 text-base-content/60">An unexpected error occurred.</p>
+            <h1 className="text-2xl font-bold text-error">
+              Something went wrong
+            </h1>
+            <p className="mt-2 text-base-content/60">
+              An unexpected error occurred.
+            </p>
             <button
               className="btn btn-primary mt-4"
               onClick={() => this.setState({ hasError: false })}

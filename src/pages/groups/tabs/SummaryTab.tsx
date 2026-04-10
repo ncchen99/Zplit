@@ -1,16 +1,20 @@
-import { useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useGroupStore } from '@/store/groupStore';
-import { computeBalances, computeSettlements } from '@/lib/algorithm/settlement';
+import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate, useParams } from "react-router-dom";
+import { useGroupStore } from "@/store/groupStore";
+import {
+  computeBalances,
+  computeSettlements,
+} from "@/lib/algorithm/settlement";
 import {
   ChevronDown as ChevronDownIcon,
   FileText as DocumentTextIcon,
   RotateCw as ArrowPathIcon,
-} from 'lucide-react';
-import { UserAvatar } from '@/components/ui/UserAvatar';
-import { DebtTreemap, type DebtEntry } from '@/components/ui/DebtTreemap';
-import type { GroupMember } from '@/store/groupStore';
+} from "lucide-react";
+import { UserAvatar } from "@/components/ui/UserAvatar";
+import { AvatarGroup } from "@/components/ui/AvatarGroup";
+import { DebtTreemap, type DebtEntry } from "@/components/ui/DebtTreemap";
+import type { GroupMember } from "@/store/groupStore";
 
 interface SummaryTabProps {
   onNavigateSettle?: () => void;
@@ -20,7 +24,7 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
   const { t } = useTranslation();
   const { groupId } = useParams<{ groupId: string }>();
   const navigate = useNavigate();
-  const [sortBy, setSortBy] = useState<'date' | 'amount' | 'name'>('date');
+  const [sortBy, setSortBy] = useState<"date" | "amount" | "name">("date");
   const [showSortMenu, setShowSortMenu] = useState(false);
   const expenses = useGroupStore((s) => s.expenses);
   const settlements = useGroupStore((s) => s.settlements);
@@ -53,13 +57,18 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
 
     // Subtract completed settlements from the computed debts
     const completedSettlements = settlements.filter((s) => s.completed);
-    const remainingDebts = debts.map((debt) => {
-      const matching = completedSettlements.find(
-        (s) => s.from === debt.from && s.to === debt.to && s.amount === debt.amount
-      );
-      if (matching) return { ...debt, amount: 0 };
-      return debt;
-    }).filter((d) => d.amount > 0);
+    const remainingDebts = debts
+      .map((debt) => {
+        const matching = completedSettlements.find(
+          (s) =>
+            s.from === debt.from &&
+            s.to === debt.to &&
+            s.amount === debt.amount,
+        );
+        if (matching) return { ...debt, amount: 0 };
+        return debt;
+      })
+      .filter((d) => d.amount > 0);
 
     // Aggregate remaining debts per debtor (from)
     const debtorMap = new Map<string, number>();
@@ -80,12 +89,12 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
 
   const sortedExpenses = useMemo(() => {
     return [...expenses].sort((a, b) => {
-      if (sortBy === 'amount') {
+      if (sortBy === "amount") {
         return b.amount - a.amount;
       }
 
-      if (sortBy === 'name') {
-        return a.title.localeCompare(b.title, 'zh-Hant');
+      if (sortBy === "name") {
+        return a.title.localeCompare(b.title, "zh-Hant");
       }
 
       const aTime = a.date?.seconds ?? 0;
@@ -96,7 +105,7 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
 
   const getName = (memberId: string) => memberMap.get(memberId) ?? memberId;
 
-  const handleSelectSort = (value: 'date' | 'amount' | 'name') => {
+  const handleSelectSort = (value: "date" | "amount" | "name") => {
     setSortBy(value);
     setShowSortMenu(false);
   };
@@ -118,23 +127,23 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
       {expenses.length === 0 ? (
         <div className="mt-16 text-center text-base-content/40">
           <DocumentTextIcon className="mx-auto mb-3 h-12 w-12" />
-          <p>{t('group.summary.noExpenses')}</p>
-          <p className="text-sm mt-1">{t('group.summary.addFirst')}</p>
+          <p>{t("group.summary.noExpenses")}</p>
+          <p className="text-sm mt-1">{t("group.summary.addFirst")}</p>
         </div>
       ) : (
         <div>
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-base-content/60">
-              {t('group.summary.detailRecords')}
+              {t("group.summary.detailRecords")}
             </h3>
             <div className="relative">
               <button
                 className="btn-white-soft btn-xs gap-1"
                 onClick={() => setShowSortMenu((prev) => !prev)}
               >
-                {sortBy === 'date' && t('group.summary.sortByDate')}
-                {sortBy === 'amount' && t('group.summary.sortByAmount')}
-                {sortBy === 'name' && t('group.summary.sortByName')}
+                {sortBy === "date" && t("group.summary.sortByDate")}
+                {sortBy === "amount" && t("group.summary.sortByAmount")}
+                {sortBy === "name" && t("group.summary.sortByName")}
                 <ChevronDownIcon className="h-3 w-3" />
               </button>
               {showSortMenu && (
@@ -142,31 +151,31 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
                   <li>
                     <button
                       className={`flex w-full items-center rounded-none px-3 py-2 text-left text-xs font-medium transition-colors hover:bg-base-200 active:bg-base-300 ${
-                        sortBy === 'date' ? 'bg-base-200' : ''
+                        sortBy === "date" ? "bg-base-200" : ""
                       }`}
-                      onClick={() => handleSelectSort('date')}
+                      onClick={() => handleSelectSort("date")}
                     >
-                      {t('group.summary.sortByDate')}
+                      {t("group.summary.sortByDate")}
                     </button>
                   </li>
                   <li>
                     <button
                       className={`flex w-full items-center rounded-none px-3 py-2 text-left text-xs font-medium transition-colors hover:bg-base-200 active:bg-base-300 ${
-                        sortBy === 'amount' ? 'bg-base-200' : ''
+                        sortBy === "amount" ? "bg-base-200" : ""
                       }`}
-                      onClick={() => handleSelectSort('amount')}
+                      onClick={() => handleSelectSort("amount")}
                     >
-                      {t('group.summary.sortByAmount')}
+                      {t("group.summary.sortByAmount")}
                     </button>
                   </li>
                   <li>
                     <button
                       className={`flex w-full items-center rounded-none px-3 py-2 text-left text-xs font-medium transition-colors hover:bg-base-200 active:bg-base-300 ${
-                        sortBy === 'name' ? 'bg-base-200' : ''
+                        sortBy === "name" ? "bg-base-200" : ""
                       }`}
-                      onClick={() => handleSelectSort('name')}
+                      onClick={() => handleSelectSort("name")}
                     >
-                      {t('group.summary.sortByName')}
+                      {t("group.summary.sortByName")}
                     </button>
                   </li>
                 </ul>
@@ -180,10 +189,10 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
               const payerAvatar = memberAvatarMap.get(expense.paidBy) ?? null;
               const isRepeat =
                 expense.repeat &&
-                (expense.repeat as { type?: string }).type !== 'none';
+                (expense.repeat as { type?: string }).type !== "none";
               const dateStr = expense.date?.seconds
                 ? new Date(expense.date.seconds * 1000).toLocaleDateString()
-                : '';
+                : "";
               const splitMembers = expense.splits
                 .map((s) => memberFullMap.get(s.memberId))
                 .filter(Boolean) as GroupMember[];
@@ -208,7 +217,7 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
                       {dateStr && <span className="mr-1">{dateStr}</span>}
                     </p>
                     <p className="text-xs text-base-content/50">
-                      {t('expense.paidFor', { name: payer })}
+                      {t("expense.paidFor", { name: payer })}
                     </p>
                   </div>
                   <div className="flex flex-col items-end gap-1 flex-shrink-0">
@@ -216,25 +225,13 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
                       NT${expense.amount.toLocaleString()}
                     </span>
                     {splitMembers.length > 0 && (
-                      <div className="avatar-group -space-x-3">
-                        {splitMembers.slice(0, 4).map((m) => (
-                          <UserAvatar
-                            key={m.memberId}
-                            src={m.avatarUrl}
-                            name={m.displayName}
-                            size="w-6"
-                            textSize="text-[10px]"
-                            bgClass="bg-base-300 text-base-content/50"
-                          />
-                        ))}
-                        {splitMembers.length > 4 && (
-                          <div className="avatar placeholder flex-shrink-0">
-                            <div className="w-6 rounded-full bg-base-300 text-base-content/50 overflow-hidden flex items-center justify-center">
-                              <span className="text-[10px] font-semibold leading-none select-none">+{splitMembers.length - 4}</span>
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                      <AvatarGroup
+                        items={splitMembers.map((m) => ({
+                          id: m.memberId,
+                          name: m.displayName,
+                          avatarUrl: m.avatarUrl,
+                        }))}
+                      />
                     )}
                   </div>
                 </button>

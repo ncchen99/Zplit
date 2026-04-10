@@ -10,12 +10,12 @@ import {
   updateDoc,
   arrayUnion,
   deleteDoc,
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { nanoid } from 'nanoid';
-import type { Group, GroupMember } from '@/store/groupStore';
-import { logger } from '@/utils/logger';
-import { ZplitError } from '@/utils/errors';
+} from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { nanoid } from "nanoid";
+import type { Group, GroupMember } from "@/store/groupStore";
+import { logger } from "@/utils/logger";
+import { ZplitError } from "@/utils/errors";
 
 /**
  * 從 members 陣列中，提取所有 isBound=true 成員的 userId，
@@ -40,10 +40,10 @@ export async function createGroup(
   createdBy: string,
   creatorDisplayName: string,
   creatorAvatarUrl: string | null,
-  coverUrl: string | null = null
+  coverUrl: string | null = null,
 ): Promise<Group> {
   const inviteCode = nanoid(8);
-  const ref = doc(collection(db, 'groups'));
+  const ref = doc(collection(db, "groups"));
 
   const member: GroupMember = {
     memberId: createdBy,
@@ -68,8 +68,8 @@ export async function createGroup(
 
   // 同時寫入群組文件和 inviteCodes 查詢文件（batch 不需要，因為 inviteCodes 是輔助索引）
   await setDoc(ref, groupData);
-  await setDoc(doc(db, 'inviteCodes', inviteCode), { groupId: ref.id });
-  logger.info('groupService.create', '群組建立成功', { groupId: ref.id, name });
+  await setDoc(doc(db, "inviteCodes", inviteCode), { groupId: ref.id });
+  logger.info("groupService.create", "群組建立成功", { groupId: ref.id, name });
 
   return {
     groupId: ref.id,
@@ -78,15 +78,17 @@ export async function createGroup(
 }
 
 export async function getGroupById(groupId: string): Promise<Group | null> {
-  const snap = await getDoc(doc(db, 'groups', groupId));
+  const snap = await getDoc(doc(db, "groups", groupId));
   if (!snap.exists()) return null;
   return { groupId: snap.id, ...snap.data() } as Group;
 }
 
-export async function getGroupByInviteCode(code: string): Promise<Group | null> {
+export async function getGroupByInviteCode(
+  code: string,
+): Promise<Group | null> {
   // 先從 inviteCodes 查詢對應 groupId，再讀取群組文件
   // 這樣非成員也能透過邀請碼找到群組（Security Rules 允許 get）
-  const codeSnap = await getDoc(doc(db, 'inviteCodes', code));
+  const codeSnap = await getDoc(doc(db, "inviteCodes", code));
   if (!codeSnap.exists()) return null;
   const { groupId } = codeSnap.data() as { groupId: string };
   return getGroupById(groupId);
@@ -94,8 +96,8 @@ export async function getGroupByInviteCode(code: string): Promise<Group | null> 
 
 export async function getUserGroups(userId: string): Promise<Group[]> {
   const q = query(
-    collection(db, 'groups'),
-    where(`memberUids.${userId}`, '==', true)
+    collection(db, "groups"),
+    where(`memberUids.${userId}`, "==", true),
   );
   const snap = await getDocs(q);
   return snap.docs.map((d) => ({ ...d.data(), groupId: d.id }) as Group);
@@ -108,24 +110,24 @@ export async function backfillInviteCodes(groups: Group[]): Promise<void> {
     groups
       .filter((g) => g.inviteCode)
       .map(async (g) => {
-        const codeRef = doc(db, 'inviteCodes', g.inviteCode);
+        const codeRef = doc(db, "inviteCodes", g.inviteCode);
         const codeSnap = await getDoc(codeRef);
         if (!codeSnap.exists()) {
           await setDoc(codeRef, { groupId: g.groupId });
-          logger.info('groupService.backfill', '補建 inviteCode', {
+          logger.info("groupService.backfill", "補建 inviteCode", {
             groupId: g.groupId,
             inviteCode: g.inviteCode,
           });
         }
-      })
+      }),
   );
 }
 
 export async function addMemberToGroup(
   groupId: string,
-  member: GroupMember
+  member: GroupMember,
 ): Promise<void> {
-  const ref = doc(db, 'groups', groupId);
+  const ref = doc(db, "groups", groupId);
 
   const updateData: Record<string, unknown> = {
     members: arrayUnion(member),
@@ -138,29 +140,35 @@ export async function addMemberToGroup(
   }
 
   await updateDoc(ref, updateData);
-  logger.info('groupService.addMember', '成員加入群組', { groupId, memberId: member.memberId });
+  logger.info("groupService.addMember", "成員加入群組", {
+    groupId,
+    memberId: member.memberId,
+  });
 }
 
 export async function updateGroup(
   groupId: string,
-  data: { name: string; coverUrl?: string | null }
+  data: { name: string; coverUrl?: string | null },
 ): Promise<void> {
-  await updateDoc(doc(db, 'groups', groupId), {
+  await updateDoc(doc(db, "groups", groupId), {
     name: data.name,
     coverUrl: data.coverUrl ?? null,
     updatedAt: serverTimestamp(),
   });
-  logger.info('groupService.update', '群組資料更新', { groupId, name: data.name });
+  logger.info("groupService.update", "群組資料更新", {
+    groupId,
+    name: data.name,
+  });
 }
 
 export async function deleteGroup(groupId: string): Promise<void> {
-  await deleteDoc(doc(db, 'groups', groupId));
-  logger.info('groupService.delete', '群組已刪除', { groupId });
+  await deleteDoc(doc(db, "groups", groupId));
+  logger.info("groupService.delete", "群組已刪除", { groupId });
 }
 
 export async function addPlaceholderMember(
   groupId: string,
-  displayName: string
+  displayName: string,
 ): Promise<GroupMember> {
   const member: GroupMember = {
     memberId: nanoid(),
@@ -171,7 +179,7 @@ export async function addPlaceholderMember(
     joinedAt: null,
   };
 
-  const ref = doc(db, 'groups', groupId);
+  const ref = doc(db, "groups", groupId);
   await updateDoc(ref, {
     members: arrayUnion(member),
     updatedAt: serverTimestamp(),
@@ -185,23 +193,27 @@ export async function bindMemberToUser(
   memberId: string,
   userId: string,
   displayName: string,
-  avatarUrl: string | null
+  avatarUrl: string | null,
 ): Promise<void> {
   const group = await getGroupById(groupId);
-  if (!group) throw new ZplitError('GROUP_NOT_FOUND', '群組不存在');
+  if (!group) throw new ZplitError("GROUP_NOT_FOUND", "群組不存在");
 
   const updatedMembers = group.members.map((m) =>
     m.memberId === memberId
       ? { ...m, userId, displayName, avatarUrl, isBound: true }
-      : m
+      : m,
   );
 
-  await updateDoc(doc(db, 'groups', groupId), {
+  await updateDoc(doc(db, "groups", groupId), {
     members: updatedMembers,
     // 同步更新 memberUids，讓 Security Rules 可以驗證此使用者的成員身份
     [`memberUids.${userId}`]: true,
     updatedAt: serverTimestamp(),
   });
 
-  logger.info('groupService.bindMember', '成員帳號綁定成功', { groupId, memberId, userId });
+  logger.info("groupService.bindMember", "成員帳號綁定成功", {
+    groupId,
+    memberId,
+    userId,
+  });
 }

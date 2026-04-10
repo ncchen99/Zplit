@@ -9,7 +9,7 @@
 
 export interface SettlementResult {
   from: string; // memberId (debtor)
-  to: string;   // memberId (creditor)
+  to: string; // memberId (creditor)
   amount: number;
 }
 
@@ -23,7 +23,10 @@ export interface BalanceEntry {
  * Each expense has a paidBy (who paid) and splits (who owes what).
  */
 export function computeBalances(
-  expenses: { paidBy: string; splits: { memberId: string; amount: number }[] }[]
+  expenses: {
+    paidBy: string;
+    splits: { memberId: string; amount: number }[];
+  }[],
 ): BalanceEntry[] {
   const balanceMap = new Map<string, number>();
 
@@ -49,7 +52,9 @@ export function computeBalances(
  * Greedy minimum transactions algorithm.
  * Takes net balances and returns the minimal set of transfers.
  */
-export function computeSettlements(balances: BalanceEntry[]): SettlementResult[] {
+export function computeSettlements(
+  balances: BalanceEntry[],
+): SettlementResult[] {
   const creditors: BalanceEntry[] = [];
   const debtors: BalanceEntry[] = [];
 

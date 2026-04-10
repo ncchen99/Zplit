@@ -1,15 +1,22 @@
-import { useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useGroupStore } from '@/store/groupStore';
-import { computeBalances, computeSettlements } from '@/lib/algorithm/settlement';
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { useAuthStore } from '@/store/authStore';
-import { useUIStore } from '@/store/uiStore';
-import { logger } from '@/utils/logger';
-import { ArrowRight as ArrowRightIcon, Sparkles as SparklesIcon, Check as CheckIcon } from 'lucide-react';
-import { UserAvatar } from '@/components/ui/UserAvatar';
-import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useGroupStore } from "@/store/groupStore";
+import {
+  computeBalances,
+  computeSettlements,
+} from "@/lib/algorithm/settlement";
+import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { useAuthStore } from "@/store/authStore";
+import { useUIStore } from "@/store/uiStore";
+import { logger } from "@/utils/logger";
+import {
+  ArrowRight as ArrowRightIcon,
+  Sparkles as SparklesIcon,
+  Check as CheckIcon,
+} from "lucide-react";
+import { UserAvatar } from "@/components/ui/UserAvatar";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
 export function SettleTab() {
   const { t } = useTranslation();
@@ -49,7 +56,10 @@ export function SettleTab() {
   const handleMarkDone = async (settlementId: string) => {
     if (!currentGroup || !user) return;
     try {
-      const ref = doc(db, `groups/${currentGroup.groupId}/settlements/${settlementId}`);
+      const ref = doc(
+        db,
+        `groups/${currentGroup.groupId}/settlements/${settlementId}`,
+      );
       await updateDoc(ref, {
         completed: true,
         completedBy: user.uid,
@@ -57,15 +67,18 @@ export function SettleTab() {
         updatedAt: serverTimestamp(),
       });
     } catch (err) {
-      logger.error('settle.markDone', '標記結算完成失敗', err);
-      showToast(t('common.error'), 'error');
+      logger.error("settle.markDone", "標記結算完成失敗", err);
+      showToast(t("common.error"), "error");
     }
   };
 
   const handleUndoComplete = async (settlementId: string) => {
     if (!currentGroup || !user) return;
     try {
-      const ref = doc(db, `groups/${currentGroup.groupId}/settlements/${settlementId}`);
+      const ref = doc(
+        db,
+        `groups/${currentGroup.groupId}/settlements/${settlementId}`,
+      );
       await updateDoc(ref, {
         completed: false,
         completedBy: null,
@@ -73,8 +86,8 @@ export function SettleTab() {
         updatedAt: serverTimestamp(),
       });
     } catch (err) {
-      logger.error('settle.undo', '撤銷結算失敗', err);
-      showToast(t('common.error'), 'error');
+      logger.error("settle.undo", "撤銷結算失敗", err);
+      showToast(t("common.error"), "error");
     }
   };
 
@@ -83,7 +96,10 @@ export function SettleTab() {
     try {
       const pending = settlements.filter((s) => !s.completed);
       for (const s of pending) {
-        const ref = doc(db, `groups/${currentGroup.groupId}/settlements/${s.settlementId}`);
+        const ref = doc(
+          db,
+          `groups/${currentGroup.groupId}/settlements/${s.settlementId}`,
+        );
         await updateDoc(ref, {
           completed: true,
           completedBy: user.uid,
@@ -91,10 +107,10 @@ export function SettleTab() {
           updatedAt: serverTimestamp(),
         });
       }
-      showToast(t('common.button.done'), 'success');
+      showToast(t("common.button.done"), "success");
     } catch (err) {
-      logger.error('settle.markAllDone', '全部標記完成失敗', err);
-      showToast(t('common.error'), 'error');
+      logger.error("settle.markAllDone", "全部標記完成失敗", err);
+      showToast(t("common.error"), "error");
     }
   };
 
@@ -102,7 +118,7 @@ export function SettleTab() {
     return (
       <div className="mt-16 text-center text-base-content/40">
         <SparklesIcon className="mx-auto mb-3 h-12 w-12" />
-        <p className="mt-2 font-semibold">{t('group.settle.noDebts')}</p>
+        <p className="mt-2 font-semibold">{t("group.settle.noDebts")}</p>
       </div>
     );
   }
@@ -115,7 +131,7 @@ export function SettleTab() {
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-bold text-base-content/70 flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-              {t('group.settle.progress')}
+              {t("group.settle.progress")}
             </h3>
             <span className="text-sm font-black text-primary px-2 py-0.5 rounded-full">
               {Math.round(progress)}%
@@ -130,7 +146,7 @@ export function SettleTab() {
 
           <div className="flex justify-between items-center mt-3">
             <span className="text-xs font-medium text-base-content/50">
-              {t('group.settle.progressDetail', {
+              {t("group.settle.progressDetail", {
                 completed: completedCount,
                 total: totalCount,
               })}
@@ -140,7 +156,7 @@ export function SettleTab() {
                 className="btn btn-ghost btn-xs text-primary hover:bg-primary/10 px-2"
                 onClick={() => setShowMarkAllConfirm(true)}
               >
-                {t('group.settle.markAllDone')}
+                {t("group.settle.markAllDone")}
               </button>
             )}
           </div>
@@ -149,10 +165,10 @@ export function SettleTab() {
 
       <ConfirmModal
         open={showMarkAllConfirm}
-        title={t('group.settle.markAllDone')}
-        message={t('group.settle.markAllDone') + '?'}
-        confirmLabel={t('common.button.confirm')}
-        cancelLabel={t('common.button.cancel')}
+        title={t("group.settle.markAllDone")}
+        message={t("group.settle.markAllDone") + "?"}
+        confirmLabel={t("common.button.confirm")}
+        cancelLabel={t("common.button.cancel")}
         onConfirm={() => {
           setShowMarkAllConfirm(false);
           handleMarkAllDone();
@@ -164,22 +180,33 @@ export function SettleTab() {
       <div className="space-y-3">
         {computedDebts.map((debt, i) => {
           const matchingSettlement = settlements.find(
-            (s) => s.from === debt.from && s.to === debt.to && s.amount === debt.amount
+            (s) =>
+              s.from === debt.from &&
+              s.to === debt.to &&
+              s.amount === debt.amount,
           );
           const isCompleted = matchingSettlement?.completed ?? false;
 
           return (
             <div
               key={i}
-              className={`flex items-center gap-3 py-3 border-b border-base-200 last:border-b-0 ${isCompleted ? 'opacity-50' : ''}`}
+              className={`flex items-center gap-3 py-3 border-b border-base-200 last:border-b-0 ${isCompleted ? "opacity-50" : ""}`}
             >
-              <UserAvatar src={memberAvatarMap.get(debt.from) ?? null} name={getName(debt.from)} size="w-9" />
+              <UserAvatar
+                src={memberAvatarMap.get(debt.from) ?? null}
+                name={getName(debt.from)}
+                size="w-9"
+              />
               <ArrowRightIcon className="h-4 w-4 text-base-content/40 flex-shrink-0" />
-              <UserAvatar src={memberAvatarMap.get(debt.to) ?? null} name={getName(debt.to)} size="w-9" />
+              <UserAvatar
+                src={memberAvatarMap.get(debt.to) ?? null}
+                name={getName(debt.to)}
+                size="w-9"
+              />
 
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold truncate">
-                  {t('group.settle.transfer', {
+                  {t("group.settle.transfer", {
                     from: getName(debt.from),
                     to: getName(debt.to),
                   })}
@@ -193,16 +220,21 @@ export function SettleTab() {
                 {isCompleted ? (
                   <button
                     className="btn btn-ghost btn-sm btn-circle text-success"
-                    onClick={() => matchingSettlement && handleUndoComplete(matchingSettlement.settlementId)}
-                    title={t('group.settle.undoComplete')}
+                    onClick={() =>
+                      matchingSettlement &&
+                      handleUndoComplete(matchingSettlement.settlementId)
+                    }
+                    title={t("group.settle.undoComplete")}
                   >
                     <CheckIcon className="h-5 w-5" />
                   </button>
                 ) : matchingSettlement ? (
                   <button
                     className="btn-theme-green btn-sm btn-circle"
-                    onClick={() => handleMarkDone(matchingSettlement.settlementId)}
-                    title={t('group.settle.markDone')}
+                    onClick={() =>
+                      handleMarkDone(matchingSettlement.settlementId)
+                    }
+                    title={t("group.settle.markDone")}
                   >
                     <CheckIcon className="h-5 w-5" />
                   </button>
