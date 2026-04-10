@@ -277,27 +277,38 @@ export function CreateGroupPage() {
 
           {/* Member list (horizontal) */}
           <div className="mt-2 flex flex-wrap gap-2">
-            {preMembers.map((m) => (
-              <div key={m.id} className="badge badge-lg gap-1 pl-1 pr-1">
-                <UserAvatar
-                  src={null}
-                  name={m.name}
-                  size="w-5"
-                  textSize="text-[10px]"
-                  bgClass="bg-base-300 text-base-content"
-                />
-                <span className="text-sm">{m.name}</span>
-                {!m.isCreator && (
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-xs btn-circle"
-                    onClick={() => handleRemoveMember(m.id)}
-                  >
-                    <XMarkIcon className="h-3 w-3" />
-                  </button>
-                )}
-              </div>
-            ))}
+            {preMembers.map((m) =>
+              m.isCreator ? (
+                <div key={m.id} className="badge badge-lg gap-1 pl-1 pr-2.5">
+                  <UserAvatar
+                    src={null}
+                    name={m.name}
+                    size="w-5"
+                    textSize="text-[10px]"
+                    bgClass="bg-base-300 text-base-content"
+                  />
+                  <span className="text-sm">{m.name}</span>
+                </div>
+              ) : (
+                <button
+                  key={m.id}
+                  type="button"
+                  className="badge badge-lg gap-1 pl-1 pr-1 cursor-pointer transition-colors hover:bg-base-300 active:bg-base-300/80"
+                  onClick={() => handleRemoveMember(m.id)}
+                  aria-label={`移除成員 ${m.name}`}
+                >
+                  <UserAvatar
+                    src={null}
+                    name={m.name}
+                    size="w-5"
+                    textSize="text-[10px]"
+                    bgClass="bg-base-300 text-base-content"
+                  />
+                  <span className="text-sm">{m.name}</span>
+                  <XMarkIcon className="h-3 w-3" />
+                </button>
+              ),
+            )}
           </div>
 
           {/* Search / Add */}

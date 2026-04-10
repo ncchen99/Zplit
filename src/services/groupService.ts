@@ -163,6 +163,16 @@ export async function updateGroup(
 }
 
 export async function deleteGroup(groupId: string): Promise<void> {
+  const group = await getGroupById(groupId);
+  if (!group) {
+    throw new ZplitError("GROUP_NOT_FOUND", "群組不存在");
+  }
+
+  // 先清理 inviteCodes 索引，避免留下無效邀請碼
+  if (group.inviteCode) {
+    await deleteDoc(doc(db, "inviteCodes", group.inviteCode));
+  }
+
   await deleteDoc(doc(db, "groups", groupId));
   logger.info("groupService.delete", "群組已刪除", { groupId });
 }
