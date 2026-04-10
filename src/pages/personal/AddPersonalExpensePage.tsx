@@ -164,10 +164,8 @@ export function AddPersonalExpensePage() {
       <div className="flex-1 px-4 mt-4 flex flex-col gap-4">
         {/* 聯絡人選取（僅在無 contactId 時顯示）*/}
         {!contactId && (
-          <div className="form-control relative">
-            <label className="label">
-              <span className="label-text font-medium">{t('personal.selectContact')}</span>
-            </label>
+          <fieldset className="fieldset w-full relative">
+            <legend className="fieldset-legend">{t('personal.selectContact')}</legend>
             <div className="relative">
               <input
                 type="text"
@@ -222,7 +220,7 @@ export function AddPersonalExpensePage() {
             {selectedContact && (
               <p className="mt-1 text-xs text-success">{t('personal.contactSelected', { name: selectedContact.displayName })}</p>
             )}
-          </div>
+          </fieldset>
         )}
 
         {/* Title */}

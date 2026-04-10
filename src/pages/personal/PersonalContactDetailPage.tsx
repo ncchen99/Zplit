@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { PageHeader, HeaderIconButton } from '@/components/ui/PageHeader';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 import { useAuthStore } from '@/store/authStore';
 import { usePersonalStore } from '@/store/personalStore';
 import { useUIStore } from '@/store/uiStore';
@@ -147,6 +148,7 @@ export function PersonalContactDetailPage() {
         <PageHeader
           title={(
             <span className="inline-flex min-w-0 items-center gap-2">
+              <UserAvatar src={null} name={loadingDisplayName} size="w-8" textSize="text-sm" bgClass="bg-neutral text-neutral-content" />
               <span className="truncate text-lg font-bold">{loadingDisplayName}</span>
             </span>
           )}
@@ -203,6 +205,7 @@ export function PersonalContactDetailPage() {
       <PageHeader
         title={(
           <span className="inline-flex min-w-0 items-center gap-2">
+            <UserAvatar src={currentContact?.avatarUrl} name={displayName} size="w-8" textSize="text-sm" />
             {editingName ? (
               <span className="inline-flex items-center gap-1">
                 <input
@@ -318,6 +321,7 @@ export function PersonalContactDetailPage() {
                 key={expense.expenseId}
                 expense={expense}
                 contactName={displayName}
+                contactAvatarUrl={currentContact?.avatarUrl}
                 onClick={() => navigate(`/personal/${contactId}/expenses/${expense.expenseId}`)}
               />
             ))}
@@ -360,14 +364,19 @@ export function PersonalContactDetailPage() {
 function ExpenseCard({
   expense,
   contactName,
+  contactAvatarUrl,
   onClick,
 }: {
   expense: PersonalExpense;
   contactName: string;
+  contactAvatarUrl?: string | null;
   onClick: () => void;
 }) {
   const { t } = useTranslation();
   const isSelfPaid = expense.paidBy === 'self';
+  const user = useAuthStore((s) => s.user);
+  const payerName = isSelfPaid ? (user?.displayName ?? '?') : contactName;
+  const payerAvatarUrl = isSelfPaid ? (user?.avatarUrl ?? null) : (contactAvatarUrl ?? null);
   const isSettlement = (expense as unknown as Record<string, unknown>).isSettlement === true;
   const dateStr = expense.date
     ? new Date(
@@ -380,6 +389,10 @@ function ExpenseCard({
       className="flex items-center gap-3 py-3 border-b border-base-200 last:border-b-0 text-left active:bg-base-200 transition-colors w-full"
       onClick={onClick}
     >
+      <UserAvatar
+        src={isSelfPaid ? (user?.avatarUrl ?? null) : contactAvatarUrl ?? null}
+        name={isSelfPaid ? (user?.displayName ?? '?') : contactName}
+      />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
           <p className="font-semibold truncate">{expense.title}</p>
@@ -402,6 +415,7 @@ function ExpenseCard({
         >
           {isSelfPaid ? '+' : '-'}NT${expense.amount.toLocaleString()}
         </span>
+        <UserAvatar src={payerAvatarUrl} name={payerName} size="w-6" textSize="text-[8px]" />
       </div>
     </button>
   );

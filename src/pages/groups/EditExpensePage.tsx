@@ -523,7 +523,7 @@ export function EditExpensePage() {
           </h3>
           <button
             type="button"
-            className="btn btn-error btn-outline btn-block gap-2"
+            className="btn w-full btn-soft btn-error mt-4"
             onClick={() => setShowDeleteModal(true)}
           >
             <TrashIcon className="h-4 w-4" />

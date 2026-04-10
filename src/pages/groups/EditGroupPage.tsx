@@ -7,6 +7,7 @@ import { updateGroup } from '@/services/groupService';
 import { logger } from '@/utils/logger';
 import { PageHeader, HeaderIconButton } from '@/components/ui/PageHeader';
 import { Check as CheckIcon } from 'lucide-react';
+import { ImageUpload } from '@/components/ui/ImageUpload';
 
 export function EditGroupPage() {
   const { t } = useTranslation();
@@ -79,27 +80,19 @@ export function EditGroupPage() {
           />
         </fieldset>
 
-        <fieldset className="fieldset w-full">
-          <legend className="fieldset-legend">{t('group.edit.coverUrl')}</legend>
-          <input
-            type="url"
-            className="input w-full"
-            placeholder="https://..."
-            value={coverUrl}
-            onChange={(e) => setCoverUrl(e.target.value)}
+        <div>
+          <label className="text-sm font-medium text-base-content/60 mb-2 block">
+            {t('group.edit.coverUrl')}
+          </label>
+          <ImageUpload
+            currentUrl={coverUrl}
+            onUpload={setCoverUrl}
+            onRemove={() => setCoverUrl('')}
+            shape="rect"
+            label={t('group.edit.coverUrl')}
+            className="w-full"
           />
-        </fieldset>
-
-        {coverUrl.trim() && (
-          <div className="rounded-xl overflow-hidden">
-            <img
-              src={coverUrl.trim()}
-              alt=""
-              className="w-full h-48 object-cover"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-            />
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );
