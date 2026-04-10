@@ -18,12 +18,12 @@ interface ActionSheetProps {
 
 function resolveButtonClass(tone: ActionTone | undefined): string {
   if (tone === "active") {
-    return "join-item btn btn-active border-base-300 bg-base-300 text-base-content/85 font-semibold hover:border-base-300 hover:bg-base-300";
+    return "join-item btn btn-active h-11 border-base-300 bg-base-300 text-primary font-semibold hover:border-base-300 hover:bg-base-300 hover:text-primary";
   }
   if (tone === "danger") {
-    return "join-item btn btn-danger-soft text-base-content/85 font-medium";
+    return "join-item btn btn-danger-soft h-11 text-error font-semibold";
   }
-  return "join-item btn btn-white-soft text-base-content/55 font-medium hover:text-base-content/65";
+  return "join-item btn btn-white-soft h-11 text-base-content/55 font-medium hover:text-base-content/65";
 }
 
 export function ActionSheet({ open, items, onClose }: ActionSheetProps) {

@@ -5,7 +5,6 @@ import {
   EllipsisVertical as EllipsisVerticalIcon,
   Plus as PlusIcon,
   FileText as DocumentTextIcon,
-  CircleCheck as CheckCircleIcon,
 } from "lucide-react";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { PageHeader, HeaderIconButton } from "@/components/ui/PageHeader";
@@ -280,12 +279,6 @@ export function PersonalContactDetailPage() {
             </div>
           </div>
         </div>
-        {netAmount === 0 && (
-          <p className="mt-2 inline-flex items-center justify-center gap-1 text-sm text-base-content/50">
-            <CheckCircleIcon className="h-4 w-4" />
-            {t("personal.settled")}
-          </p>
-        )}
       </div>
 
       {/* Lending History */}
