@@ -155,7 +155,7 @@ export function SettingsTab() {
 
       {/* Danger Zone */}
       {isCreator && (
-        <div className="py-4 border-b border-error/20">
+        <div className="py-4">
           <h3 className="mb-2 block text-sm font-medium text-base-content/60">
             {t('group.settings.dangerZone')}
           </h3>
