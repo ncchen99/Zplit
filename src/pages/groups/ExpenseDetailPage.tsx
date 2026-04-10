@@ -24,14 +24,10 @@ export function ExpenseDetailPage() {
   const setCurrentGroup = useGroupStore((s) => s.setCurrentGroup);
   const setExpenses = useGroupStore((s) => s.setExpenses);
 
-  const needsFetch = !storeGroup || storeGroup.groupId !== groupId || storeExpenses.length === 0;
-  const [loading, setLoading] = useState(needsFetch);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!groupId || !needsFetch) {
-      setLoading(false);
-      return;
-    }
+    if (!groupId) return;
 
     let groupLoaded = false;
     let expensesLoaded = false;
@@ -81,7 +77,6 @@ export function ExpenseDetailPage() {
     return map;
   }, [currentGroup]);
 
-  // Always show header
   const header = (
     <PageHeader
       title={t('expense.detail.title')}

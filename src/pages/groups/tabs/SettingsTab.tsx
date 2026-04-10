@@ -6,7 +6,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { deleteGroup } from '@/services/groupService';
 import { logger } from '@/utils/logger';
-import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { LinkIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 export function SettingsTab() {
@@ -19,6 +19,13 @@ export function SettingsTab() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const isCreator = currentGroup?.createdBy === user?.uid;
+
+  const inviteUrl = `${window.location.origin}/join/${currentGroup?.inviteCode ?? ''}`;
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(inviteUrl);
+    showToast(t('group.members.linkCopied'), 'success');
+  };
 
   const handleDeleteGroup = async () => {
     if (!currentGroup) return;
@@ -37,19 +44,23 @@ export function SettingsTab() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Cover Photo */}
+      {/* Cover Photo — clickable to edit */}
       {currentGroup?.coverUrl && (
         <div>
           <h3 className="font-semibold text-sm text-base-content/60 uppercase tracking-wider mb-3">
             {t('group.settings.coverPhoto')}
           </h3>
-          <div className="rounded-xl overflow-hidden">
+          <button
+            className="w-full rounded-xl overflow-hidden focus:outline-none"
+            onClick={() => navigate(`/groups/${currentGroup.groupId}/edit`)}
+            aria-label={t('group.settings.editGroup')}
+          >
             <img
               src={currentGroup.coverUrl}
               alt=""
               className="w-full h-48 object-cover"
             />
-          </div>
+          </button>
         </div>
       )}
 
@@ -63,8 +74,22 @@ export function SettingsTab() {
           onClick={() => navigate(`/groups/${currentGroup?.groupId}/edit`)}
         >
           <PencilSquareIcon className="h-5 w-5" />
-          {t('group.detail.editGroup')}
+          {t('group.settings.editGroup')}
         </button>
+      </div>
+
+      {/* Invite Link */}
+      <div>
+        <h3 className="font-semibold text-sm text-base-content/60 uppercase tracking-wider mb-3">
+          {t('group.settings.inviteLink')}
+        </h3>
+        <div className="flex items-center gap-3 py-2">
+          <LinkIcon className="h-5 w-5 text-base-content/40 shrink-0" />
+          <span className="flex-1 text-sm text-base-content/60 truncate">{inviteUrl}</span>
+          <button className="btn btn-sm btn-outline shrink-0" onClick={handleCopyLink}>
+            {t('group.members.copyLink')}
+          </button>
+        </div>
       </div>
 
       {/* Danger Zone */}

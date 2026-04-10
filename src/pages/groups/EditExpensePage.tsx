@@ -516,15 +516,20 @@ export function EditExpensePage() {
           </div>
         </div>
 
-        {/* Delete */}
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm text-error gap-2 self-start"
-          onClick={() => setShowDeleteModal(true)}
-        >
-          <TrashIcon className="h-4 w-4" />
-          {t('common.button.delete')}
-        </button>
+        <div>
+          <div className="divider" />
+          <h3 className="font-semibold text-sm text-error/70 uppercase tracking-wider mb-3">
+            {t('group.settings.dangerZone')}
+          </h3>
+          <button
+            type="button"
+            className="btn btn-error btn-outline btn-block gap-2"
+            onClick={() => setShowDeleteModal(true)}
+          >
+            <TrashIcon className="h-4 w-4" />
+            {t('common.button.delete')}
+          </button>
+        </div>
       </form>
 
       {/* Discard modal */}

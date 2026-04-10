@@ -9,7 +9,6 @@ import {
 } from 'lucide-react';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { PageHeader, HeaderIconButton } from '@/components/ui/PageHeader';
-import { UserAvatar } from '@/components/ui/UserAvatar';
 import { useAuthStore } from '@/store/authStore';
 import { usePersonalStore } from '@/store/personalStore';
 import { useUIStore } from '@/store/uiStore';
@@ -148,11 +147,6 @@ export function PersonalContactDetailPage() {
         <PageHeader
           title={(
             <span className="inline-flex min-w-0 items-center gap-2">
-              <span className="avatar placeholder shrink-0">
-                <span className="w-8 rounded-full bg-neutral text-neutral-content">
-                  <span className="text-sm">{loadingDisplayName.charAt(0)}</span>
-                </span>
-              </span>
               <span className="truncate text-lg font-bold">{loadingDisplayName}</span>
             </span>
           )}
@@ -209,15 +203,6 @@ export function PersonalContactDetailPage() {
       <PageHeader
         title={(
           <span className="inline-flex min-w-0 items-center gap-2">
-            <span className="avatar placeholder shrink-0">
-              <span className="w-8 rounded-full bg-neutral text-neutral-content">
-                {currentContact?.avatarUrl ? (
-                  <img src={currentContact.avatarUrl} alt="" />
-                ) : (
-                  <span className="text-sm">{displayName.charAt(0)}</span>
-                )}
-              </span>
-            </span>
             {editingName ? (
               <span className="inline-flex items-center gap-1">
                 <input
@@ -333,7 +318,6 @@ export function PersonalContactDetailPage() {
                 key={expense.expenseId}
                 expense={expense}
                 contactName={displayName}
-                contactAvatarUrl={currentContact?.avatarUrl}
                 onClick={() => navigate(`/personal/${contactId}/expenses/${expense.expenseId}`)}
               />
             ))}
@@ -376,12 +360,10 @@ export function PersonalContactDetailPage() {
 function ExpenseCard({
   expense,
   contactName,
-  contactAvatarUrl,
   onClick,
 }: {
   expense: PersonalExpense;
   contactName: string;
-  contactAvatarUrl?: string | null;
   onClick: () => void;
 }) {
   const { t } = useTranslation();
@@ -392,19 +374,12 @@ function ExpenseCard({
         ((expense.date as { seconds: number })?.seconds ?? 0) * 1000
       ).toLocaleDateString()
     : '';
-  const user = useAuthStore((s) => s.user);
-  const payerName = isSelfPaid ? (user?.displayName ?? '?') : contactName;
-  const payerAvatarUrl = isSelfPaid ? (user?.avatarUrl ?? null) : (contactAvatarUrl ?? null);
 
   return (
     <button
       className="flex items-center gap-3 py-3 border-b border-base-200 last:border-b-0 text-left active:bg-base-200 transition-colors w-full"
       onClick={onClick}
     >
-      <UserAvatar
-        src={isSelfPaid ? (user?.avatarUrl ?? null) : contactAvatarUrl ?? null}
-        name={isSelfPaid ? (user?.displayName ?? '?') : contactName}
-      />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
           <p className="font-semibold truncate">{expense.title}</p>
@@ -427,15 +402,6 @@ function ExpenseCard({
         >
           {isSelfPaid ? '+' : '-'}NT${expense.amount.toLocaleString()}
         </span>
-        <div className="avatar placeholder" title={payerName}>
-          <div className="w-6 rounded-full bg-base-300 text-base-content">
-            {payerAvatarUrl ? (
-              <img src={payerAvatarUrl} alt="" />
-            ) : (
-              <span className="text-[8px]">{payerName.charAt(0)}</span>
-            )}
-          </div>
-        </div>
       </div>
     </button>
   );

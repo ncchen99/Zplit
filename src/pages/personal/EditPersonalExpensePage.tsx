@@ -162,7 +162,7 @@ export function EditPersonalExpensePage() {
         )}
       />
 
-      <div className="flex-1 px-4 mt-4 flex flex-col gap-4">
+      <div className="flex-1 px-4 mt-4 pb-8 flex flex-col gap-4">
         {/* Title */}
         <fieldset className="fieldset w-full">
           <legend className="fieldset-legend">{t('expense.title')}</legend>
@@ -237,15 +237,20 @@ export function EditPersonalExpensePage() {
           />
         </fieldset>
 
-        {/* Delete */}
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm text-error gap-2 self-start"
-          onClick={() => setShowDeleteModal(true)}
-        >
-          <TrashIcon className="h-4 w-4" />
-          {t('common.button.delete')}
-        </button>
+        <div>
+          <div className="divider" />
+          <h3 className="font-semibold text-sm text-error/70 uppercase tracking-wider mb-3">
+            {t('group.settings.dangerZone')}
+          </h3>
+          <button
+            type="button"
+            className="btn btn-error btn-outline btn-block gap-2"
+            onClick={() => setShowDeleteModal(true)}
+          >
+            <TrashIcon className="h-4 w-4" />
+            {t('common.button.delete')}
+          </button>
+        </div>
       </div>
 
       {/* Discard modal */}

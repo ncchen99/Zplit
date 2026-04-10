@@ -24,6 +24,7 @@ import { GroupDetailPage } from '@/pages/groups/GroupDetailPage';
 import { AddExpensePage } from '@/pages/groups/AddExpensePage';
 import { ExpenseDetailPage } from '@/pages/groups/ExpenseDetailPage';
 import { EditExpensePage } from '@/pages/groups/EditExpensePage';
+import { EditGroupPage } from '@/pages/groups/EditGroupPage';
 import { JoinPage } from '@/pages/join/JoinPage';
 import { PersonalContactDetailPage } from '@/pages/personal/PersonalContactDetailPage';
 import { AddPersonalExpensePage } from '@/pages/personal/AddPersonalExpensePage';
@@ -143,6 +144,7 @@ export default function App() {
               <Route path="/groups/:groupId/expense/new" element={<AuthGuard><AddExpensePage /></AuthGuard>} />
               <Route path="/groups/:groupId/expenses/:expenseId" element={<AuthGuard><ExpenseDetailPage /></AuthGuard>} />
               <Route path="/groups/:groupId/expense/:expenseId/edit" element={<AuthGuard><EditExpensePage /></AuthGuard>} />
+              <Route path="/groups/:groupId/edit" element={<AuthGuard><EditGroupPage /></AuthGuard>} />
               <Route path="/personal/expense/new" element={<AuthGuard><AddPersonalExpensePage /></AuthGuard>} />
               <Route path="/personal/:contactId" element={<AuthGuard><PersonalContactDetailPage /></AuthGuard>} />
               <Route path="/personal/:contactId/expense/new" element={<AuthGuard><AddPersonalExpensePage /></AuthGuard>} />

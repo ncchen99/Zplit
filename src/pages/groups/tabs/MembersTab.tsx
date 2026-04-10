@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useGroupStore } from '@/store/groupStore';
 import { useUIStore } from '@/store/uiStore';
@@ -32,14 +32,7 @@ export function MembersTab() {
     }
   };
 
-  const inviteUrl = `${window.location.origin}/join/${currentGroup?.inviteCode ?? ''}`;
-
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(inviteUrl);
-    showToast(t('group.members.linkCopied'), 'success');
-  };
-
-  const activityLog = expenses
+  const activityLog = useMemo(() => expenses
     .flatMap((e) =>
       e.editLog?.map((log) => ({
         ...log,
@@ -52,11 +45,11 @@ export function MembersTab() {
       const bTime = b.timestamp?.seconds ?? 0;
       return bTime - aTime;
     })
-    .slice(0, 20);
+    .slice(0, 20), [expenses]);
 
-  const memberMap = new Map(
+  const memberMap = useMemo(() => new Map(
     currentGroup?.members?.map((m) => [m.memberId, m.displayName]) ?? []
-  );
+  ), [currentGroup?.members]);
 
   return (
     <div>
@@ -130,19 +123,6 @@ export function MembersTab() {
                 {t('group.members.addMember')}
               </>
             )}
-          </button>
-        </div>
-      </div>
-
-      {/* Invite Link */}
-      <div className="mt-6">
-        <h3 className="font-semibold text-sm text-base-content/60 uppercase tracking-wider">
-          {t('group.members.invite')}
-        </h3>
-        <div className="mt-2 rounded-xl bg-base-200 p-3">
-          <p className="text-xs text-base-content/50 truncate mb-2">{inviteUrl}</p>
-          <button className="btn btn-primary btn-sm btn-block" onClick={handleCopyLink}>
-            {t('group.members.copyLink')}
           </button>
         </div>
       </div>

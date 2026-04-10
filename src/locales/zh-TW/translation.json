@@ -118,8 +118,16 @@
       "title": "設定",
       "coverPhoto": "群組封面",
       "groupInfo": "群組資料",
+      "editGroup": "編輯群組",
+      "inviteLink": "邀請連結",
       "dangerZone": "危險操作",
       "groupDeleted": "群組已刪除"
+    },
+    "edit": {
+      "title": "編輯群組",
+      "name": "群組名稱",
+      "coverUrl": "封面圖片網址（選填）",
+      "saved": "群組資料已更新"
     },
     "summary": {
       "title": "總覽",

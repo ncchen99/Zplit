@@ -70,13 +70,16 @@ export function AddPersonalExpensePage() {
   const isContactSelected = !!contactId || !!selectedContact;
   const isValid = isContactSelected && title.trim() && amount && Number(amount) > 0;
 
-  const filteredContacts = contacts.filter((c) =>
-    c.displayName.toLowerCase().includes(contactSearch.toLowerCase())
-  );
+  const trimmedSearch = contactSearch.trim();
+  const filteredContacts = trimmedSearch
+    ? contacts.filter((c) =>
+        c.displayName.toLowerCase().includes(trimmedSearch.toLowerCase())
+      )
+    : contacts;
   const showNewContactOption =
-    contactSearch.trim() &&
+    trimmedSearch &&
     !contacts.some(
-      (c) => c.displayName.toLowerCase() === contactSearch.trim().toLowerCase()
+      (c) => c.displayName.toLowerCase() === trimmedSearch.toLowerCase()
     );
 
   const handleSelectContact = (contact: PersonalContact) => {
@@ -177,6 +180,7 @@ export function AddPersonalExpensePage() {
                   setShowContactDropdown(true);
                 }}
                 onFocus={() => setShowContactDropdown(true)}
+                onBlur={() => setShowContactDropdown(false)}
                 autoComplete="off"
               />
               {loadingContacts && (
@@ -185,7 +189,7 @@ export function AddPersonalExpensePage() {
             </div>
 
             {/* 下拉選單 */}
-            {showContactDropdown && contactSearch.trim() && (
+            {showContactDropdown && (filteredContacts.length > 0 || showNewContactOption) && (
               <div className="absolute top-full left-0 right-0 z-50 mt-1 rounded-xl bg-base-100 shadow-lg border border-base-200 overflow-hidden">
                 {filteredContacts.slice(0, 5).map((c) => (
                   <button
@@ -208,7 +212,7 @@ export function AddPersonalExpensePage() {
                   >
                     <PlusIcon className="h-4 w-4" />
                     <span className="text-sm font-medium">
-                      {t('personal.addAsNewContact', { name: contactSearch.trim() })}
+                      {t('personal.addAsNewContact', { name: trimmedSearch })}
                     </span>
                   </button>
                 )}
@@ -222,28 +226,24 @@ export function AddPersonalExpensePage() {
         )}
 
         {/* Title */}
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text font-medium">{t('expense.title')}</span>
-          </label>
+        <fieldset className="fieldset w-full">
+          <legend className="fieldset-legend">{t('expense.title')}</legend>
           <input
             type="text"
-            className="input input-bordered w-full"
+            className="input w-full"
             placeholder={t('expense.titlePlaceholder')}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             maxLength={50}
             autoFocus={!!contactId}
           />
-        </div>
+        </fieldset>
 
         {/* Amount */}
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text font-medium">{t('expense.amount')}</span>
-          </label>
-          <label className="input input-bordered flex items-center gap-2 w-full">
-            <span className="text-base-content/50">NT$</span>
+        <fieldset className="fieldset w-full">
+          <legend className="fieldset-legend">{t('expense.amount')}</legend>
+          <div className="input flex items-center gap-2 w-full">
+            <span className="text-base-content/50 font-semibold">NT$</span>
             <input
               type="number"
               className="grow"
@@ -253,14 +253,12 @@ export function AddPersonalExpensePage() {
               min="1"
               inputMode="numeric"
             />
-          </label>
-        </div>
+          </div>
+        </fieldset>
 
         {/* Paid By */}
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text font-medium">{t('expense.paidBy')}</span>
-          </label>
+        <fieldset className="fieldset w-full">
+          <legend className="fieldset-legend">{t('expense.paidBy')}</legend>
           <div className="join w-full">
             <button
               type="button"
@@ -281,34 +279,30 @@ export function AddPersonalExpensePage() {
                 : t('personal.contactPaidPlaceholder')}
             </button>
           </div>
-        </div>
+        </fieldset>
 
         {/* Date */}
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text font-medium">{t('expense.date')}</span>
-          </label>
+        <fieldset className="fieldset w-full">
+          <legend className="fieldset-legend">{t('expense.date')}</legend>
           <input
             type="datetime-local"
-            className="input input-bordered w-full"
+            className="input w-full"
             value={date}
             onChange={(e) => setDate(e.target.value)}
           />
-        </div>
+        </fieldset>
 
         {/* Description */}
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text font-medium">{t('expense.description')}</span>
-          </label>
+        <fieldset className="fieldset w-full">
+          <legend className="fieldset-legend">{t('expense.description')}</legend>
           <textarea
-            className="textarea textarea-bordered w-full"
+            className="textarea w-full"
             placeholder={t('expense.descriptionPlaceholder')}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={2}
           />
-        </div>
+        </fieldset>
       </div>
 
     </div>

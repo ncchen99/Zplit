@@ -1,10 +1,11 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useGroupStore } from '@/store/groupStore';
 import { computeBalances, computeSettlements } from '@/lib/algorithm/settlement';
 import {
   ChevronDown as ChevronDownIcon,
+  ChevronUp as ChevronUpIcon,
   FileText as DocumentTextIcon,
   RotateCw as ArrowPathIcon,
 } from 'lucide-react';
@@ -20,6 +21,7 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
   const { t } = useTranslation();
   const { groupId } = useParams<{ groupId: string }>();
   const navigate = useNavigate();
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const expenses = useGroupStore((s) => s.expenses);
   const settlements = useGroupStore((s) => s.settlements);
   const currentGroup = useGroupStore((s) => s.currentGroup);
@@ -76,6 +78,14 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
       .sort((a, b) => b.owed - a.owed);
   }, [expenses, settlements, memberMap, memberAvatarMap]);
 
+  const sortedExpenses = useMemo(() => {
+    return [...expenses].sort((a, b) => {
+      const aTime = a.date?.seconds ?? 0;
+      const bTime = b.date?.seconds ?? 0;
+      return sortOrder === 'desc' ? bTime - aTime : aTime - bTime;
+    });
+  }, [expenses, sortOrder]);
+
   const getName = (memberId: string) => memberMap.get(memberId) ?? memberId;
 
   return (
@@ -104,14 +114,21 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
             <h3 className="text-sm font-semibold text-base-content/60">
               {t('group.summary.detailRecords')}
             </h3>
-            <button className="btn btn-ghost btn-xs gap-1 text-base-content/40">
+            <button
+              className="btn btn-ghost btn-xs gap-1"
+              onClick={() => setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
+            >
               {t('group.summary.sortByDate')}
-              <ChevronDownIcon className="h-3 w-3" />
+              {sortOrder === 'desc' ? (
+                <ChevronDownIcon className="h-3 w-3" />
+              ) : (
+                <ChevronUpIcon className="h-3 w-3" />
+              )}
             </button>
           </div>
 
           <div className="flex flex-col">
-            {expenses.map((expense) => {
+            {sortedExpenses.map((expense) => {
               const payer = getName(expense.paidBy);
               const payerAvatar = memberAvatarMap.get(expense.paidBy) ?? null;
               const isRepeat =

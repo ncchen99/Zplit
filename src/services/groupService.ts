@@ -141,6 +141,18 @@ export async function addMemberToGroup(
   logger.info('groupService.addMember', '成員加入群組', { groupId, memberId: member.memberId });
 }
 
+export async function updateGroup(
+  groupId: string,
+  data: { name: string; coverUrl?: string | null }
+): Promise<void> {
+  await updateDoc(doc(db, 'groups', groupId), {
+    name: data.name,
+    coverUrl: data.coverUrl ?? null,
+    updatedAt: serverTimestamp(),
+  });
+  logger.info('groupService.update', '群組資料更新', { groupId, name: data.name });
+}
+
 export async function deleteGroup(groupId: string): Promise<void> {
   await deleteDoc(doc(db, 'groups', groupId));
   logger.info('groupService.delete', '群組已刪除', { groupId });

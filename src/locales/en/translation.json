@@ -118,8 +118,16 @@
       "title": "Settings",
       "coverPhoto": "Cover Photo",
       "groupInfo": "Group Info",
+      "editGroup": "Edit Group",
+      "inviteLink": "Invite Link",
       "dangerZone": "Danger Zone",
       "groupDeleted": "Group deleted"
+    },
+    "edit": {
+      "title": "Edit Group",
+      "name": "Group Name",
+      "coverUrl": "Cover Image URL (optional)",
+      "saved": "Group updated"
     },
     "summary": {
       "title": "Summary",
