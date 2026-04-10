@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "target": "app",
+    "site": "zplit",
     "public": "dist",
     "ignore": [
       "firebase.json",
