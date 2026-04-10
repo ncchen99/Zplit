@@ -7,6 +7,9 @@
 
 @theme {
   --color-root-bg: var(--color-base-200);
+  --app-frame-max-width: 24rem;
+  --app-frame-height: 800px;
+  --app-frame-gutter: 1rem;
 }
 
 @layer base {
@@ -47,11 +50,10 @@
     position: relative;
     overflow-x: hidden;
     overflow-y: auto;
-    transform: translateZ(0);
     overscroll-behavior: contain;
 
     @media (min-width: 768px) {
-      max-width: 24rem; /* 384px */
+      max-width: var(--app-frame-max-width); /* 384px */
       height: 800px;
       max-height: calc(100vh - 2rem);
       min-height: auto;
@@ -82,10 +84,26 @@
     right: 1rem;
     bottom: 1.5rem;
     z-index: 50;
+
+    @media (min-width: 768px) {
+      right: calc(
+        (100vw - min(var(--app-frame-max-width), calc(100vw - 2rem))) / 2 +
+          1rem
+      );
+      bottom: calc(
+        (100vh - min(var(--app-frame-height), calc(100vh - 2rem))) / 2 + 1.5rem
+      );
+    }
   }
 
   .fab-in-frame-nav {
     bottom: 5rem;
+
+    @media (min-width: 768px) {
+      bottom: calc(
+        (100vh - min(var(--app-frame-height), calc(100vh - 2rem))) / 2 + 5rem
+      );
+    }
   }
 
   @keyframes toast-enter {
