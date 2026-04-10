@@ -6,6 +6,7 @@ interface Toast {
   message: string;
   type: ToastType;
   id: number;
+  closing?: boolean;
 }
 
 type ThemeMode = 'light' | 'dark' | 'system';
@@ -26,12 +27,21 @@ export const useUIStore = create<UIStore>((set, get) => ({
 
   showToast: (message, type) => {
     const id = ++toastId;
-    set({ toasts: [...get().toasts, { message, type, id }] });
+    set({ toasts: [...get().toasts, { message, type, id, closing: false }] });
     setTimeout(() => get().removeToast(id), 3000);
   },
 
   removeToast: (id) => {
-    set({ toasts: get().toasts.filter((t) => t.id !== id) });
+    const target = get().toasts.find((t) => t.id === id);
+    if (!target || target.closing) return;
+
+    set({
+      toasts: get().toasts.map((t) => (t.id === id ? { ...t, closing: true } : t)),
+    });
+
+    setTimeout(() => {
+      set({ toasts: get().toasts.filter((t) => t.id !== id) });
+    }, 220);
   },
 
   themeMode: (localStorage.getItem('zplit-theme') as ThemeMode) ?? 'system',

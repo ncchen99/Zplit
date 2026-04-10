@@ -25,7 +25,7 @@ export function ToastProvider() {
               : t.type === 'error'
                 ? 'toast-soft-error'
                 : 'toast-soft-info'
-          }`}
+          } ${t.closing ? 'toast-motion-out' : 'toast-motion-in'}`}
           onClick={() => removeToast(t.id)}
         >
           <span>{t.message}</span>
