@@ -554,6 +554,7 @@ export function EditExpensePage() {
       {/* Delete modal */}
       <ConfirmModal
         open={showDeleteModal}
+        title={t('common.button.delete')}
         message={t('expense.deleteConfirm')}
         confirmLabel={t('common.button.delete')}
         confirmVariant="btn-error"

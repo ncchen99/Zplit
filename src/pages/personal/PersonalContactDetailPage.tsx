@@ -44,6 +44,7 @@ export function PersonalContactDetailPage() {
   const [editName, setEditName] = useState('');
   const [confirmModal, setConfirmModal] = useState<{
     open: boolean;
+    title?: string;
     message: string;
     confirmLabel?: string;
     confirmVariant?: string;
@@ -88,6 +89,7 @@ export function PersonalContactDetailPage() {
     const contactName = currentContact?.displayName ?? '';
     setConfirmModal({
       open: true,
+      title: t('personal.settleAll'),
       message: t('personal.settleAllConfirm', { name: contactName }),
       confirmLabel: t('common.button.confirm'),
       confirmVariant: 'btn-primary',
@@ -111,6 +113,7 @@ export function PersonalContactDetailPage() {
     const contactName = currentContact?.displayName ?? '';
     setConfirmModal({
       open: true,
+      title: t('personal.deleteContact'),
       message: t('personal.deleteContactConfirm', { name: contactName }),
       confirmLabel: t('common.button.delete'),
       confirmVariant: 'btn-error',
@@ -348,6 +351,7 @@ export function PersonalContactDetailPage() {
 
       <ConfirmModal
         open={confirmModal.open}
+        title={confirmModal.title}
         message={confirmModal.message}
         confirmLabel={confirmModal.confirmLabel}
         confirmVariant={confirmModal.confirmVariant}

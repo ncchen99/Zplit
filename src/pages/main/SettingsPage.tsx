@@ -105,7 +105,7 @@ export function SettingsPage() {
                 <p className="text-xs text-base-content/50">{t('settings.bindGoogleHint')}</p>
               </div>
               <button
-                className="btn btn-primary btn-sm shrink-0"
+                className="btn-theme-green btn-sm shrink-0"
                 onClick={handleBindGoogle}
                 disabled={binding}
               >
@@ -164,7 +164,7 @@ export function SettingsPage() {
         {/* Account Actions */}
         <div className="mt-6 flex flex-col gap-3">
           <button
-            className="btn btn-outline btn-block"
+            className="btn-muted btn-block"
             onClick={() => setShowLogoutConfirm(true)}
           >
             <ArrowRightStartOnRectangleIcon className="h-5 w-5 shrink-0" />
@@ -172,7 +172,7 @@ export function SettingsPage() {
           </button>
 
           <button
-            className="btn btn-error btn-outline btn-block"
+            className="btn-danger-soft btn-block"
             onClick={() => setShowDeleteConfirm(true)}
           >
             <TrashIcon className="h-5 w-5 shrink-0" />
@@ -185,12 +185,13 @@ export function SettingsPage() {
       {showLogoutConfirm && (
         <div className="modal modal-open">
           <div className="modal-box">
-            <p className="font-semibold">{t('settings.logoutConfirm')}</p>
+            <h3 className="font-bold text-lg">{t('settings.logout')}</h3>
+            <p className="mt-2 text-sm text-base-content/70">{t('settings.logoutConfirm')}</p>
             <div className="modal-action">
-              <button className="btn btn-ghost" onClick={() => setShowLogoutConfirm(false)}>
+              <button className="btn-white-soft" onClick={() => setShowLogoutConfirm(false)}>
                 {t('common.button.cancel')}
               </button>
-              <button className="btn btn-primary" onClick={handleLogout}>
+              <button className="btn-theme-green" onClick={handleLogout}>
                 {t('settings.logout')}
               </button>
             </div>
@@ -217,7 +218,7 @@ export function SettingsPage() {
             </div>
             <div className="modal-action">
               <button
-                className="btn btn-ghost"
+                className="btn-white-soft"
                 onClick={() => {
                   setShowDeleteConfirm(false);
                   setDeleteText('');
@@ -226,7 +227,7 @@ export function SettingsPage() {
                 {t('common.button.cancel')}
               </button>
               <button
-                className="btn btn-error"
+                className="btn-danger-soft"
                 disabled={deleteText !== '刪除' && deleteText !== 'DELETE'}
                 onClick={handleDeleteAccount}
               >

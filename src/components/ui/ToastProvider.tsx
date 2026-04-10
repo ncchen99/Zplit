@@ -19,13 +19,13 @@ export function ToastProvider() {
       {toasts.map((t) => (
         <div
           key={t.id}
-          className={`alert ${
+          className={`toast-soft max-w-xs ${
             t.type === 'success'
-              ? 'alert-success text-white'
+              ? 'toast-soft-success'
               : t.type === 'error'
-                ? 'alert-error text-error-content'
-                : 'alert-info text-info-content'
-          } cursor-pointer shadow-2xl ring-1 ring-base-content/10 max-w-xs`}
+                ? 'toast-soft-error'
+                : 'toast-soft-info'
+          }`}
           onClick={() => removeToast(t.id)}
         >
           <span>{t.message}</span>

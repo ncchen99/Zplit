@@ -149,6 +149,7 @@ export function SettleTab() {
 
       <ConfirmModal
         open={showMarkAllConfirm}
+        title={t('group.settle.markAllDone')}
         message={t('group.settle.markAllDone') + '?'}
         confirmLabel={t('common.button.confirm')}
         cancelLabel={t('common.button.cancel')}

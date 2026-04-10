@@ -133,6 +133,7 @@ export function OnboardingPage() {
       </div>
       <ConfirmModal
         open={showBackConfirm}
+        title={t('common.discard.title')}
         message={t('auth.onboarding.backConfirm')}
         confirmLabel={t('common.button.confirm')}
         cancelLabel={t('common.button.cancel')}
