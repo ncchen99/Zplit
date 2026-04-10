@@ -125,13 +125,13 @@ export function SettingsPage() {
             </div>
             <div className="join w-full">
               <button
-                className={`join-item btn btn-sm flex-1 ${i18n.language === 'zh-TW' ? 'btn-active' : ''}`}
+                className={`join-item btn btn-sm flex-1 ${i18n.language === 'zh-TW' ? 'btn-active text-base-content/85' : 'text-base-content/55 hover:text-base-content/65'}`}
                 onClick={() => handleLanguageChange('zh-TW')}
               >
                 繁體中文
               </button>
               <button
-                className={`join-item btn btn-sm flex-1 ${i18n.language === 'en' ? 'btn-active' : ''}`}
+                className={`join-item btn btn-sm flex-1 ${i18n.language === 'en' ? 'btn-active text-base-content/85' : 'text-base-content/55 hover:text-base-content/65'}`}
                 onClick={() => handleLanguageChange('en')}
               >
                 English
@@ -151,7 +151,7 @@ export function SettingsPage() {
               {(['system', 'light', 'dark'] as const).map((mode) => (
                 <button
                   key={mode}
-                  className={`join-item btn btn-sm flex-1 ${themeMode === mode ? 'btn-active' : ''}`}
+                  className={`join-item btn btn-sm flex-1 ${themeMode === mode ? 'btn-active text-base-content/85' : 'text-base-content/55 hover:text-base-content/65'}`}
                   onClick={() => setThemeMode(mode)}
                 >
                   {t(`settings.theme${mode.charAt(0).toUpperCase() + mode.slice(1)}`)}

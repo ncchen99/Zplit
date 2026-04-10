@@ -125,7 +125,7 @@ export function HomePage() {
                   {t('home.groups')}
                 </h2>
                 <button
-                  className="btn btn-ghost btn-xs flex items-center gap-0.5"
+                  className="btn-white-soft btn-xs flex items-center gap-0.5"
                   onClick={() => navigate('/groups')}
                 >
                   {t('common.viewAll')}
@@ -153,7 +153,7 @@ export function HomePage() {
                   {t('home.personal')}
                 </h2>
                 <button
-                  className="btn btn-ghost btn-xs flex items-center gap-0.5"
+                  className="btn-white-soft btn-xs flex items-center gap-0.5"
                   onClick={() => navigate('/personal')}
                 >
                   {t('common.viewAll')}

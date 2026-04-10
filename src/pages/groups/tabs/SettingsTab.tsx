@@ -92,53 +92,10 @@ export function SettingsTab() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Group Edit */}
-      <div className="rounded-2xl border border-base-300 bg-base-100 p-4">
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="font-semibold text-sm text-base-content/60 uppercase tracking-wider">
-            {t('group.settings.groupInfo')}
-          </h3>
-          {autoSaveText && (
-            <span className="inline-flex items-center gap-1 text-xs text-base-content/50">
-              {autoSaveState === 'saved' && <CheckIcon className="h-3.5 w-3.5" />}
-              {autoSaveText}
-            </span>
-          )}
-        </div>
-
-        <div className="flex flex-col gap-4">
-          <fieldset className="fieldset w-full">
-            <legend className="fieldset-legend">{t('group.edit.name')}</legend>
-            <input
-              type="text"
-              className="input w-full"
-              placeholder={t('group.create.namePlaceholder')}
-              value={nameDraft}
-              onChange={(e) => setNameDraft(e.target.value)}
-              maxLength={50}
-            />
-          </fieldset>
-
-          <div>
-            <label className="mb-2 block text-sm font-medium text-base-content/60">
-              {t('group.settings.coverPhoto')}
-            </label>
-            <ImageUpload
-              currentUrl={coverDraft || null}
-              onUpload={setCoverDraft}
-              onRemove={() => setCoverDraft('')}
-              shape="rect"
-              label={t('group.settings.tapToEditCover')}
-              className="w-full"
-            />
-          </div>
-        </div>
-      </div>
-
+    <div className="flex flex-col">
       {/* Invite Link */}
-      <div className="rounded-2xl border border-base-300 bg-base-100 p-4">
-        <h3 className="font-semibold text-sm text-base-content/60 uppercase tracking-wider mb-3">
+      <div className="pb-4 border-b border-base-200">
+        <h3 className="mb-2 block text-sm font-medium text-base-content/60">
           {t('group.settings.inviteLink')}
         </h3>
         <div className="join w-full">
@@ -157,10 +114,49 @@ export function SettingsTab() {
         </div>
       </div>
 
+      {/* Group Edit */}
+      <div className="py-4 border-b border-base-200">
+        <div className="flex flex-col gap-4">
+          <div className="relative">
+            <label className="mb-2 block text-sm font-medium text-base-content/60">
+              {t('group.edit.name')}
+            </label>
+            {autoSaveText && (
+              <span className="pointer-events-none absolute right-0 top-0 inline-flex items-center gap-1 text-xs text-base-content/50">
+                {autoSaveState === 'saved' && <CheckIcon className="h-3.5 w-3.5" />}
+                {autoSaveText}
+              </span>
+            )}
+            <input
+              type="text"
+              className="input w-full"
+              placeholder={t('group.create.namePlaceholder')}
+              value={nameDraft}
+              onChange={(e) => setNameDraft(e.target.value)}
+              maxLength={50}
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-base-content/60">
+              {t('group.settings.coverPhoto')}
+            </label>
+            <ImageUpload
+              currentUrl={coverDraft || null}
+              onUpload={setCoverDraft}
+              onRemove={() => setCoverDraft('')}
+              shape="rect"
+              label={t('group.settings.tapToEditCover')}
+              className="w-full"
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Danger Zone */}
       {isCreator && (
-        <div className="rounded-2xl border border-error/25 bg-error/5 p-4">
-          <h3 className="font-semibold text-sm text-error/70 uppercase tracking-wider mb-3">
+        <div className="py-4 border-b border-error/20">
+          <h3 className="mb-2 block text-sm font-medium text-base-content/60">
             {t('group.settings.dangerZone')}
           </h3>
           <button

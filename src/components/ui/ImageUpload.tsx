@@ -72,7 +72,9 @@ export function ImageUpload({
       {preview ? (
         <div
           className={`relative group ${
-            isCircle ? 'h-24 w-24 rounded-full' : 'h-32 w-full rounded-xl'
+            isCircle
+              ? 'h-24 w-24 rounded-full border-2 border-solid border-base-300'
+              : 'h-32 w-full rounded-xl border-2 border-solid border-base-300'
           }`}
         >
           <div className={`h-full w-full overflow-hidden ${isCircle ? 'rounded-full' : 'rounded-xl'}`}>

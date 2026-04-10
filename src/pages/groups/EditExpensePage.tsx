@@ -220,10 +220,18 @@ export function EditExpensePage() {
   };
 
   const handleDelete = async () => {
-    if (!groupId || !expenseId) return;
+    if (!groupId || !expense || !user) return;
     setSaving(true);
     try {
-      await deleteExpense(groupId, expenseId);
+      await deleteExpense(
+        groupId,
+        {
+          expenseId: expense.expenseId,
+          title: expense.title,
+          amount: expense.amount,
+        },
+        user.uid
+      );
       await recalculateSettlements(groupId);
       showToast(t('common.button.done'), 'success');
       navigate(`/groups/${groupId}`, { replace: true });

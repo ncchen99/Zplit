@@ -173,7 +173,12 @@
       "copyLink": "Copy Link",
       "linkCopied": "Invite link copied",
       "editName": "Edit Name",
-      "removeMember": "Remove Member"
+      "removeMember": "Remove Member",
+      "activityAction": {
+        "created": "added \"{{title}} NT${{amount}}\"",
+        "updated": "updated \"{{title}} NT${{amount}}\"",
+        "deleted": "deleted \"{{title}} NT${{amount}}\""
+      }
     }
   },
   "expense": {

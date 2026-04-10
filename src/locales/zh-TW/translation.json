@@ -173,7 +173,12 @@
       "copyLink": "複製連結",
       "linkCopied": "已複製邀請連結",
       "editName": "編輯名稱",
-      "removeMember": "移除成員"
+      "removeMember": "移除成員",
+      "activityAction": {
+        "created": "新增「{{title}} NT${{amount}}」",
+        "updated": "修改「{{title}} NT${{amount}}」",
+        "deleted": "刪除「{{title}} NT${{amount}}」"
+      }
     }
   },
   "expense": {

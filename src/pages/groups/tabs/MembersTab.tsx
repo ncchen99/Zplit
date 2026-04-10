@@ -1,5 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import { useGroupStore } from '@/store/groupStore';
 import { useUIStore } from '@/store/uiStore';
 import { addPlaceholderMember } from '@/services/groupService';
@@ -7,6 +9,17 @@ import { logger } from '@/utils/logger';
 import { LinkIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { StarIcon } from '@heroicons/react/24/solid';
 import { UserAvatar } from '@/components/ui/UserAvatar';
+
+interface ActivityItem {
+  id: string;
+  memberId?: string;
+  actorUid?: string;
+  action?: 'created' | 'updated' | 'deleted';
+  description?: string;
+  title?: string;
+  amount?: number;
+  timestamp?: { seconds?: number } | null;
+}
 
 export function MembersTab() {
   const { t } = useTranslation();
@@ -16,6 +29,30 @@ export function MembersTab() {
 
   const [newName, setNewName] = useState('');
   const [adding, setAdding] = useState(false);
+  const [groupActivities, setGroupActivities] = useState<ActivityItem[]>([]);
+
+  useEffect(() => {
+    if (!currentGroup?.groupId) {
+      setGroupActivities([]);
+      return;
+    }
+
+    const q = query(
+      collection(db, `groups/${currentGroup.groupId}/activity`),
+      orderBy('timestamp', 'desc')
+    );
+
+    const unsub = onSnapshot(q, (snap) => {
+      setGroupActivities(
+        snap.docs.map((docSnap) => ({
+          id: docSnap.id,
+          ...(docSnap.data() as Omit<ActivityItem, 'id'>),
+        }))
+      );
+    });
+
+    return () => unsub();
+  }, [currentGroup?.groupId]);
 
   const handleAddMember = async () => {
     if (!currentGroup || !newName.trim()) return;
@@ -32,24 +69,51 @@ export function MembersTab() {
     }
   };
 
-  const activityLog = useMemo(() => expenses
-    .flatMap((e) =>
-      e.editLog?.map((log) => ({
-        ...log,
-        expenseTitle: e.title,
-        expenseAmount: e.amount,
+  const activityLog = useMemo(() => {
+    const legacyLogs: ActivityItem[] = expenses.flatMap((e) =>
+      e.editLog?.map((log, index) => ({
+        id: `legacy-${e.expenseId}-${index}`,
+        memberId: log.memberId,
+        action: log.action,
+        description: log.description,
+        title: e.title,
+        amount: e.amount,
+        timestamp: log.timestamp,
       })) ?? []
-    )
-    .sort((a, b) => {
-      const aTime = a.timestamp?.seconds ?? 0;
-      const bTime = b.timestamp?.seconds ?? 0;
-      return bTime - aTime;
-    })
-    .slice(0, 20), [expenses]);
+    );
+
+    return [...groupActivities, ...legacyLogs]
+      .sort((a, b) => {
+        const aTime = a.timestamp?.seconds ?? 0;
+        const bTime = b.timestamp?.seconds ?? 0;
+        return bTime - aTime;
+      })
+      .slice(0, 20);
+  }, [expenses, groupActivities]);
 
   const memberMap = useMemo(() => new Map(
     currentGroup?.members?.map((m) => [m.memberId, m.displayName]) ?? []
   ), [currentGroup?.members]);
+
+  const userMap = useMemo(() => new Map(
+    currentGroup?.members
+      ?.filter((m) => Boolean(m.userId))
+      .map((m) => [m.userId as string, m.displayName]) ?? []
+  ), [currentGroup?.members]);
+
+  const formatActivityText = (log: ActivityItem): string => {
+    if (log.description) return log.description;
+
+    const amount = log.amount ?? 0;
+    const title = log.title ?? t('expense.titlePlaceholder');
+    if (log.action === 'updated') {
+      return t('group.members.activityAction.updated', { title, amount });
+    }
+    if (log.action === 'deleted') {
+      return t('group.members.activityAction.deleted', { title, amount });
+    }
+    return t('group.members.activityAction.created', { title, amount });
+  };
 
   return (
     <div>
@@ -137,17 +201,22 @@ export function MembersTab() {
         ) : (
           <div className="mt-2 flex flex-col md:gap-1.5">
             {activityLog.map((log, i) => {
-              const actorName = memberMap.get(log.memberId) ?? log.memberId;
+              const actorName =
+                (log.memberId ? memberMap.get(log.memberId) : undefined)
+                ?? (log.actorUid ? userMap.get(log.actorUid) : undefined)
+                ?? log.memberId
+                ?? log.actorUid
+                ?? '-';
               const time = log.timestamp?.seconds
                 ? new Date(log.timestamp.seconds * 1000).toLocaleString()
                 : '';
               return (
                 <div
-                  key={i}
+                  key={log.id || i}
                   className="flex py-2 border-b border-base-200 last:border-b-0 text-xs text-base-content/60 md:mx-0 md:rounded-lg md:bg-base-200 md:px-3 md:py-2 md:mb-0 md:border-0"
                 >
                   <span className="font-semibold">{actorName}</span>{' '}
-                  {log.description}
+                  {formatActivityText(log)}
                   {time && (
                     <span className="text-base-content/30 ml-2">{time}</span>
                   )}
