@@ -131,21 +131,25 @@ export function LoginPage() {
           </p>
 
           {showTurnstile && (
-            <div className="rounded-box border border-base-300 p-3">
-              <Turnstile
-                siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
-                onSuccess={async (token) => {
-                  setTurnstileToken(token);
-                  setShowTurnstile(false);
-                  await handleAnonymousLogin(token);
-                }}
-                onError={() => {
-                  logger.error("auth.login", "Turnstile 元件載入失敗");
-                  showToast("驗證元件載入失敗", "error");
-                }}
-                options={{ theme: "auto" }}
-              />
-            </div>
+            <Turnstile
+              siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+              onSuccess={async (token) => {
+                setTurnstileToken(token);
+                setShowTurnstile(false);
+                await handleAnonymousLogin(token);
+              }}
+              onError={(errorCode) => {
+                logger.warn("auth.login", "Turnstile challenge 錯誤", {
+                  errorCode,
+                });
+                showToast(t("common.errorDetail.invalidTurnstile"), "error");
+              }}
+              onUnsupported={() => {
+                logger.error("auth.login", "瀏覽器不支援 Turnstile");
+                showToast(t("common.errorDetail.invalidTurnstile"), "error");
+              }}
+              options={{ theme: "auto" }}
+            />
           )}
         </div>
 
