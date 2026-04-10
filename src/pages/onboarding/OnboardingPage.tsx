@@ -7,7 +7,7 @@ import { createOrUpdateUser } from "@/services/userService";
 import { logger } from "@/utils/logger";
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
-import { ChevronLeftIcon } from "@heroicons/react/24/outline";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 export function OnboardingPage() {
   const { t } = useTranslation();
@@ -59,13 +59,7 @@ export function OnboardingPage() {
 
   return (
     <div className="flex min-h-[100dvh] md:min-h-full flex-col px-6 pt-4 pb-8">
-      {/* Back button */}
-      <button
-        className="btn btn-ghost btn-sm btn-circle self-start"
-        onClick={handleBack}
-      >
-        <ChevronLeftIcon className="h-5 w-5" />
-      </button>
+      <PageHeader title={t("auth.onboarding.title")} onBack={handleBack} />
 
       <div className="mx-auto w-full max-w-sm flex-1 flex flex-col items-center justify-center">
         {/* Welcome */}
