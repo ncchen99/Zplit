@@ -12,6 +12,8 @@ import {
   serverTimestamp,
   increment,
   writeBatch,
+  documentId,
+  where,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { nanoid } from "nanoid";
@@ -72,6 +74,41 @@ async function syncContactLastExpenseAt(
   });
 }
 
+async function loadLinkedUserAvatarMap(
+  linkedUserIds: string[],
+): Promise<Map<string, string | null>> {
+  const ids = Array.from(new Set(linkedUserIds.filter(Boolean)));
+  const avatarMap = new Map<string, string | null>();
+  if (ids.length === 0) return avatarMap;
+
+  // Firestore `in` query has item limit; query in chunks.
+  const chunkSize = 30;
+  for (let i = 0; i < ids.length; i += chunkSize) {
+    const chunk = ids.slice(i, i + chunkSize);
+    const snap = await getDocs(
+      query(collection(db, "users"), where(documentId(), "in", chunk)),
+    );
+    snap.docs.forEach((userDoc) => {
+      const data = userDoc.data();
+      avatarMap.set(userDoc.id, (data.avatarUrl as string | null | undefined) ?? null);
+    });
+  }
+
+  return avatarMap;
+}
+
+function withResolvedAvatar(
+  contact: PersonalContact,
+  linkedAvatarMap: Map<string, string | null>,
+): PersonalContact {
+  if (!contact.linkedUserId) return contact;
+  if (!linkedAvatarMap.has(contact.linkedUserId)) return contact;
+  return {
+    ...contact,
+    avatarUrl: linkedAvatarMap.get(contact.linkedUserId) ?? null,
+  };
+}
+
 // ─── Contact CRUD ────────────────────────────────────
 
 export async function getContacts(userId: string): Promise<PersonalContact[]> {
@@ -82,9 +119,17 @@ export async function getContacts(userId: string): Promise<PersonalContact[]> {
         orderBy("interactionCount", "desc"),
       ),
     );
-    return snap.docs.map(
+    const contacts = snap.docs.map(
       (d) => ({ contactId: d.id, ...d.data() }) as PersonalContact,
     );
+
+    const linkedAvatarMap = await loadLinkedUserAvatarMap(
+      contacts
+        .map((contact) => contact.linkedUserId)
+        .filter((id): id is string => Boolean(id)),
+    );
+
+    return contacts.map((contact) => withResolvedAvatar(contact, linkedAvatarMap));
   } catch (err) {
     logger.error("personal.getContacts", "讀取聯絡人失敗", err);
     throw new ZplitError(
@@ -104,7 +149,11 @@ export async function getContact(
       doc(db, `personalLedger/${userId}/contacts/${contactId}`),
     );
     if (!snap.exists()) return null;
-    return { contactId: snap.id, ...snap.data() } as PersonalContact;
+    const contact = { contactId: snap.id, ...snap.data() } as PersonalContact;
+    if (!contact.linkedUserId) return contact;
+
+    const linkedAvatarMap = await loadLinkedUserAvatarMap([contact.linkedUserId]);
+    return withResolvedAvatar(contact, linkedAvatarMap);
   } catch (err) {
     logger.error("personal.getContact", "讀取聯絡人失敗", err);
     return null;
@@ -155,7 +204,26 @@ export async function ensureContact(
   const existing = contacts.find(
     (c) => c.displayName.trim().toLowerCase() === normalizedName.toLowerCase(),
   );
-  if (existing) return existing;
+  if (existing) {
+    const nextLinkedUserId = existing.linkedUserId ?? linkedUserId;
+    const nextAvatarUrl = avatarUrl ?? existing.avatarUrl;
+
+    if (
+      nextLinkedUserId !== existing.linkedUserId
+      || nextAvatarUrl !== existing.avatarUrl
+    ) {
+      await updateContact(userId, existing.contactId, {
+        linkedUserId: nextLinkedUserId,
+        avatarUrl: nextAvatarUrl,
+      });
+      return {
+        ...existing,
+        linkedUserId: nextLinkedUserId,
+        avatarUrl: nextAvatarUrl,
+      };
+    }
+    return existing;
+  }
 
   return createContact(userId, normalizedName, linkedUserId, avatarUrl);
 }

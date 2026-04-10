@@ -32,7 +32,12 @@ export function AddPersonalExpensePage() {
   // ── 聯絡人選取狀態（僅在無 contactId 時使用）──
   const [contacts, setContacts] = useState<PersonalContact[]>(storeContacts);
   const [groupOnlySuggestions, setGroupOnlySuggestions] = useState<
-    Array<{ key: string; displayName: string; avatarUrl: string | null }>
+    Array<{
+      key: string;
+      displayName: string;
+      avatarUrl: string | null;
+      linkedUserId: string | null;
+    }>
   >([]);
   const [contactSearch, setContactSearch] = useState("");
   const [selectedContact, setSelectedContact] =
@@ -66,7 +71,12 @@ export function AddPersonalExpensePage() {
       );
       const memberMap = new Map<
         string,
-        { key: string; displayName: string; avatarUrl: string | null }
+        {
+          key: string;
+          displayName: string;
+          avatarUrl: string | null;
+          linkedUserId: string | null;
+        }
       >();
 
       for (const group of groups) {
@@ -79,6 +89,7 @@ export function AddPersonalExpensePage() {
             key: `group:${key}`,
             displayName: normalized,
             avatarUrl: member.avatarUrl,
+            linkedUserId: member.userId ?? null,
           });
         }
       }
@@ -118,6 +129,7 @@ export function AddPersonalExpensePage() {
       key: `contact:${c.contactId}`,
       displayName: c.displayName,
       avatarUrl: c.avatarUrl,
+      linkedUserId: c.linkedUserId,
       contact: c,
     })),
     ...groupOnlySuggestions,
@@ -158,6 +170,7 @@ export function AddPersonalExpensePage() {
       key: string;
       displayName: string;
       avatarUrl: string | null;
+      linkedUserId: string | null;
       contact?: PersonalContact;
     },
   ) => {
@@ -172,7 +185,12 @@ export function AddPersonalExpensePage() {
 
     setResolvingContact(true);
     try {
-      const ensured = await ensureContact(user.uid, suggestion.displayName);
+      const ensured = await ensureContact(
+        user.uid,
+        suggestion.displayName,
+        suggestion.linkedUserId,
+        suggestion.avatarUrl,
+      );
       setContacts((prev) => {
         if (prev.some((c) => c.contactId === ensured.contactId)) return prev;
         return [ensured, ...prev];

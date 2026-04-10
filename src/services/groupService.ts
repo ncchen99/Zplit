@@ -375,6 +375,66 @@ export async function syncGroupMemberNameByReference(
   return updatedGroupCount;
 }
 
+export async function syncGroupMemberProfileByUserId(
+  userId: string,
+  profile: {
+    displayName: string;
+    avatarUrl: string | null;
+  },
+): Promise<number> {
+  const normalizedDisplayName = profile.displayName.trim();
+  if (!normalizedDisplayName) return 0;
+
+  const groups = await getUserGroups(userId);
+  let updatedGroupCount = 0;
+
+  await Promise.all(
+    groups.map(async (group) => {
+      let changed = false;
+      const nextMembers = group.members.map((member) => {
+        if (member.userId !== userId) return member;
+
+        if (
+          member.displayName === normalizedDisplayName
+          && member.avatarUrl === profile.avatarUrl
+        ) {
+          return member;
+        }
+
+        changed = true;
+        return {
+          ...member,
+          displayName: normalizedDisplayName,
+          avatarUrl: profile.avatarUrl,
+        };
+      });
+
+      if (!changed) return;
+
+      const nextMemberNameMap = {
+        ...(group.memberNameMap ?? {}),
+        ...buildMemberNameMap(nextMembers),
+      };
+
+      await updateDoc(doc(db, "groups", group.groupId), {
+        members: nextMembers,
+        memberNameMap: nextMemberNameMap,
+        updatedAt: serverTimestamp(),
+      });
+      updatedGroupCount += 1;
+    }),
+  );
+
+  if (updatedGroupCount > 0) {
+    logger.info("groupService.syncMemberProfile", "同步群組成員頭貼/名稱成功", {
+      userId,
+      updatedGroupCount,
+    });
+  }
+
+  return updatedGroupCount;
+}
+
 export async function removeGroupMember(
   groupId: string,
   memberId: string,

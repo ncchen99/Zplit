@@ -48,15 +48,17 @@ export function LoginPage() {
     }
   };
 
-  const handleAnonymousLogin = async () => {
-    if (!turnstileToken) {
+  const handleAnonymousLogin = async (tokenFromTurnstile?: string) => {
+    const token = tokenFromTurnstile ?? turnstileToken;
+
+    if (!token) {
       setShowTurnstile(true);
       return;
     }
 
     setLoading(true);
     try {
-      const verified = await verifyTurnstile(turnstileToken);
+      const verified = await verifyTurnstile(token);
       if (!verified) {
         showToast(t("common.errorDetail.invalidTurnstile"), "error");
         setTurnstileToken(null);
@@ -79,7 +81,7 @@ export function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-[100dvh] md:min-h-[inherit] flex-col items-center justify-center px-6">
+    <div className="flex min-h-[100dvh] md:min-h-full flex-col items-center justify-center px-6">
       <div className="w-full max-w-sm text-center">
         {/* Logo & Tagline - upper area */}
         <div className="mb-12 flex flex-col items-center">
@@ -118,7 +120,7 @@ export function LoginPage() {
 
           <button
             className="btn btn-outline btn-block"
-            onClick={handleAnonymousLogin}
+            onClick={() => void handleAnonymousLogin()}
             disabled={loading}
           >
             {t("auth.login.anonymousLogin")}
@@ -135,7 +137,7 @@ export function LoginPage() {
                 onSuccess={async (token) => {
                   setTurnstileToken(token);
                   setShowTurnstile(false);
-                  await handleAnonymousLogin();
+                  await handleAnonymousLogin(token);
                 }}
                 onError={() => {
                   logger.error("auth.login", "Turnstile 元件載入失敗");
