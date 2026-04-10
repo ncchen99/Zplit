@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/authStore';
 import { usePersonalStore } from '@/store/personalStore';
 import { useUIStore } from '@/store/uiStore';
 import { PageHeader, HeaderIconButton } from '@/components/ui/PageHeader';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 import {
   addPersonalExpense,
   getContacts,
@@ -192,20 +193,23 @@ export function AddPersonalExpensePage() {
                 {filteredContacts.slice(0, 5).map((c) => (
                   <button
                     key={c.contactId}
-                    className="flex items-center gap-2 w-full px-4 py-3 text-left hover:bg-base-200 active:bg-base-300 transition-colors"
+                    className={`flex w-full items-center gap-2 rounded-none px-4 py-3 text-left transition-colors hover:bg-base-200 active:bg-base-300 ${
+                      selectedContact?.contactId === c.contactId ? 'bg-base-200' : ''
+                    }`}
                     onMouseDown={(e) => { e.preventDefault(); handleSelectContact(c); }}
                   >
-                    <div className="avatar placeholder">
-                      <div className="w-7 rounded-full bg-neutral text-neutral-content">
-                        <span className="text-[10px]">{c.displayName.charAt(0)}</span>
-                      </div>
-                    </div>
+                    <UserAvatar
+                      src={c.avatarUrl}
+                      name={c.displayName}
+                      size="w-7"
+                      textSize="text-[10px]"
+                    />
                     <span className="text-sm font-medium">{c.displayName}</span>
                   </button>
                 ))}
                 {showNewContactOption && (
                   <button
-                    className="flex items-center gap-2 w-full px-4 py-3 text-left text-primary hover:bg-primary/10 active:bg-primary/20 transition-colors"
+                    className="flex w-full items-center gap-2 rounded-none px-4 py-3 text-left text-primary transition-colors hover:bg-base-200 active:bg-base-300"
                     onMouseDown={(e) => { e.preventDefault(); handleCreateAndSelect(); }}
                   >
                     <PlusIcon className="h-4 w-4" />
@@ -260,7 +264,7 @@ export function AddPersonalExpensePage() {
           <div className="join w-full">
             <button
               type="button"
-              className={`join-item btn btn-sm flex-1 ${paidBy === 'self' ? 'btn-active' : ''}`}
+              className={`join-item btn btn-sm flex-1 ${paidBy === 'self' ? 'btn-active text-base-content/85' : 'text-base-content/55 hover:text-base-content/65'}`}
               onClick={() => setPaidBy('self')}
             >
               {resolvedContactName
@@ -269,7 +273,7 @@ export function AddPersonalExpensePage() {
             </button>
             <button
               type="button"
-              className={`join-item btn btn-sm flex-1 ${paidBy === 'contact' ? 'btn-active' : ''}`}
+              className={`join-item btn btn-sm flex-1 ${paidBy === 'contact' ? 'btn-active text-base-content/85' : 'text-base-content/55 hover:text-base-content/65'}`}
               onClick={() => setPaidBy('contact')}
             >
               {resolvedContactName

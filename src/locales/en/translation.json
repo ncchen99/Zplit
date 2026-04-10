@@ -146,7 +146,9 @@
       "expandAll": "Show all members",
       "collapse": "Collapse",
       "detailRecords": "Expense Records",
-      "sortByDate": "By date"
+      "sortByDate": "By date",
+      "sortByAmount": "By amount",
+      "sortByName": "By name"
     },
     "settle": {
       "title": "Settle Up",

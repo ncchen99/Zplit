@@ -240,21 +240,30 @@ export function PersonalContactDetailPage() {
               <EllipsisVerticalIcon className="h-5 w-5" />
             </HeaderIconButton>
             {showMenu && (
-              <ul className="dropdown-content menu bg-base-200 rounded-box z-50 w-48 p-2 shadow-lg">
+              <ul className="dropdown-content z-50 mt-1 w-40 overflow-hidden rounded-xl border border-base-200 bg-base-100 py-1 shadow-lg">
                 {netAmount !== 0 && (
                   <li>
-                    <button onClick={handleSettleAll}>
+                    <button
+                      className="flex w-full items-center rounded-none px-3 py-2 text-left text-xs font-medium transition-colors hover:bg-base-200 active:bg-base-300"
+                      onClick={handleSettleAll}
+                    >
                       {t('personal.settleAll')}
                     </button>
                   </li>
                 )}
                 <li>
-                  <button onClick={() => { setShowMenu(false); setEditingName(true); }}>
+                  <button
+                    className="flex w-full items-center rounded-none px-3 py-2 text-left text-xs font-medium transition-colors hover:bg-base-200 active:bg-base-300"
+                    onClick={() => { setShowMenu(false); setEditingName(true); }}
+                  >
                     {t('personal.editContactName')}
                   </button>
                 </li>
                 <li>
-                  <button className="text-error" onClick={handleDeleteContact}>
+                  <button
+                    className="flex w-full items-center rounded-none px-3 py-2 text-left text-xs font-medium text-error transition-colors hover:bg-base-200 active:bg-base-300"
+                    onClick={handleDeleteContact}
+                  >
                     {t('personal.deleteContact')}
                   </button>
                 </li>

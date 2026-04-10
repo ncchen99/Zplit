@@ -5,7 +5,6 @@ import { useGroupStore } from '@/store/groupStore';
 import { computeBalances, computeSettlements } from '@/lib/algorithm/settlement';
 import {
   ChevronDown as ChevronDownIcon,
-  ChevronUp as ChevronUpIcon,
   FileText as DocumentTextIcon,
   RotateCw as ArrowPathIcon,
 } from 'lucide-react';
@@ -21,7 +20,8 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
   const { t } = useTranslation();
   const { groupId } = useParams<{ groupId: string }>();
   const navigate = useNavigate();
-  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+  const [sortBy, setSortBy] = useState<'date' | 'amount' | 'name'>('date');
+  const [showSortMenu, setShowSortMenu] = useState(false);
   const expenses = useGroupStore((s) => s.expenses);
   const settlements = useGroupStore((s) => s.settlements);
   const currentGroup = useGroupStore((s) => s.currentGroup);
@@ -80,13 +80,26 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
 
   const sortedExpenses = useMemo(() => {
     return [...expenses].sort((a, b) => {
+      if (sortBy === 'amount') {
+        return b.amount - a.amount;
+      }
+
+      if (sortBy === 'name') {
+        return a.title.localeCompare(b.title, 'zh-Hant');
+      }
+
       const aTime = a.date?.seconds ?? 0;
       const bTime = b.date?.seconds ?? 0;
-      return sortOrder === 'desc' ? bTime - aTime : aTime - bTime;
+      return bTime - aTime;
     });
-  }, [expenses, sortOrder]);
+  }, [expenses, sortBy]);
 
   const getName = (memberId: string) => memberMap.get(memberId) ?? memberId;
+
+  const handleSelectSort = (value: 'date' | 'amount' | 'name') => {
+    setSortBy(value);
+    setShowSortMenu(false);
+  };
 
   return (
     <div className="flex flex-col">
@@ -114,17 +127,51 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
             <h3 className="text-sm font-semibold text-base-content/60">
               {t('group.summary.detailRecords')}
             </h3>
-            <button
-              className="btn btn-ghost btn-xs gap-1"
-              onClick={() => setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
-            >
-              {t('group.summary.sortByDate')}
-              {sortOrder === 'desc' ? (
+            <div className="relative">
+              <button
+                className="btn-white-soft btn-xs gap-1"
+                onClick={() => setShowSortMenu((prev) => !prev)}
+              >
+                {sortBy === 'date' && t('group.summary.sortByDate')}
+                {sortBy === 'amount' && t('group.summary.sortByAmount')}
+                {sortBy === 'name' && t('group.summary.sortByName')}
                 <ChevronDownIcon className="h-3 w-3" />
-              ) : (
-                <ChevronUpIcon className="h-3 w-3" />
+              </button>
+              {showSortMenu && (
+                <ul className="absolute right-0 top-full z-50 mt-1 w-32 overflow-hidden rounded-xl border border-base-200 bg-base-100 py-1 shadow-lg">
+                  <li>
+                    <button
+                      className={`flex w-full items-center rounded-none px-3 py-2 text-left text-xs font-medium transition-colors hover:bg-base-200 active:bg-base-300 ${
+                        sortBy === 'date' ? 'bg-base-200' : ''
+                      }`}
+                      onClick={() => handleSelectSort('date')}
+                    >
+                      {t('group.summary.sortByDate')}
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      className={`flex w-full items-center rounded-none px-3 py-2 text-left text-xs font-medium transition-colors hover:bg-base-200 active:bg-base-300 ${
+                        sortBy === 'amount' ? 'bg-base-200' : ''
+                      }`}
+                      onClick={() => handleSelectSort('amount')}
+                    >
+                      {t('group.summary.sortByAmount')}
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      className={`flex w-full items-center rounded-none px-3 py-2 text-left text-xs font-medium transition-colors hover:bg-base-200 active:bg-base-300 ${
+                        sortBy === 'name' ? 'bg-base-200' : ''
+                      }`}
+                      onClick={() => handleSelectSort('name')}
+                    >
+                      {t('group.summary.sortByName')}
+                    </button>
+                  </li>
+                </ul>
               )}
-            </button>
+            </div>
           </div>
 
           <div className="flex flex-col">
@@ -195,6 +242,13 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
             })}
           </div>
         </div>
+      )}
+
+      {showSortMenu && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setShowSortMenu(false)}
+        />
       )}
     </div>
   );
