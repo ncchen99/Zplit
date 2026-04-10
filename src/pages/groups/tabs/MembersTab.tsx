@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useGroupStore } from "@/store/groupStore";
+import { useAuthStore } from "@/store/authStore";
 import { useUIStore } from "@/store/uiStore";
 import { addPlaceholderMember } from "@/services/groupService";
 import { logger } from "@/utils/logger";
@@ -25,6 +26,7 @@ export function MembersTab() {
   const { t } = useTranslation();
   const currentGroup = useGroupStore((s) => s.currentGroup);
   const expenses = useGroupStore((s) => s.expenses);
+  const user = useAuthStore((s) => s.user);
   const showToast = useUIStore((s) => s.showToast);
 
   const [newName, setNewName] = useState("");
@@ -58,7 +60,7 @@ export function MembersTab() {
     if (!currentGroup || !newName.trim()) return;
     setAdding(true);
     try {
-      await addPlaceholderMember(currentGroup.groupId, newName.trim());
+      await addPlaceholderMember(currentGroup.groupId, newName.trim(), user?.uid);
       setNewName("");
       showToast(t("common.button.done"), "success");
     } catch (err) {

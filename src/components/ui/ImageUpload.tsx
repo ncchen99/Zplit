@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { uploadImage } from "@/services/uploadService";
 import { useAuthStore } from "@/store/authStore";
@@ -10,6 +10,7 @@ interface ImageUploadProps {
   onUpload: (url: string) => void;
   onRemove?: () => void;
   shape?: "circle" | "rect";
+  rectHeightClass?: string;
   label?: string;
   className?: string;
 }
@@ -19,6 +20,7 @@ export function ImageUpload({
   onUpload,
   onRemove,
   shape = "rect",
+  rectHeightClass = "h-32",
   label,
   className = "",
 }: ImageUploadProps) {
@@ -26,15 +28,36 @@ export function ImageUpload({
   const firebaseUser = useAuthStore((s) => s.firebaseUser);
   const showToast = useUIStore((s) => s.showToast);
   const fileRef = useRef<HTMLInputElement>(null);
+  const localPreviewUrlRef = useRef<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentUrl ?? null);
+
+  useEffect(() => {
+    // Keep preview in sync with async-loaded data (e.g. edit pages).
+    if (!uploading) {
+      setPreview(currentUrl ?? null);
+    }
+  }, [currentUrl, uploading]);
+
+  useEffect(() => {
+    return () => {
+      if (localPreviewUrlRef.current) {
+        URL.revokeObjectURL(localPreviewUrlRef.current);
+      }
+    };
+  }, []);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !firebaseUser) return;
 
     // Preview
+    if (localPreviewUrlRef.current) {
+      URL.revokeObjectURL(localPreviewUrlRef.current);
+      localPreviewUrlRef.current = null;
+    }
     const objectUrl = URL.createObjectURL(file);
+    localPreviewUrlRef.current = objectUrl;
     setPreview(objectUrl);
 
     setUploading(true);
@@ -46,6 +69,10 @@ export function ImageUpload({
       setPreview(currentUrl ?? null);
       showToast(t("common.error"), "error");
     } finally {
+      if (localPreviewUrlRef.current) {
+        URL.revokeObjectURL(localPreviewUrlRef.current);
+        localPreviewUrlRef.current = null;
+      }
       setUploading(false);
       // Reset input so same file can be re-selected
       if (fileRef.current) fileRef.current.value = "";
@@ -75,8 +102,8 @@ export function ImageUpload({
         <div
           className={`relative group ${
             isCircle
-              ? "h-24 w-24 rounded-full border-2 border-solid border-base-300"
-              : "h-32 w-full rounded-xl border-2 border-solid border-base-300"
+              ? "h-24 w-24 rounded-full border border-base-content/20"
+              : `${rectHeightClass} w-full rounded-xl border border-base-content/20`
           }`}
         >
           <div
@@ -102,17 +129,17 @@ export function ImageUpload({
               className="absolute -top-1 -right-1 z-20 btn btn-circle btn-xs btn-error"
               onClick={handleRemove}
             >
-              <XMarkIcon className="h-3 w-3" />
+              <XMarkIcon className="h-3.5 w-3.5" strokeWidth={5} strokeLinecap="square" />
             </button>
           )}
         </div>
       ) : (
         <button
           type="button"
-          className={`flex items-center justify-center border-2 border-dashed border-base-300 bg-base-200 cursor-pointer transition-colors hover:border-primary/50 ${
+          className={`flex items-center justify-center border border-dashed border-base-content/20 bg-base-100 cursor-pointer transition-colors hover:border-primary/40 ${
             isCircle
               ? "h-24 w-24 rounded-full flex-col gap-1"
-              : "h-32 w-full rounded-xl flex-col gap-2"
+              : `${rectHeightClass} w-full rounded-xl flex-col gap-2`
           }`}
           onClick={() => fileRef.current?.click()}
           disabled={uploading}

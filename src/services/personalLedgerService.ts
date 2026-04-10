@@ -118,6 +118,26 @@ export async function createContact(
   return { contactId, ...data } as PersonalContact;
 }
 
+export async function ensureContact(
+  userId: string,
+  displayName: string,
+  linkedUserId: string | null = null,
+  avatarUrl: string | null = null,
+): Promise<PersonalContact> {
+  const normalizedName = displayName.trim();
+  if (!normalizedName) {
+    throw new ZplitError("EXPENSE_SAVE_FAILED", "聯絡人名稱不可為空");
+  }
+
+  const contacts = await getContacts(userId);
+  const existing = contacts.find(
+    (c) => c.displayName.trim().toLowerCase() === normalizedName.toLowerCase(),
+  );
+  if (existing) return existing;
+
+  return createContact(userId, normalizedName, linkedUserId, avatarUrl);
+}
+
 export async function updateContact(
   userId: string,
   contactId: string,

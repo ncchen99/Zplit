@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   collection,
@@ -26,13 +26,20 @@ import { useState } from "react";
 import { Plus as PlusIcon, Share2 as ShareIcon } from "lucide-react";
 
 type TabKey = "summary" | "settle" | "members" | "settings";
+type GroupDetailLocationState = { from?: string };
 
 export function GroupDetailPage() {
   const { t } = useTranslation();
   const { groupId } = useParams<{ groupId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const showToast = useUIStore((s) => s.showToast);
   const [activeTab, setActiveTab] = useState<TabKey>("summary");
+
+  const navigationState = location.state as GroupDetailLocationState | null;
+  const backTarget = navigationState?.from?.startsWith("/")
+    ? navigationState.from
+    : "/home";
 
   const currentGroup = useGroupStore((s) => s.currentGroup);
   const setCurrentGroup = useGroupStore((s) => s.setCurrentGroup);
@@ -132,7 +139,7 @@ export function GroupDetailPage() {
       <div className="relative flex min-h-[100dvh] md:min-h-[inherit] flex-col">
         <PageHeader
           title={t("group.summary.title")}
-          onBack={() => navigate("/home")}
+          onBack={() => navigate(backTarget)}
           rightAction={
             <HeaderIconButton onClick={() => {}} disabled>
               <ShareIcon className="h-5 w-5" />
@@ -193,7 +200,7 @@ export function GroupDetailPage() {
             </span>
           </span>
         }
-        onBack={() => navigate("/home")}
+        onBack={() => navigate(backTarget)}
         rightAction={
           <HeaderIconButton onClick={handleShare}>
             <ShareIcon className="h-5 w-5" />

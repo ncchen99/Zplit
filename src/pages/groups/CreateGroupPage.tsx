@@ -1,9 +1,17 @@
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import { useUIStore } from "@/store/uiStore";
-import { createGroup, addPlaceholderMember } from "@/services/groupService";
+import {
+  createGroup,
+  addPlaceholderMember,
+  getUserGroups,
+} from "@/services/groupService";
+import {
+  getContacts,
+  type PersonalContact,
+} from "@/services/personalLedgerService";
 import { logger } from "@/utils/logger";
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import { PageHeader, HeaderIconButton } from "@/components/ui/PageHeader";
@@ -11,7 +19,6 @@ import { UserAvatar } from "@/components/ui/UserAvatar";
 import {
   X as XMarkIcon,
   Check as CheckIcon,
-  Star as StarIcon,
   Plus as PlusIcon,
 } from "lucide-react";
 
@@ -19,6 +26,12 @@ interface PreAddMember {
   id: string;
   name: string;
   isCreator: boolean;
+}
+
+interface MemberSuggestion {
+  key: string;
+  displayName: string;
+  avatarUrl: string | null;
 }
 
 export function CreateGroupPage() {
@@ -30,6 +43,12 @@ export function CreateGroupPage() {
   const [name, setName] = useState("");
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [memberSearch, setMemberSearch] = useState("");
+  const [contacts, setContacts] = useState<PersonalContact[]>([]);
+  const [groupMemberSuggestions, setGroupMemberSuggestions] = useState<
+    MemberSuggestion[]
+  >([]);
+  const [loadingContacts, setLoadingContacts] = useState(false);
+  const [showMemberDropdown, setShowMemberDropdown] = useState(false);
   const [preMembers, setPreMembers] = useState<PreAddMember[]>([
     {
       id: user?.uid ?? "creator",
@@ -40,16 +59,113 @@ export function CreateGroupPage() {
   const [saving, setSaving] = useState(false);
   const [showDiscardModal, setShowDiscardModal] = useState(false);
 
-  const handleAddMember = () => {
-    const trimmed = memberSearch.trim();
-    if (!trimmed) return;
-    if (preMembers.some((m) => m.name === trimmed)) return;
+  const loadContacts = useCallback(async () => {
+    if (!user) return;
+    setLoadingContacts(true);
+    try {
+      const [contactList, groups] = await Promise.all([
+        getContacts(user.uid),
+        getUserGroups(user.uid),
+      ]);
+      setContacts(contactList);
 
-    setPreMembers((prev) => [
-      ...prev,
-      { id: `pre_${Date.now()}`, name: trimmed, isCreator: false },
-    ]);
+      const memberMap = new Map<string, MemberSuggestion>();
+      for (const group of groups) {
+        for (const member of group.members) {
+          if (!member.displayName?.trim() || member.userId === user.uid) {
+            continue;
+          }
+          const normalized = member.displayName.trim();
+          const key = normalized.toLowerCase();
+          if (!memberMap.has(key)) {
+            memberMap.set(key, {
+              key: `group:${key}`,
+              displayName: normalized,
+              avatarUrl: member.avatarUrl,
+            });
+          }
+        }
+      }
+      setGroupMemberSuggestions(Array.from(memberMap.values()));
+    } catch (err) {
+      logger.error("group.create", "載入聯絡人失敗", err);
+    } finally {
+      setLoadingContacts(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    loadContacts();
+  }, [loadContacts]);
+
+  const addPreMember = (rawName: string) => {
+    const normalizedName = rawName.trim();
+    if (!normalizedName) return;
+
+    setPreMembers((prev) => {
+      const alreadyExists = prev.some(
+        (m) => m.name.trim().toLowerCase() === normalizedName.toLowerCase(),
+      );
+      if (alreadyExists) return prev;
+      return [
+        ...prev,
+        { id: `pre_${Date.now()}`, name: normalizedName, isCreator: false },
+      ];
+    });
+  };
+
+  const trimmedSearch = memberSearch.trim();
+  const allSuggestions = useMemo(() => {
+    const existingContactNames = new Set(
+      contacts.map((c) => c.displayName.trim().toLowerCase()),
+    );
+
+    const contactSuggestions: MemberSuggestion[] = contacts.map((c) => ({
+      key: `contact:${c.contactId}`,
+      displayName: c.displayName,
+      avatarUrl: c.avatarUrl,
+    }));
+
+    const groupOnlySuggestions = groupMemberSuggestions.filter(
+      (s) => !existingContactNames.has(s.displayName.trim().toLowerCase()),
+    );
+
+    return [...contactSuggestions, ...groupOnlySuggestions];
+  }, [contacts, groupMemberSuggestions]);
+
+  const filteredSuggestions = useMemo(
+    () =>
+      (trimmedSearch
+        ? allSuggestions.filter((s) =>
+            s.displayName.toLowerCase().includes(trimmedSearch.toLowerCase()),
+          )
+        : allSuggestions
+      ).filter(
+        (s) =>
+          !preMembers.some(
+            (m) =>
+              m.name.trim().toLowerCase() === s.displayName.trim().toLowerCase(),
+          ),
+      ),
+    [allSuggestions, preMembers, trimmedSearch],
+  );
+
+  const canAddTypedMember =
+    !!trimmedSearch &&
+    !preMembers.some(
+      (m) => m.name.trim().toLowerCase() === trimmedSearch.toLowerCase(),
+    );
+
+  const handleAddMember = () => {
+    addPreMember(memberSearch);
     setMemberSearch("");
+    setShowMemberDropdown(false);
+  };
+
+  const handleSelectSuggestion = (suggestion: MemberSuggestion) => {
+    addPreMember(suggestion.displayName);
+    setMemberSearch("");
+    setShowMemberDropdown(false);
   };
 
   const handleRemoveMember = (id: string) => {
@@ -80,7 +196,7 @@ export function CreateGroupPage() {
       // Add pre-added members as placeholders
       const newMembers = preMembers.filter((m) => !m.isCreator);
       for (const m of newMembers) {
-        await addPlaceholderMember(group.groupId, m.name);
+        await addPlaceholderMember(group.groupId, m.name, user.uid);
       }
 
       logger.info("group.create", "群組建立成功", { groupId: group.groupId });
@@ -162,7 +278,7 @@ export function CreateGroupPage() {
           {/* Member list (horizontal) */}
           <div className="mt-2 flex flex-wrap gap-2">
             {preMembers.map((m) => (
-              <div key={m.id} className="badge badge-lg gap-1 pr-1">
+              <div key={m.id} className="badge badge-lg gap-1 pl-1 pr-1">
                 <UserAvatar
                   src={null}
                   name={m.name}
@@ -171,9 +287,7 @@ export function CreateGroupPage() {
                   bgClass="bg-base-300 text-base-content"
                 />
                 <span className="text-sm">{m.name}</span>
-                {m.isCreator ? (
-                  <StarIcon className="h-3.5 w-3.5 text-warning" />
-                ) : (
+                {!m.isCreator && (
                   <button
                     type="button"
                     className="btn btn-ghost btn-xs btn-circle"
@@ -188,27 +302,66 @@ export function CreateGroupPage() {
 
           {/* Search / Add */}
           <div className="mt-3">
-            <input
-              type="text"
-              className="input w-full"
-              placeholder={t("group.create.searchMembers")}
-              value={memberSearch}
-              onChange={(e) => setMemberSearch(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleAddMember();
-                }
-              }}
-            />
-            {memberSearch.trim() && (
+            <div className="relative">
+              <input
+                type="text"
+                className="input w-full"
+                placeholder={t("group.create.searchMembers")}
+                value={memberSearch}
+                onChange={(e) => {
+                  setMemberSearch(e.target.value);
+                  setShowMemberDropdown(true);
+                }}
+                onFocus={() => setShowMemberDropdown(true)}
+                onClick={() => setShowMemberDropdown(true)}
+                onBlur={() => setTimeout(() => setShowMemberDropdown(false), 150)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                  }
+                }}
+                autoComplete="off"
+              />
+              {loadingContacts && (
+                <span className="loading loading-spinner loading-xs absolute right-3 top-1/2 -translate-y-1/2" />
+              )}
+
+              {showMemberDropdown &&
+                filteredSuggestions.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 z-50 mt-1 rounded-xl bg-base-100 shadow-lg border border-base-200 overflow-hidden">
+                    {filteredSuggestions.slice(0, 6).map((suggestion) => (
+                      <button
+                        key={suggestion.key}
+                        type="button"
+                        className="flex w-full items-center gap-2 rounded-none px-4 py-3 text-left transition-colors hover:bg-base-200 active:bg-base-300"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          handleSelectSuggestion(suggestion);
+                        }}
+                      >
+                        <UserAvatar
+                          src={suggestion.avatarUrl}
+                          name={suggestion.displayName}
+                          size="w-7"
+                          textSize="text-[10px]"
+                        />
+                        <span className="text-sm font-medium truncate">
+                          {suggestion.displayName}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+            </div>
+
+            {canAddTypedMember && (
               <button
                 type="button"
                 className="btn btn-ghost btn-sm mt-2 text-primary w-full justify-start"
                 onClick={handleAddMember}
               >
                 <PlusIcon className="h-4 w-4" />
-                {t("group.create.addAsMember", { name: memberSearch.trim() })}
+                {t("group.create.addAsMember", { name: trimmedSearch })}
               </button>
             )}
           </div>

@@ -14,6 +14,7 @@ import {
 import { db } from "@/lib/firebase";
 import { nanoid } from "nanoid";
 import type { Group, GroupMember } from "@/store/groupStore";
+import { ensureContact } from "@/services/personalLedgerService";
 import { logger } from "@/utils/logger";
 import { ZplitError } from "@/utils/errors";
 
@@ -169,11 +170,21 @@ export async function deleteGroup(groupId: string): Promise<void> {
 export async function addPlaceholderMember(
   groupId: string,
   displayName: string,
+  ownerUserId?: string,
 ): Promise<GroupMember> {
+  const normalizedName = displayName.trim();
+  if (!normalizedName) {
+    throw new ZplitError("EXPENSE_SAVE_FAILED", "成員名稱不可為空");
+  }
+
+  if (ownerUserId) {
+    await ensureContact(ownerUserId, normalizedName);
+  }
+
   const member: GroupMember = {
     memberId: nanoid(),
     userId: null,
-    displayName,
+    displayName: normalizedName,
     avatarUrl: null,
     isBound: false,
     joinedAt: null,

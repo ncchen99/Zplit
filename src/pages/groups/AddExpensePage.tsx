@@ -6,7 +6,7 @@ import { useAuthStore } from "@/store/authStore";
 import { useUIStore } from "@/store/uiStore";
 import { addExpense } from "@/services/expenseService";
 import { recalculateSettlements } from "@/services/settlementService";
-import { addPlaceholderMember, getGroupById } from "@/services/groupService";
+import { getGroupById } from "@/services/groupService";
 import { logger } from "@/utils/logger";
 import {
   getTaipeiDateTimeLocalString,
@@ -28,7 +28,6 @@ export function AddExpensePage() {
   const navigate = useNavigate();
   const { groupId } = useParams<{ groupId: string }>();
   const currentGroup = useGroupStore((s) => s.currentGroup);
-  const groupExpenses = useGroupStore((s) => s.expenses);
   const setCurrentGroup = useGroupStore((s) => s.setCurrentGroup);
   const user = useAuthStore((s) => s.user);
   const showToast = useUIStore((s) => s.showToast);
@@ -56,46 +55,8 @@ export function AddExpensePage() {
   );
   const [saving, setSaving] = useState(false);
   const [showDiscardModal, setShowDiscardModal] = useState(false);
-  const [memberSearch, setMemberSearch] = useState("");
-  const [addingMember, setAddingMember] = useState(false);
 
   const members = currentGroup?.members ?? [];
-
-  const memberFrequencyMap = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const expense of groupExpenses) {
-      map.set(expense.paidBy, (map.get(expense.paidBy) ?? 0) + 1);
-      for (const split of expense.splits) {
-        map.set(split.memberId, (map.get(split.memberId) ?? 0) + 1);
-      }
-    }
-    return map;
-  }, [groupExpenses]);
-
-  const displayedMembers = useMemo(() => {
-    const keyword = memberSearch.trim().toLowerCase();
-    return [...members]
-      .filter((m) => !keyword || m.displayName.toLowerCase().includes(keyword))
-      .sort((a, b) => {
-        const aSelected = selectedMembers.includes(a.memberId);
-        const bSelected = selectedMembers.includes(b.memberId);
-        if (aSelected !== bSelected) return aSelected ? -1 : 1;
-
-        const aFreq = memberFrequencyMap.get(a.memberId) ?? 0;
-        const bFreq = memberFrequencyMap.get(b.memberId) ?? 0;
-        if (aFreq !== bFreq) return bFreq - aFreq;
-
-        return a.displayName.localeCompare(b.displayName, "zh-Hant");
-      });
-  }, [memberSearch, members, memberFrequencyMap, selectedMembers]);
-
-  const canQuickAddMember = useMemo(() => {
-    const keyword = memberSearch.trim();
-    if (!keyword) return false;
-    return !members.some(
-      (m) => m.displayName.toLowerCase() === keyword.toLowerCase(),
-    );
-  }, [memberSearch, members]);
 
   // 若 currentGroup 不在 store（例如直接導航到此頁），從 Firestore 載入
   useEffect(() => {
@@ -175,22 +136,6 @@ export function AddExpensePage() {
 
   const selectAll = () => setSelectedMembers(members.map((m) => m.memberId));
   const clearAll = () => setSelectedMembers([]);
-
-  const handleQuickAddMember = async () => {
-    if (!groupId || !canQuickAddMember) return;
-    setAddingMember(true);
-    try {
-      const member = await addPlaceholderMember(groupId, memberSearch.trim());
-      setSelectedMembers((prev) => [...prev, member.memberId]);
-      setMemberSearch("");
-      showToast(t("group.members.addMember"), "success");
-    } catch (err) {
-      logger.error("expense.add.quickMember", "快速新增成員失敗", err);
-      showToast(t("common.error"), "error");
-    } finally {
-      setAddingMember(false);
-    }
-  };
 
   const handleSplitModeChange = (mode: SplitMode) => {
     setSplitMode(mode);
@@ -376,35 +321,10 @@ export function AddExpensePage() {
             )}
           </div>
 
-          <div className="mb-3 flex flex-col gap-2 sm:flex-row">
-            <input
-              type="text"
-              className="input input-sm w-full"
-              placeholder={t("group.create.searchMembers")}
-              value={memberSearch}
-              onChange={(e) => setMemberSearch(e.target.value)}
-            />
-            {canQuickAddMember && (
-              <button
-                type="button"
-                className="btn btn-sm btn-outline"
-                onClick={handleQuickAddMember}
-                disabled={addingMember}
-              >
-                {addingMember ? (
-                  <span className="loading loading-spinner loading-xs" />
-                ) : (
-                  t("group.members.addMember")
-                )}
-              </button>
-            )}
-          </div>
-
           {splitMode === "equal" && (
             <div className="filter mb-3 flex w-full flex-wrap gap-2">
-              {displayedMembers.map((m) => {
+              {members.map((m) => {
                 const isSelected = selectedMembers.includes(m.memberId);
-                const usedCount = memberFrequencyMap.get(m.memberId) ?? 0;
                 return (
                   <label
                     key={m.memberId}
@@ -437,11 +357,6 @@ export function AddExpensePage() {
                     <span className="max-w-20 truncate text-xs">
                       {m.displayName}
                     </span>
-                    {usedCount > 0 && (
-                      <span className="badge badge-ghost badge-xs">
-                        {usedCount}
-                      </span>
-                    )}
                   </label>
                 );
               })}
@@ -451,10 +366,9 @@ export function AddExpensePage() {
           {/* 平均分帳改由上方 filter 直接控制，不再顯示重複名單 */}
           {splitMode !== "equal" && (
             <div className="flex flex-col gap-2">
-              {displayedMembers.map((m) => {
+              {members.map((m) => {
                 const splitAmount =
                   splits.find((s) => s.memberId === m.memberId)?.amount ?? 0;
-                const usedCount = memberFrequencyMap.get(m.memberId) ?? 0;
                 return (
                   <div key={m.memberId} className="flex items-center gap-3">
                     <div className="label gap-2 flex-1 min-w-0">
@@ -467,11 +381,6 @@ export function AddExpensePage() {
                       />
                       <span className="label-text flex-1 truncate">
                         {m.displayName}
-                        {usedCount > 0 && (
-                          <span className="ml-1 text-[10px] text-base-content/40">
-                            ({usedCount})
-                          </span>
-                        )}
                         {splitMode === "percent" &&
                           amountNum > 0 &&
                           splitAmount > 0 && (
@@ -599,6 +508,7 @@ export function AddExpensePage() {
                 onUpload={setImageUrl}
                 onRemove={() => setImageUrl(null)}
                 shape="rect"
+                rectHeightClass="h-44 sm:h-56"
                 label={t("expense.receiptUpload")}
                 className="w-full"
               />

@@ -109,7 +109,11 @@ export function GroupListPage() {
                   <GroupListItem
                     key={g.groupId}
                     group={g}
-                    onClick={() => navigate(`/groups/${g.groupId}`)}
+                    onClick={() =>
+                      navigate(`/groups/${g.groupId}`, {
+                        state: { from: "/groups" },
+                      })
+                    }
                   />
                 ))}
               </div>
@@ -128,7 +132,11 @@ export function GroupListPage() {
                     key={g.groupId}
                     group={g}
                     settled
-                    onClick={() => navigate(`/groups/${g.groupId}`)}
+                    onClick={() =>
+                      navigate(`/groups/${g.groupId}`, {
+                        state: { from: "/groups" },
+                      })
+                    }
                   />
                 ))}
               </div>

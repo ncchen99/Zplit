@@ -10,9 +10,10 @@ import { UserAvatar } from "@/components/ui/UserAvatar";
 import {
   addPersonalExpense,
   getContacts,
-  createContact,
+  ensureContact,
   type PersonalContact,
 } from "@/services/personalLedgerService";
+import { getUserGroups } from "@/services/groupService";
 import { logger } from "@/utils/logger";
 import {
   getTaipeiDateTimeLocalString,
@@ -30,11 +31,16 @@ export function AddPersonalExpensePage() {
 
   // ── 聯絡人選取狀態（僅在無 contactId 時使用）──
   const [contacts, setContacts] = useState<PersonalContact[]>(storeContacts);
+  const [groupOnlySuggestions, setGroupOnlySuggestions] = useState<
+    Array<{ key: string; displayName: string; avatarUrl: string | null }>
+  >([]);
   const [contactSearch, setContactSearch] = useState("");
   const [selectedContact, setSelectedContact] =
     useState<PersonalContact | null>(null);
   const [showContactDropdown, setShowContactDropdown] = useState(false);
   const [loadingContacts, setLoadingContacts] = useState(false);
+  const [resolvingContact, setResolvingContact] = useState(false);
+  const [suggestionsLoaded, setSuggestionsLoaded] = useState(false);
 
   // 表單欄位
   const [title, setTitle] = useState("");
@@ -46,17 +52,45 @@ export function AddPersonalExpensePage() {
 
   // 若從個人頁 FAB 進入（無 contactId），需載入聯絡人清單
   const loadContacts = useCallback(async () => {
-    if (!user || contacts.length > 0) return;
+    if (!user || suggestionsLoaded) return;
     setLoadingContacts(true);
     try {
-      const list = await getContacts(user.uid);
+      const [list, groups] = await Promise.all([
+        getContacts(user.uid),
+        getUserGroups(user.uid),
+      ]);
       setContacts(list);
+
+      const existingContactNames = new Set(
+        list.map((c) => c.displayName.trim().toLowerCase()),
+      );
+      const memberMap = new Map<
+        string,
+        { key: string; displayName: string; avatarUrl: string | null }
+      >();
+
+      for (const group of groups) {
+        for (const member of group.members) {
+          const normalized = member.displayName?.trim();
+          if (!normalized || member.userId === user.uid) continue;
+          const key = normalized.toLowerCase();
+          if (existingContactNames.has(key) || memberMap.has(key)) continue;
+          memberMap.set(key, {
+            key: `group:${key}`,
+            displayName: normalized,
+            avatarUrl: member.avatarUrl,
+          });
+        }
+      }
+
+      setGroupOnlySuggestions(Array.from(memberMap.values()));
+      setSuggestionsLoaded(true);
     } catch (err) {
       logger.error("addPersonalExpense.loadContacts", "載入聯絡人失敗", err);
     } finally {
       setLoadingContacts(false);
     }
-  }, [user, contacts.length]);
+  }, [suggestionsLoaded, user]);
 
   useEffect(() => {
     if (!contactId) {
@@ -79,36 +113,78 @@ export function AddPersonalExpensePage() {
     isContactSelected && title.trim() && amount && Number(amount) > 0;
 
   const trimmedSearch = contactSearch.trim();
-  const filteredContacts = trimmedSearch
-    ? contacts.filter((c) =>
+  const allSuggestions = [
+    ...contacts.map((c) => ({
+      key: `contact:${c.contactId}`,
+      displayName: c.displayName,
+      avatarUrl: c.avatarUrl,
+      contact: c,
+    })),
+    ...groupOnlySuggestions,
+  ];
+  const filteredSuggestions = trimmedSearch
+    ? allSuggestions.filter((c) =>
         c.displayName.toLowerCase().includes(trimmedSearch.toLowerCase()),
       )
-    : contacts;
+    : allSuggestions;
   const showNewContactOption =
     trimmedSearch &&
     !contacts.some(
       (c) => c.displayName.toLowerCase() === trimmedSearch.toLowerCase(),
     );
 
-  const handleSelectContact = (contact: PersonalContact) => {
-    setSelectedContact(contact);
-    setContactSearch(contact.displayName);
-    setShowContactDropdown(false);
-  };
-
   const handleCreateAndSelect = async () => {
-    if (!user || !contactSearch.trim()) return;
-    setSaving(true);
+    if (!user || !trimmedSearch) return;
+    setResolvingContact(true);
     try {
-      const newContact = await createContact(user.uid, contactSearch.trim());
-      setSelectedContact(newContact);
-      setContactSearch(newContact.displayName);
+      const contact = await ensureContact(user.uid, trimmedSearch);
+      setSelectedContact(contact);
+      setContactSearch(contact.displayName);
+      setContacts((prev) => {
+        if (prev.some((c) => c.contactId === contact.contactId)) return prev;
+        return [contact, ...prev];
+      });
       setShowContactDropdown(false);
     } catch (err) {
       logger.error("addPersonalExpense.createContact", "新增聯絡人失敗", err);
       showToast(t("common.error"), "error");
     } finally {
-      setSaving(false);
+      setResolvingContact(false);
+    }
+  };
+
+  const handleSelectSuggestion = async (
+    suggestion: {
+      key: string;
+      displayName: string;
+      avatarUrl: string | null;
+      contact?: PersonalContact;
+    },
+  ) => {
+    if (!user) return;
+
+    if (suggestion.contact) {
+      setSelectedContact(suggestion.contact);
+      setContactSearch(suggestion.contact.displayName);
+      setShowContactDropdown(false);
+      return;
+    }
+
+    setResolvingContact(true);
+    try {
+      const ensured = await ensureContact(user.uid, suggestion.displayName);
+      setContacts((prev) => {
+        if (prev.some((c) => c.contactId === ensured.contactId)) return prev;
+        return [ensured, ...prev];
+      });
+      setSelectedContact(ensured);
+      setContactSearch(ensured.displayName);
+      setShowContactDropdown(false);
+    } catch (err) {
+      logger.error("addPersonalExpense.selectContact", "選取聯絡人失敗", err);
+      showToast(t("common.error"), "error");
+    } finally {
+      setResolvingContact(false);
     }
   };
 
@@ -188,31 +264,37 @@ export function AddPersonalExpensePage() {
                   setShowContactDropdown(true);
                 }}
                 onFocus={() => setShowContactDropdown(true)}
+                onClick={() => setShowContactDropdown(true)}
                 onBlur={() =>
                   setTimeout(() => setShowContactDropdown(false), 150)
                 }
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                  }
+                }}
                 autoComplete="off"
               />
-              {loadingContacts && (
+              {(loadingContacts || resolvingContact) && (
                 <span className="loading loading-spinner loading-xs absolute right-3 top-1/2 -translate-y-1/2" />
               )}
             </div>
 
             {/* 下拉選單 */}
             {showContactDropdown &&
-              (filteredContacts.length > 0 || showNewContactOption) && (
+              filteredSuggestions.length > 0 && (
                 <div className="absolute top-full left-0 right-0 z-50 mt-1 rounded-xl bg-base-100 shadow-lg border border-base-200 overflow-hidden">
-                  {filteredContacts.slice(0, 5).map((c) => (
+                  {filteredSuggestions.slice(0, 6).map((c) => (
                     <button
-                      key={c.contactId}
+                      key={c.key}
                       className={`flex w-full items-center gap-2 rounded-none px-4 py-3 text-left transition-colors hover:bg-base-200 active:bg-base-300 ${
-                        selectedContact?.contactId === c.contactId
+                        selectedContact?.displayName === c.displayName
                           ? "bg-base-200"
                           : ""
                       }`}
                       onMouseDown={(e) => {
                         e.preventDefault();
-                        handleSelectContact(c);
+                        void handleSelectSuggestion(c);
                       }}
                     >
                       <UserAvatar
@@ -226,22 +308,20 @@ export function AddPersonalExpensePage() {
                       </span>
                     </button>
                   ))}
-                  {showNewContactOption && (
-                    <button
-                      className="flex w-full items-center gap-2 rounded-none px-4 py-3 text-left text-primary transition-colors hover:bg-base-200 active:bg-base-300"
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        handleCreateAndSelect();
-                      }}
-                    >
-                      <PlusIcon className="h-4 w-4" />
-                      <span className="text-sm font-medium">
-                        {t("personal.addAsNewContact", { name: trimmedSearch })}
-                      </span>
-                    </button>
-                  )}
                 </div>
               )}
+
+            {showNewContactOption && (
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm mt-2 text-primary w-full justify-start"
+                onClick={handleCreateAndSelect}
+                disabled={resolvingContact}
+              >
+                <PlusIcon className="h-4 w-4" />
+                {t("personal.addAsNewContact", { name: trimmedSearch })}
+              </button>
+            )}
 
             {selectedContact && (
               <p className="mt-1 text-xs text-success">

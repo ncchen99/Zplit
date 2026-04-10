@@ -601,6 +601,7 @@ export function EditExpensePage() {
                 onUpload={setImageUrl}
                 onRemove={() => setImageUrl(null)}
                 shape="rect"
+                rectHeightClass="h-44 sm:h-56"
                 label={t("expense.receiptUpload")}
                 className="w-full"
               />

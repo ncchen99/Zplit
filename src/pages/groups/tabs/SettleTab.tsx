@@ -130,7 +130,7 @@ export function SettleTab() {
         <div className="stat py-3.5 px-4 min-w-0">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-bold text-base-content/70 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+              {/* <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span> */}
               {t("group.settle.progress")}
             </h3>
             <span className="text-sm font-black text-primary px-2 py-0.5 rounded-full">
