@@ -58,7 +58,7 @@ export function OnboardingPage() {
   };
 
   return (
-    <div className="flex min-h-[100dvh] md:min-h-[inherit] flex-col px-6 pt-4 pb-8">
+    <div className="flex min-h-[100dvh] md:min-h-full flex-col px-6 pt-4 pb-8">
       {/* Back button */}
       <button
         className="btn btn-ghost btn-sm btn-circle self-start"
