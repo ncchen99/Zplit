@@ -22,16 +22,23 @@ export function ConfirmModal({
 }: ConfirmModalProps) {
   if (!open) return null;
 
+  const resolvedConfirmClass = (() => {
+    if (confirmVariant.includes('error')) return 'btn-danger-soft';
+    if (confirmVariant.includes('primary')) return 'btn-theme-green';
+    if (confirmVariant.includes('outline')) return 'btn-muted';
+    return `btn ${confirmVariant}`;
+  })();
+
   return (
     <div className="modal modal-open">
       <div className="modal-box">
         {title && <h3 className="font-bold text-lg mb-2">{title}</h3>}
         <p className="text-sm">{message}</p>
         <div className="modal-action">
-          <button className="btn btn-ghost" onClick={onCancel}>
+          <button className="btn-white-soft" onClick={onCancel}>
             {cancelLabel}
           </button>
-          <button className={`btn ${confirmVariant}`} onClick={onConfirm}>
+          <button className={resolvedConfirmClass} onClick={onConfirm}>
             {confirmLabel}
           </button>
         </div>

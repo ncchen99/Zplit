@@ -111,7 +111,7 @@ export function MembersTab() {
             maxLength={30}
           />
           <button
-            className="btn btn-primary btn-sm join-item"
+            className="btn-theme-green btn-sm join-item"
             onClick={handleAddMember}
             disabled={!newName.trim() || adding}
           >

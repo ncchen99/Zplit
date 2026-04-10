@@ -3,6 +3,60 @@
   themes: lemonade --default, dim --prefersdark;
 }
 
+@layer components {
+  .btn-muted {
+    @apply btn text-base-content/55 hover:text-base-content/65;
+    --btn-border: var(--color-base-200);
+    background-color: var(--color-base-200) !important;
+    border-color: var(--color-base-200) !important;
+
+    &:hover {
+      --btn-border: var(--color-base-300);
+      background-color: var(--color-base-300) !important;
+      border-color: var(--color-base-300) !important;
+    }
+  }
+
+  .btn-white-soft {
+    @apply btn text-base-content/70;
+    --btn-border: var(--color-base-100);
+    background-color: var(--color-base-100) !important;
+    border-color: var(--color-base-100) !important;
+
+    &:hover {
+      --btn-border: var(--color-base-200);
+      background-color: var(--color-base-200) !important;
+      border-color: var(--color-base-200) !important;
+    }
+  }
+
+  .btn-theme-green {
+    @apply btn text-primary;
+    --btn-border: color-mix(in oklab, var(--color-primary) 14%, var(--color-base-100));
+    background-color: color-mix(in oklab, var(--color-primary) 14%, var(--color-base-100)) !important;
+    border-color: color-mix(in oklab, var(--color-primary) 14%, var(--color-base-100)) !important;
+
+    &:hover {
+      --btn-border: color-mix(in oklab, var(--color-primary) 22%, var(--color-base-100));
+      background-color: color-mix(in oklab, var(--color-primary) 22%, var(--color-base-100)) !important;
+      border-color: color-mix(in oklab, var(--color-primary) 22%, var(--color-base-100)) !important;
+    }
+  }
+
+  .btn-danger-soft {
+    @apply btn text-error;
+    --btn-border: color-mix(in oklab, var(--color-error) 14%, var(--color-base-100));
+    background-color: color-mix(in oklab, var(--color-error) 14%, var(--color-base-100)) !important;
+    border-color: color-mix(in oklab, var(--color-error) 14%, var(--color-base-100)) !important;
+
+    &:hover {
+      --btn-border: color-mix(in oklab, var(--color-error) 22%, var(--color-base-100));
+      background-color: color-mix(in oklab, var(--color-error) 22%, var(--color-base-100)) !important;
+      border-color: color-mix(in oklab, var(--color-error) 22%, var(--color-base-100)) !important;
+    }
+  }
+}
+
 /* Customize lemonade (light) theme */
 [data-theme="lemonade"] {
   --color-primary: oklch(54.937% 0.14028 149.554);

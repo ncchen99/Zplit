@@ -523,7 +523,7 @@ export function EditExpensePage() {
           </h3> */}
           <button
             type="button"
-            className="btn w-full btn-soft btn-error mt-4 mb-4"
+            className="btn-danger-soft w-full mt-4 mb-4"
             onClick={() => setShowDeleteModal(true)}
           >
             <TrashIcon className="h-4 w-4" />
@@ -539,10 +539,10 @@ export function EditExpensePage() {
             <h3 className="font-bold">{t('common.discard.title')}</h3>
             <p className="mt-2 text-sm text-base-content/70">{t('common.discard.message')}</p>
             <div className="modal-action">
-              <button className="btn btn-ghost" onClick={() => setShowDiscardModal(false)}>
+              <button className="btn-white-soft" onClick={() => setShowDiscardModal(false)}>
                 {t('common.discard.cancel')}
               </button>
-              <button className="btn btn-error" onClick={() => navigate(-1)}>
+              <button className="btn-danger-soft" onClick={() => navigate(-1)}>
                 {t('common.discard.confirm')}
               </button>
             </div>

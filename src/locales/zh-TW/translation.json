@@ -117,10 +117,16 @@
     "settings": {
       "title": "設定",
       "coverPhoto": "群組封面",
+      "tapToEditCover": "點擊修改封面",
       "groupInfo": "群組資料",
       "editGroup": "編輯群組",
       "inviteLink": "邀請連結",
       "dangerZone": "危險操作",
+      "autoSave": {
+        "saving": "自動儲存中...",
+        "saved": "已自動儲存",
+        "error": "自動儲存失敗"
+      },
       "groupDeleted": "群組已刪除"
     },
     "edit": {

@@ -199,7 +199,7 @@ export function SettleTab() {
                   </button>
                 ) : matchingSettlement ? (
                   <button
-                    className="btn btn-outline btn-primary btn-sm btn-circle"
+                    className="btn-theme-green btn-sm btn-circle"
                     onClick={() => handleMarkDone(matchingSettlement.settlementId)}
                     title={t('group.settle.markDone')}
                   >

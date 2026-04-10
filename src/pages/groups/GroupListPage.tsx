@@ -45,7 +45,7 @@ export function GroupListPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">{t('group.list.title')}</h1>
         <button
-          className="btn btn-primary btn-sm"
+          className="btn-theme-green btn-sm"
           onClick={() => navigate('/groups/new')}
         >
           <PlusIcon className="h-4 w-4" />

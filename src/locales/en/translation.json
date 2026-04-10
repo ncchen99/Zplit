@@ -117,10 +117,16 @@
     "settings": {
       "title": "Settings",
       "coverPhoto": "Cover Photo",
+      "tapToEditCover": "Tap to edit cover",
       "groupInfo": "Group Info",
       "editGroup": "Edit Group",
       "inviteLink": "Invite Link",
       "dangerZone": "Danger Zone",
+      "autoSave": {
+        "saving": "Auto saving...",
+        "saved": "Auto saved",
+        "error": "Auto save failed"
+      },
       "groupDeleted": "Group deleted"
     },
     "edit": {

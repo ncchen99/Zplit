@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useGroupStore } from '@/store/groupStore';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
-import { deleteGroup } from '@/services/groupService';
+import { deleteGroup, updateGroup } from '@/services/groupService';
 import { logger } from '@/utils/logger';
-import { LinkIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { LinkIcon, TrashIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { ImageUpload } from '@/components/ui/ImageUpload';
 
 export function SettingsTab() {
   const { t } = useTranslation();
@@ -17,10 +18,58 @@ export function SettingsTab() {
   const showToast = useUIStore((s) => s.showToast);
   const [deleting, setDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [nameDraft, setNameDraft] = useState('');
+  const [coverDraft, setCoverDraft] = useState('');
+  const [autoSaveState, setAutoSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   const isCreator = currentGroup?.createdBy === user?.uid;
+  const currentName = currentGroup?.name ?? '';
+  const currentCover = currentGroup?.coverUrl ?? '';
 
   const inviteUrl = `${window.location.origin}/join/${currentGroup?.inviteCode ?? ''}`;
+
+  useEffect(() => {
+    setNameDraft(currentName);
+    setCoverDraft(currentCover);
+    setAutoSaveState('idle');
+  }, [currentGroup?.groupId, currentName, currentCover]);
+
+  const normalizedName = nameDraft.trim();
+  const normalizedCover = coverDraft.trim();
+  const hasEditChanges = useMemo(
+    () => normalizedName !== currentName || normalizedCover !== currentCover,
+    [normalizedName, currentName, normalizedCover, currentCover]
+  );
+
+  useEffect(() => {
+    if (!currentGroup || !normalizedName || !hasEditChanges) return;
+
+    setAutoSaveState('saving');
+    const timer = window.setTimeout(async () => {
+      try {
+        await updateGroup(currentGroup.groupId, {
+          name: normalizedName,
+          coverUrl: normalizedCover || null,
+        });
+        setAutoSaveState('saved');
+      } catch (err) {
+        logger.error('settings.autosave', '群組設定自動儲存失敗', err);
+        setAutoSaveState('error');
+        showToast(t('common.error'), 'error');
+      }
+    }, 600);
+
+    return () => window.clearTimeout(timer);
+  }, [currentGroup?.groupId, normalizedName, normalizedCover, hasEditChanges]);
+
+  const autoSaveText =
+    autoSaveState === 'saving'
+      ? t('group.settings.autoSave.saving')
+      : autoSaveState === 'saved'
+        ? t('group.settings.autoSave.saved')
+        : autoSaveState === 'error'
+          ? t('group.settings.autoSave.error')
+          : '';
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(inviteUrl);
@@ -44,49 +93,65 @@ export function SettingsTab() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Cover Photo */}
-      {currentGroup?.coverUrl && (
-        <div>
-          <h3 className="font-semibold text-sm text-base-content/60 uppercase tracking-wider mb-3">
-            {t('group.settings.coverPhoto')}
+      {/* Group Edit */}
+      <div className="rounded-2xl border border-base-300 bg-base-100 p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="font-semibold text-sm text-base-content/60 uppercase tracking-wider">
+            {t('group.settings.groupInfo')}
           </h3>
-          <button
-            className="w-full rounded-xl overflow-hidden focus:outline-none"
-            onClick={() => navigate(`/groups/${currentGroup.groupId}/edit`)}
-            aria-label={t('group.settings.editGroup')}
-          >
-            <img
-              src={currentGroup.coverUrl}
-              alt=""
-              className="w-full h-48 object-cover"
-            />
-          </button>
+          {autoSaveText && (
+            <span className="inline-flex items-center gap-1 text-xs text-base-content/50">
+              {autoSaveState === 'saved' && <CheckIcon className="h-3.5 w-3.5" />}
+              {autoSaveText}
+            </span>
+          )}
         </div>
-      )}
 
-      {/* Group Info */}
-      <div>
-        <h3 className="font-semibold text-sm text-base-content/60 uppercase tracking-wider mb-3">
-          {t('group.settings.groupInfo')}
-        </h3>
-        <button
-          className="btn btn-block btn-outline gap-2"
-          onClick={() => navigate(`/groups/${currentGroup?.groupId}/edit`)}
-        >
-          <PencilSquareIcon className="h-5 w-5" />
-          {t('group.settings.editGroup')}
-        </button>
+        <div className="flex flex-col gap-4">
+          <fieldset className="fieldset w-full">
+            <legend className="fieldset-legend">{t('group.edit.name')}</legend>
+            <input
+              type="text"
+              className="input w-full"
+              placeholder={t('group.create.namePlaceholder')}
+              value={nameDraft}
+              onChange={(e) => setNameDraft(e.target.value)}
+              maxLength={50}
+            />
+          </fieldset>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-base-content/60">
+              {t('group.settings.coverPhoto')}
+            </label>
+            <ImageUpload
+              currentUrl={coverDraft || null}
+              onUpload={setCoverDraft}
+              onRemove={() => setCoverDraft('')}
+              shape="rect"
+              label={t('group.settings.tapToEditCover')}
+              className="w-full"
+            />
+          </div>
+        </div>
       </div>
 
       {/* Invite Link */}
-      <div>
+      <div className="rounded-2xl border border-base-300 bg-base-100 p-4">
         <h3 className="font-semibold text-sm text-base-content/60 uppercase tracking-wider mb-3">
           {t('group.settings.inviteLink')}
         </h3>
-        <div className="flex items-center gap-3 py-2">
-          <LinkIcon className="h-5 w-5 text-base-content/40 shrink-0" />
-          <span className="flex-1 text-sm text-base-content/60 truncate">{inviteUrl}</span>
-          <button className="btn btn-sm btn-outline shrink-0" onClick={handleCopyLink}>
+        <div className="join w-full">
+          <label className="input input-sm join-item flex w-full items-center gap-2">
+            <LinkIcon className="h-4 w-4 shrink-0 text-base-content/40" />
+            <input
+              type="text"
+              className="grow text-sm text-base-content/60"
+              value={inviteUrl}
+              readOnly
+            />
+          </label>
+          <button className="btn-muted btn-sm join-item shrink-0" onClick={handleCopyLink}>
             {t('group.members.copyLink')}
           </button>
         </div>
@@ -94,12 +159,12 @@ export function SettingsTab() {
 
       {/* Danger Zone */}
       {isCreator && (
-        <div>
+        <div className="rounded-2xl border border-error/25 bg-error/5 p-4">
           <h3 className="font-semibold text-sm text-error/70 uppercase tracking-wider mb-3">
             {t('group.settings.dangerZone')}
           </h3>
           <button
-            className="btn btn-block btn-error btn-outline gap-2"
+            className="btn-danger-soft btn-block gap-2"
             onClick={() => setShowDeleteConfirm(true)}
             disabled={deleting}
           >
