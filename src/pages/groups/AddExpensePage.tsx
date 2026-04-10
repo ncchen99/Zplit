@@ -295,13 +295,11 @@ export function AddExpensePage() {
         </fieldset>
 
         {/* Split With */}
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">
-              {t("expense.splitWith")}
-            </span>
+        <fieldset className="fieldset w-full">
+          <legend className="fieldset-legend mb-2 flex w-full items-center justify-between">
+            <span>{t("expense.splitWith")}</span>
             {splitMode === "equal" && (
-              <div className="flex gap-2">
+              <span className="flex items-center gap-2">
                 <button
                   type="button"
                   className="btn btn-ghost btn-xs"
@@ -317,9 +315,9 @@ export function AddExpensePage() {
                 >
                   {t("common.button.clearAll")}
                 </button>
-              </div>
+              </span>
             )}
-          </div>
+          </legend>
 
           {splitMode === "equal" && (
             <div className="filter mb-3 flex w-full flex-wrap gap-2">
@@ -472,7 +470,7 @@ export function AddExpensePage() {
               {percentTotal === 100 && <CheckCircleIcon className="h-4 w-4" />}
             </div>
           )}
-        </div>
+        </fieldset>
 
         {/* Expandable Details */}
         <div className="collapse collapse-arrow bg-base-200 rounded-xl">
@@ -499,10 +497,8 @@ export function AddExpensePage() {
             </fieldset>
 
             {/* Image Upload */}
-            <div>
-              <label className="text-sm font-medium text-base-content/60 mb-2 block">
-                {t("expense.receipt")}
-              </label>
+            <fieldset className="fieldset w-full">
+              <legend className="fieldset-legend">{t("expense.receipt")}</legend>
               <ImageUpload
                 currentUrl={imageUrl}
                 onUpload={setImageUrl}
@@ -512,7 +508,7 @@ export function AddExpensePage() {
                 label={t("expense.receiptUpload")}
                 className="w-full"
               />
-            </div>
+            </fieldset>
           </div>
         </div>
 
@@ -532,13 +528,13 @@ export function AddExpensePage() {
             </span>
           </div>
           <div className="collapse-content flex flex-col gap-3">
-            <div className="join join-vertical sm:join-horizontal w-full">
+            <div className="join w-full">
               {(["none", "daily", "weekly", "monthly"] as RepeatType[]).map(
                 (type) => (
                   <button
                     key={type}
                     type="button"
-                    className={`join-item btn btn-sm flex-1 ${repeatType === type ? "btn-active" : ""}`}
+                    className={`join-item btn btn-sm flex-1 ${repeatType === type ? "btn-active text-base-content/85" : "text-base-content/55 hover:text-base-content/65"}`}
                     onClick={() => setRepeatType(type)}
                   >
                     {t(`expense.repeat.${type}`)}

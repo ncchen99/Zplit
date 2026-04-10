@@ -17,7 +17,6 @@ import { ImageUpload } from "@/components/ui/ImageUpload";
 import { PageHeader, HeaderIconButton } from "@/components/ui/PageHeader";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import {
-  X as XMarkIcon,
   Check as CheckIcon,
   Plus as PlusIcon,
 } from "lucide-react";
@@ -237,11 +236,9 @@ export function CreateGroupPage() {
         className="flex-1 px-4 pb-8 flex flex-col gap-5"
       >
         {/* Cover Image Upload */}
-        <div>
-          <label className="text-sm font-medium text-base-content/60">
-            {t("group.create.cover")}
-          </label>
-          <p className="text-xs text-base-content/40 mb-2">
+        <fieldset className="fieldset w-full">
+          <legend className="fieldset-legend">{t("group.create.cover")}</legend>
+          <p className="label pt-0 text-base-content/45">
             {t("group.create.coverHint")}
           </p>
           <ImageUpload
@@ -252,7 +249,7 @@ export function CreateGroupPage() {
             label={t("group.create.coverUpload")}
             className="w-full"
           />
-        </div>
+        </fieldset>
 
         {/* Group Name */}
         <fieldset className="fieldset w-full">
@@ -270,45 +267,42 @@ export function CreateGroupPage() {
         </fieldset>
 
         {/* Members Section */}
-        <div>
-          <label className="text-sm font-medium text-base-content/60">
+        <fieldset className="fieldset w-full">
+          <legend className="fieldset-legend">
             {t("group.create.membersSection")}
-          </label>
+          </legend>
 
-          {/* Member list (horizontal) */}
-          <div className="mt-2 flex flex-wrap gap-2">
-            {preMembers.map((m) =>
-              m.isCreator ? (
-                <div key={m.id} className="badge badge-lg gap-1 pl-1 pr-2.5">
-                  <UserAvatar
-                    src={null}
-                    name={m.name}
-                    size="w-5"
-                    textSize="text-[10px]"
-                    bgClass="bg-base-300 text-base-content"
-                  />
-                  <span className="text-sm">{m.name}</span>
-                </div>
-              ) : (
-                <button
-                  key={m.id}
-                  type="button"
-                  className="badge badge-lg gap-1 pl-1 pr-1 cursor-pointer transition-colors hover:bg-base-300 active:bg-base-300/80"
-                  onClick={() => handleRemoveMember(m.id)}
-                  aria-label={`移除成員 ${m.name}`}
-                >
-                  <UserAvatar
-                    src={null}
-                    name={m.name}
-                    size="w-5"
-                    textSize="text-[10px]"
-                    bgClass="bg-base-300 text-base-content"
-                  />
-                  <span className="text-sm">{m.name}</span>
-                  <XMarkIcon className="h-3 w-3" />
-                </button>
-              ),
-            )}
+          {/* Member list (split-target style) */}
+          <div className="filter mt-2 flex w-full flex-wrap gap-2">
+            {preMembers.map((m) => (
+              <label
+                key={m.id}
+                className={`btn h-auto min-h-11 gap-2 bg-base-100 px-3 text-base-content ${m.isCreator ? "border-base-300 cursor-default" : "border-success cursor-pointer"}`}
+              >
+                <input
+                  type="checkbox"
+                  name={`create-group-member-${m.id}`}
+                  className="sr-only"
+                  checked
+                  disabled={m.isCreator}
+                  onChange={() => {
+                    if (!m.isCreator) {
+                      handleRemoveMember(m.id);
+                    }
+                  }}
+                />
+                <input
+                  type="checkbox"
+                  checked
+                  readOnly
+                  className="checkbox checkbox-primary checkbox-sm pointer-events-none"
+                  aria-label={m.name}
+                />
+                <span className="max-w-28 truncate text-sm font-medium">
+                  {m.name}
+                </span>
+              </label>
+            ))}
           </div>
 
           {/* Search / Add */}
@@ -376,7 +370,7 @@ export function CreateGroupPage() {
               </button>
             )}
           </div>
-        </div>
+        </fieldset>
       </form>
 
       {/* Discard confirmation modal */}

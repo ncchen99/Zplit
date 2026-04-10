@@ -1,11 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useGroupStore } from "@/store/groupStore";
 import { useAuthStore } from "@/store/authStore";
 import { useUIStore } from "@/store/uiStore";
-import { addPlaceholderMember } from "@/services/groupService";
+import { addPlaceholderMember, getUserGroups } from "@/services/groupService";
+import {
+  getContacts,
+  type PersonalContact,
+} from "@/services/personalLedgerService";
 import { logger } from "@/utils/logger";
 import { LinkIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { StarIcon } from "@heroicons/react/24/solid";
@@ -22,6 +26,12 @@ interface ActivityItem {
   timestamp?: { seconds?: number } | null;
 }
 
+interface MemberSuggestion {
+  key: string;
+  displayName: string;
+  avatarUrl: string | null;
+}
+
 export function MembersTab() {
   const { t } = useTranslation();
   const currentGroup = useGroupStore((s) => s.currentGroup);
@@ -31,7 +41,48 @@ export function MembersTab() {
 
   const [newName, setNewName] = useState("");
   const [adding, setAdding] = useState(false);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [showSuggestionDropdown, setShowSuggestionDropdown] = useState(false);
+  const [contacts, setContacts] = useState<PersonalContact[]>([]);
+  const [groupMemberSuggestions, setGroupMemberSuggestions] = useState<
+    MemberSuggestion[]
+  >([]);
   const [groupActivities, setGroupActivities] = useState<ActivityItem[]>([]);
+
+  const loadMemberSuggestions = useCallback(async () => {
+    if (!user) return;
+    setLoadingSuggestions(true);
+    try {
+      const [contactList, groups] = await Promise.all([
+        getContacts(user.uid),
+        getUserGroups(user.uid),
+      ]);
+      setContacts(contactList);
+
+      const memberMap = new Map<string, MemberSuggestion>();
+      for (const group of groups) {
+        for (const member of group.members) {
+          if (!member.displayName?.trim() || member.userId === user.uid) {
+            continue;
+          }
+          const normalized = member.displayName.trim();
+          const key = normalized.toLowerCase();
+          if (!memberMap.has(key)) {
+            memberMap.set(key, {
+              key: `group:${key}`,
+              displayName: normalized,
+              avatarUrl: member.avatarUrl,
+            });
+          }
+        }
+      }
+      setGroupMemberSuggestions(Array.from(memberMap.values()));
+    } catch (err) {
+      logger.error("members.suggestions", "載入成員建議失敗", err);
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!currentGroup?.groupId) {
@@ -56,12 +107,63 @@ export function MembersTab() {
     return () => unsub();
   }, [currentGroup?.groupId]);
 
-  const handleAddMember = async () => {
-    if (!currentGroup || !newName.trim()) return;
+  useEffect(() => {
+    loadMemberSuggestions();
+  }, [loadMemberSuggestions]);
+
+  const existingMemberNames = useMemo(
+    () =>
+      new Set(
+        (currentGroup?.members ?? []).map((m) =>
+          m.displayName.trim().toLowerCase(),
+        ),
+      ),
+    [currentGroup?.members],
+  );
+
+  const allSuggestions = useMemo(() => {
+    const existingContactNames = new Set(
+      contacts.map((c) => c.displayName.trim().toLowerCase()),
+    );
+
+    const contactSuggestions: MemberSuggestion[] = contacts.map((c) => ({
+      key: `contact:${c.contactId}`,
+      displayName: c.displayName,
+      avatarUrl: c.avatarUrl,
+    }));
+
+    const groupOnlySuggestions = groupMemberSuggestions.filter(
+      (s) => !existingContactNames.has(s.displayName.trim().toLowerCase()),
+    );
+
+    return [...contactSuggestions, ...groupOnlySuggestions];
+  }, [contacts, groupMemberSuggestions]);
+
+  const trimmedSearch = newName.trim();
+  const filteredSuggestions = useMemo(
+    () =>
+      (trimmedSearch
+        ? allSuggestions.filter((s) =>
+            s.displayName.toLowerCase().includes(trimmedSearch.toLowerCase()),
+          )
+        : allSuggestions
+      ).filter((s) => !existingMemberNames.has(s.displayName.toLowerCase())),
+    [allSuggestions, existingMemberNames, trimmedSearch],
+  );
+
+  const canAddTypedName =
+    !!trimmedSearch && !existingMemberNames.has(trimmedSearch.toLowerCase());
+
+  const handleAddMember = async (candidateName?: string) => {
+    if (!currentGroup) return;
+    const targetName = (candidateName ?? newName).trim();
+    if (!targetName || existingMemberNames.has(targetName.toLowerCase())) return;
+
     setAdding(true);
     try {
-      await addPlaceholderMember(currentGroup.groupId, newName.trim(), user?.uid);
+      await addPlaceholderMember(currentGroup.groupId, targetName, user?.uid);
       setNewName("");
+      setShowSuggestionDropdown(false);
       showToast(t("common.button.done"), "success");
     } catch (err) {
       logger.error("members.add", "新增成員失敗", err);
@@ -69,6 +171,10 @@ export function MembersTab() {
     } finally {
       setAdding(false);
     }
+  };
+
+  const handleSelectSuggestion = async (suggestion: MemberSuggestion) => {
+    await handleAddMember(suggestion.displayName);
   };
 
   const activityLog = useMemo(() => {
@@ -179,25 +285,66 @@ export function MembersTab() {
 
       {/* Add Member */}
       <div className="mt-4">
-        <div className="join flex w-full">
+        <div className="relative">
           <input
             type="text"
-            className="input input-sm join-item flex-1"
+            className="input input-sm w-full"
             placeholder={t("group.members.memberName")}
             value={newName}
-            onChange={(e) => setNewName(e.target.value)}
+            onChange={(e) => {
+              setNewName(e.target.value);
+              setShowSuggestionDropdown(true);
+            }}
+            onFocus={() => setShowSuggestionDropdown(true)}
+            onClick={() => setShowSuggestionDropdown(true)}
+            onBlur={() => setTimeout(() => setShowSuggestionDropdown(false), 150)}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
-                handleAddMember();
               }
             }}
             maxLength={30}
           />
+
+          {(loadingSuggestions || adding) && (
+            <span className="loading loading-spinner loading-xs absolute right-3 top-1/2 -translate-y-1/2" />
+          )}
+
+          {showSuggestionDropdown && filteredSuggestions.length > 0 && (
+            <div className="absolute top-full left-0 right-0 z-50 mt-1 rounded-xl bg-base-100 shadow-lg border border-base-200 overflow-hidden">
+              {filteredSuggestions.slice(0, 6).map((suggestion) => (
+                <button
+                  key={suggestion.key}
+                  type="button"
+                  className="flex w-full items-center gap-2 rounded-none px-4 py-3 text-left transition-colors hover:bg-base-200 active:bg-base-300"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    void handleSelectSuggestion(suggestion);
+                  }}
+                >
+                  <UserAvatar
+                    src={suggestion.avatarUrl}
+                    name={suggestion.displayName}
+                    size="w-7"
+                    textSize="text-[10px]"
+                  />
+                  <span className="text-sm font-medium truncate">
+                    {suggestion.displayName}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {canAddTypedName && (
           <button
-            className="btn-theme-green btn-sm join-item"
-            onClick={handleAddMember}
-            disabled={!newName.trim() || adding}
+            type="button"
+            className="btn-theme-green btn-sm mt-2"
+            onClick={() => {
+              void handleAddMember();
+            }}
+            disabled={adding}
           >
             {adding ? (
               <span className="loading loading-spinner loading-xs" />
@@ -208,7 +355,7 @@ export function MembersTab() {
               </>
             )}
           </button>
-        </div>
+        )}
       </div>
 
       {/* Recent Activity */}

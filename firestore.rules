@@ -59,7 +59,7 @@ service cloud.firestore {
         && request.resource.data.createdBy == request.auth.uid
         && hasOnlyKeys(
           request.resource.data,
-          ['name', 'coverUrl', 'inviteCode', 'createdBy', 'members', 'memberUids', 'createdAt', 'updatedAt']
+          ['name', 'coverUrl', 'inviteCode', 'createdBy', 'members', 'memberUids', 'lastExpenseAt', 'createdAt', 'updatedAt']
         );
 
       // 群組成員可更新（新增成員、修改名稱、封面等）
@@ -68,7 +68,7 @@ service cloud.firestore {
         && request.resource.data.inviteCode == resource.data.inviteCode
         && hasOnlyKeys(
           request.resource.data,
-          ['name', 'coverUrl', 'inviteCode', 'createdBy', 'members', 'memberUids', 'createdAt', 'updatedAt']
+          ['name', 'coverUrl', 'inviteCode', 'createdBy', 'members', 'memberUids', 'lastExpenseAt', 'createdAt', 'updatedAt']
         );
 
       // 僅允許群組建立者刪除群組

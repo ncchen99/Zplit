@@ -93,7 +93,6 @@ export function OnboardingPage() {
                   currentUrl={null}
                   onUpload={setAvatarUrl}
                   shape="circle"
-                  label={t("auth.onboarding.avatarUpload")}
                 />
                 {/* Fallback initial */}
                 {!avatarUrl && displayName.trim() && (

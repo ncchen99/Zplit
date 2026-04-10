@@ -18,6 +18,7 @@ export interface Group {
   createdBy: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
+  lastExpenseAt?: Timestamp | null;
   members: GroupMember[];
   /**
    * Firestore Security Rules 查詢用的 Map。

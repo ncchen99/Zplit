@@ -8,6 +8,7 @@ import {
   getDoc,
   query,
   orderBy,
+  limit,
   serverTimestamp,
   increment,
   writeBatch,
@@ -25,6 +26,7 @@ export interface PersonalContact {
   avatarUrl: string | null;
   linkedUserId: string | null;
   interactionCount: number;
+  lastExpenseAt?: unknown;
   createdAt: unknown;
   updatedAt: unknown;
 }
@@ -49,6 +51,25 @@ export interface PersonalExpenseInput {
   description: string | null;
   imageUrl: string | null;
   date: Date;
+}
+
+async function syncContactLastExpenseAt(
+  userId: string,
+  contactId: string,
+): Promise<void> {
+  const latestSnap = await getDocs(
+    query(
+      collection(db, `personalLedger/${userId}/contacts/${contactId}/expenses`),
+      orderBy("date", "desc"),
+      limit(1),
+    ),
+  );
+
+  const lastExpenseAt = latestSnap.docs[0]?.data().date ?? null;
+  await updateDoc(doc(db, `personalLedger/${userId}/contacts/${contactId}`), {
+    lastExpenseAt,
+    updatedAt: serverTimestamp(),
+  });
 }
 
 // ─── Contact CRUD ────────────────────────────────────
@@ -104,6 +125,7 @@ export async function createContact(
     avatarUrl,
     linkedUserId,
     interactionCount: 0,
+    lastExpenseAt: null,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   };
@@ -230,6 +252,7 @@ export async function addPersonalExpense(
     // Bump interaction count
     await updateDoc(doc(db, `personalLedger/${userId}/contacts/${contactId}`), {
       interactionCount: increment(1),
+      lastExpenseAt: data.date,
       updatedAt: serverTimestamp(),
     });
 
@@ -260,6 +283,14 @@ export async function updatePersonalExpense(
       ...data,
       updatedAt: serverTimestamp(),
     });
+    await syncContactLastExpenseAt(userId, contactId).catch((syncErr) => {
+      logger.warn("personal.updateExpense.syncLastExpenseAt", "同步最近記帳時間失敗", {
+        userId,
+        contactId,
+        expenseId,
+        err: syncErr,
+      });
+    });
     logger.info("personal.updateExpense", "個人帳務更新成功", {
       userId,
       contactId,
@@ -283,6 +314,14 @@ export async function deletePersonalExpense(
         `personalLedger/${userId}/contacts/${contactId}/expenses/${expenseId}`,
       ),
     );
+    await syncContactLastExpenseAt(userId, contactId).catch((syncErr) => {
+      logger.warn("personal.deleteExpense.syncLastExpenseAt", "同步最近記帳時間失敗", {
+        userId,
+        contactId,
+        expenseId,
+        err: syncErr,
+      });
+    });
     logger.info("personal.deleteExpense", "個人帳務刪除成功", {
       userId,
       contactId,

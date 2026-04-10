@@ -28,12 +28,31 @@ export function HomePage() {
     (PersonalContact & { netAmount: number })[]
   >([]);
 
+  const getTimestampMs = (value: unknown): number => {
+    if (!value) return 0;
+    if (value instanceof Date) return value.getTime();
+    if (
+      typeof value === "object" &&
+      value !== null &&
+      "seconds" in value &&
+      typeof (value as { seconds?: unknown }).seconds === "number"
+    ) {
+      return (value as { seconds: number }).seconds * 1000;
+    }
+    return 0;
+  };
+
   useEffect(() => {
     if (!user) return;
     const fetchGroups = async () => {
       try {
         const myGroups = await getUserGroups(user.uid);
-        setGroups(myGroups);
+        const sortedGroups = [...myGroups].sort((a, b) => {
+          const bLast = getTimestampMs(b.lastExpenseAt ?? b.updatedAt);
+          const aLast = getTimestampMs(a.lastExpenseAt ?? a.updatedAt);
+          return bLast - aLast;
+        });
+        setGroups(sortedGroups);
         backfillInviteCodes(myGroups).catch((err) => {
           logger.error("home.backfill", "補建 inviteCode 失敗", err);
         });
@@ -47,8 +66,20 @@ export function HomePage() {
     const fetchPersonal = async () => {
       try {
         const contacts = await getContacts(user.uid);
+        const activeContacts = contacts
+          .filter((c) => {
+            const hasRecordTime = getTimestampMs(c.lastExpenseAt) > 0;
+            return hasRecordTime || c.interactionCount > 0;
+          })
+          .sort(
+            (a, b) =>
+              getTimestampMs(b.lastExpenseAt ?? b.updatedAt) -
+              getTimestampMs(a.lastExpenseAt ?? a.updatedAt),
+          )
+          .slice(0, 3);
+
         const withNet = await Promise.all(
-          contacts.slice(0, 5).map(async (c) => {
+          activeContacts.map(async (c) => {
             const expenses = await getPersonalExpenses(user.uid, c.contactId);
             return { ...c, netAmount: computePersonalNetAmount(expenses) };
           }),

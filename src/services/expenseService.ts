@@ -3,6 +3,11 @@ import {
   collection,
   writeBatch,
   serverTimestamp,
+  query,
+  orderBy,
+  limit,
+  getDocs,
+  updateDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { logger } from "@/utils/logger";
@@ -47,6 +52,21 @@ export interface NewExpenseInput {
   } | null;
 }
 
+async function syncGroupLastExpenseAt(groupId: string): Promise<void> {
+  const snap = await getDocs(
+    query(
+      collection(db, `groups/${groupId}/expenses`),
+      orderBy("date", "desc"),
+      limit(1),
+    ),
+  );
+  const lastExpenseAt = snap.docs[0]?.data().date ?? null;
+  await updateDoc(doc(db, "groups", groupId), {
+    lastExpenseAt,
+    updatedAt: serverTimestamp(),
+  });
+}
+
 export async function addExpense(
   groupId: string,
   data: NewExpenseInput,
@@ -76,6 +96,7 @@ export async function addExpense(
   try {
     const ref = doc(collection(db, `groups/${groupId}/expenses`));
     const activityRef = doc(collection(db, `groups/${groupId}/activity`));
+    const groupRef = doc(db, "groups", groupId);
     const editLog: EditLogEntry[] = [
       {
         memberId: data.createdBy,
@@ -121,6 +142,10 @@ export async function addExpense(
       timestamp: serverTimestamp(),
       createdAt: serverTimestamp(),
     });
+    batch.update(groupRef, {
+      lastExpenseAt: data.date,
+      updatedAt: serverTimestamp(),
+    });
 
     await batch.commit();
 
@@ -162,6 +187,13 @@ export async function updateExpense(
     });
 
     await batch.commit();
+    await syncGroupLastExpenseAt(groupId).catch((err) => {
+      logger.warn("expenses.update.syncLastExpenseAt", "同步最近記帳時間失敗", {
+        groupId,
+        expenseId,
+        err,
+      });
+    });
     logger.info("expenses.update", "帳務更新成功", { expenseId, groupId });
   } catch (err) {
     logger.error("expenses.update", "帳務更新失敗", {
@@ -201,6 +233,13 @@ export async function deleteExpense(
     });
 
     await batch.commit();
+    await syncGroupLastExpenseAt(groupId).catch((err) => {
+      logger.warn("expenses.delete.syncLastExpenseAt", "同步最近記帳時間失敗", {
+        groupId,
+        expenseId: expense.expenseId,
+        err,
+      });
+    });
     logger.info("expenses.delete", "帳務刪除成功", {
       expenseId: expense.expenseId,
       groupId,
