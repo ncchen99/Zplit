@@ -91,7 +91,7 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
       }))
       .filter((d) => d.owed > 0)
       .sort((a, b) => b.owed - a.owed);
-  }, [expenses, settlements, memberMap, memberAvatarMap]);
+  }, [expenses, settlements, memberMap, memberAvatarMap, t]);
 
   const sortedExpenses = useMemo(() => {
     return [...expenses].sort((a, b) => {

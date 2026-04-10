@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -29,26 +29,15 @@ export function ExpenseDetailPage() {
 
   const needsFetch =
     !storeGroup || storeGroup.groupId !== groupId || storeExpenses.length === 0;
-  const [loading, setLoading] = useState(needsFetch);
+  const loading = needsFetch;
 
   useEffect(() => {
-    if (!groupId || !needsFetch) {
-      setLoading(false);
-      return;
-    }
-
-    let groupLoaded = false;
-    let expensesLoaded = false;
-    const tryFinish = () => {
-      if (groupLoaded && expensesLoaded) setLoading(false);
-    };
+    if (!groupId || !needsFetch) return;
 
     const groupUnsub = onSnapshot(doc(db, "groups", groupId), (snap) => {
       if (snap.exists()) {
         setCurrentGroup({ groupId: snap.id, ...snap.data() } as Group);
       }
-      groupLoaded = true;
-      tryFinish();
     });
 
     const expensesUnsub = onSnapshot(
@@ -62,8 +51,6 @@ export function ExpenseDetailPage() {
           expenseId: d.id,
         })) as Expense[];
         setExpenses(expenses);
-        expensesLoaded = true;
-        tryFinish();
       },
     );
 
@@ -71,7 +58,7 @@ export function ExpenseDetailPage() {
       groupUnsub();
       expensesUnsub();
     };
-  }, [groupId]);
+  }, [groupId, needsFetch, setCurrentGroup, setExpenses]);
 
   const currentGroup = storeGroup?.groupId === groupId ? storeGroup : null;
   const expense = storeExpenses.find((e) => e.expenseId === expenseId);
