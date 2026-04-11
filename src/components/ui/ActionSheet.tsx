@@ -18,12 +18,12 @@ interface ActionSheetProps {
 
 function resolveButtonClass(tone: ActionTone | undefined): string {
   if (tone === "active") {
-    return "join-item btn btn-active h-11 border-base-300 bg-base-300 text-base-content font-semibold hover:border-base-300 hover:bg-base-300 hover:text-base-content";
+    return "join-item btn btn-active h-12 border-base-300 bg-base-300 text-base-content font-semibold hover:border-base-300 hover:bg-base-300 hover:text-base-content";
   }
   if (tone === "danger") {
-    return "join-item btn btn-danger-soft h-11 text-error font-semibold";
+    return "join-item btn btn-danger-soft h-12 text-error font-semibold";
   }
-  return "join-item btn btn-white-soft h-11 text-base-content/55 font-medium hover:text-base-content/65";
+  return "join-item btn btn-white-soft h-12 text-base-content/70 font-medium hover:text-base-content";
 }
 
 export function ActionSheet({ open, items, onClose }: ActionSheetProps) {
@@ -44,14 +44,14 @@ export function ActionSheet({ open, items, onClose }: ActionSheetProps) {
 
   return (
     <div className="modal modal-open z-50">
-      <div className="modal-box w-full max-w-64 p-0 shadow-2xl rounded-2xl">
+      <div className="modal-box w-full max-w-72 p-0 shadow-2xl rounded-2xl">
         <div className="join join-vertical w-full overflow-hidden rounded-2xl bg-base-100">
           {items.map((item) => (
             <button
               key={item.key}
               type="button"
               disabled={item.disabled}
-              className={`${resolveButtonClass(item.tone)} btn-block justify-start`}
+              className={`${resolveButtonClass(item.tone)} btn-block justify-start px-3`}
               onClick={item.onClick}
             >
               {item.label}
