@@ -131,25 +131,28 @@ export function LoginPage() {
           </p>
 
           {showTurnstile && (
-            <Turnstile
-              siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
-              onSuccess={async (token) => {
-                setTurnstileToken(token);
-                setShowTurnstile(false);
-                await handleAnonymousLogin(token);
-              }}
-              onError={(errorCode) => {
-                logger.warn("auth.login", "Turnstile challenge 錯誤", {
-                  errorCode,
-                });
-                showToast(t("common.errorDetail.invalidTurnstile"), "error");
-              }}
-              onUnsupported={() => {
-                logger.error("auth.login", "瀏覽器不支援 Turnstile");
-                showToast(t("common.errorDetail.invalidTurnstile"), "error");
-              }}
-              options={{ theme: "auto" }}
-            />
+            <div className="w-full overflow-hidden">
+              <Turnstile
+                className="w-full"
+                siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+                onSuccess={async (token) => {
+                  setTurnstileToken(token);
+                  setShowTurnstile(false);
+                  await handleAnonymousLogin(token);
+                }}
+                onError={(errorCode) => {
+                  logger.warn("auth.login", "Turnstile challenge 錯誤", {
+                    errorCode,
+                  });
+                  showToast(t("common.errorDetail.invalidTurnstile"), "error");
+                }}
+                onUnsupported={() => {
+                  logger.error("auth.login", "瀏覽器不支援 Turnstile");
+                  showToast(t("common.errorDetail.invalidTurnstile"), "error");
+                }}
+                options={{ theme: "auto", size: "flexible" }}
+              />
+            </div>
           )}
         </div>
 

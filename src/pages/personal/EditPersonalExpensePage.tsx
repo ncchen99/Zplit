@@ -205,14 +205,14 @@ export function EditPersonalExpensePage() {
           <div className="join w-full">
             <button
               type="button"
-              className={`join-item btn btn-sm flex-1 ${paidBy === "self" ? "btn-active" : ""}`}
+              className={`join-item btn btn-sm flex-1 h-auto min-h-11 py-2 whitespace-normal leading-tight ${paidBy === "self" ? "btn-active" : ""}`}
               onClick={() => setPaidBy("self")}
             >
               {t("personal.paidFor", { name: contactName })}
             </button>
             <button
               type="button"
-              className={`join-item btn btn-sm flex-1 ${paidBy === "contact" ? "btn-active" : ""}`}
+              className={`join-item btn btn-sm flex-1 h-auto min-h-11 py-2 whitespace-normal leading-tight ${paidBy === "contact" ? "btn-active" : ""}`}
               onClick={() => setPaidBy("contact")}
             >
               {t("personal.contactPaidByName", { name: contactName })}

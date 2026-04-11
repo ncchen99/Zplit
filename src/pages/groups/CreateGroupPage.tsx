@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
@@ -19,6 +19,7 @@ import { UserAvatar } from "@/components/ui/UserAvatar";
 import {
   Check as CheckIcon,
   Plus as PlusIcon,
+  X as XIcon,
 } from "lucide-react";
 
 interface PreAddMember {
@@ -57,6 +58,26 @@ export function CreateGroupPage() {
   ]);
   const [saving, setSaving] = useState(false);
   const [showDiscardModal, setShowDiscardModal] = useState(false);
+  const memberSearchInputRef = useRef<HTMLInputElement | null>(null);
+
+  const centerMemberInputInViewport = useCallback(() => {
+    const inputEl = memberSearchInputRef.current;
+    if (!inputEl) return;
+
+    const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+    const rect = inputEl.getBoundingClientRect();
+    const targetTop =
+      rect.top + window.scrollY - viewportHeight / 2 + rect.height / 2;
+
+    window.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
+  }, []);
+
+  const handleMemberInputFocus = useCallback(() => {
+    setShowMemberDropdown(true);
+    // Retry once after virtual keyboard animation to keep the field centered.
+    requestAnimationFrame(centerMemberInputInViewport);
+    window.setTimeout(centerMemberInputInViewport, 260);
+  }, [centerMemberInputInViewport]);
 
   const loadContacts = useCallback(async () => {
     if (!user) return;
@@ -155,11 +176,23 @@ export function CreateGroupPage() {
       (m) => m.name.trim().toLowerCase() === trimmedSearch.toLowerCase(),
     );
 
-  const handleAddMember = () => {
+  const handleAddMember = useCallback(() => {
     addPreMember(memberSearch);
     setMemberSearch("");
     setShowMemberDropdown(false);
-  };
+  }, [memberSearch]);
+
+  const keepMemberInputFocused = useCallback(() => {
+    requestAnimationFrame(() => {
+      memberSearchInputRef.current?.focus();
+      centerMemberInputInViewport();
+    });
+  }, [centerMemberInputInViewport]);
+
+  const handleAddMemberAndKeepFocus = useCallback(() => {
+    handleAddMember();
+    keepMemberInputFocused();
+  }, [handleAddMember, keepMemberInputFocused]);
 
   const handleSelectSuggestion = (suggestion: MemberSuggestion) => {
     addPreMember(suggestion.displayName);
@@ -233,6 +266,7 @@ export function CreateGroupPage() {
 
       <form
         onSubmit={handleSubmit}
+        autoComplete="off"
         className="flex-1 px-4 pb-8 flex flex-col gap-5"
       >
         {/* Cover Image Upload */}
@@ -257,9 +291,11 @@ export function CreateGroupPage() {
           <input
             type="text"
             className="input w-full"
+            name="group-name"
             placeholder={t("group.create.namePlaceholder")}
             value={name}
             onChange={(e) => setName(e.target.value)}
+            autoComplete="organization"
             maxLength={50}
             required
             autoFocus
@@ -309,15 +345,17 @@ export function CreateGroupPage() {
           <div className="mt-3">
             <div className="relative">
               <input
+                ref={memberSearchInputRef}
                 type="text"
                 className="input w-full"
+                name="member-search"
                 placeholder={t("group.create.searchMembers")}
                 value={memberSearch}
                 onChange={(e) => {
                   setMemberSearch(e.target.value);
                   setShowMemberDropdown(true);
                 }}
-                onFocus={() => setShowMemberDropdown(true)}
+                onFocus={handleMemberInputFocus}
                 onClick={() => setShowMemberDropdown(true)}
                 onBlur={() => setTimeout(() => setShowMemberDropdown(false), 150)}
                 onKeyDown={(e) => {
@@ -326,7 +364,27 @@ export function CreateGroupPage() {
                   }
                 }}
                 autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                inputMode="search"
+                enterKeyHint="search"
               />
+              {memberSearch.trim() && !loadingContacts && (
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-xs btn-circle absolute right-2 top-1/2 -translate-y-1/2"
+                  aria-label={t("common.clear")}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    setMemberSearch("");
+                    setShowMemberDropdown(true);
+                    keepMemberInputFocused();
+                  }}
+                >
+                  <XIcon className="h-4 w-4" />
+                </button>
+              )}
               {loadingContacts && (
                 <span className="loading loading-spinner loading-xs absolute right-3 top-1/2 -translate-y-1/2" />
               )}
@@ -363,7 +421,8 @@ export function CreateGroupPage() {
               <button
                 type="button"
                 className="btn btn-ghost btn-sm mt-2 text-primary w-full justify-start"
-                onClick={handleAddMember}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={handleAddMemberAndKeepFocus}
               >
                 <PlusIcon className="h-4 w-4" />
                 {t("group.create.addAsMember", { name: trimmedSearch })}

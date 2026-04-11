@@ -76,10 +76,10 @@ export function SettingsPage() {
         {t("settings.title")}
       </h1>
 
-      <div className="mt-6 flex flex-col">
+      <div className="mt-2 flex flex-col">
         {/* Profile Row */}
         <div
-          className="flex items-center gap-3 py-4 border-b border-base-200 last:border-b-0 cursor-pointer active:bg-base-300 transition-colors"
+          className="flex items-center gap-3 pt-4 pb-4 border-b border-base-200 last:border-b-0 cursor-pointer active:bg-base-300 transition-colors"
           onClick={() => navigate("/settings/profile")}
         >
           <div className="flex items-center gap-3 w-full">
