@@ -118,26 +118,27 @@ export function LoginPage() {
             {t("common.or")}
           </div>
 
-          <button
-            className="btn btn-outline btn-block"
-            onClick={() => void handleAnonymousLogin()}
-            disabled={loading}
-          >
-            {t("auth.login.anonymousLogin")}
-          </button>
+          {!showTurnstile ? (
+            <>
+              <button
+                className="btn btn-outline btn-block"
+                onClick={() => void handleAnonymousLogin()}
+                disabled={loading}
+              >
+                {t("auth.login.anonymousLogin")}
+              </button>
 
-          <p className="text-xs text-base-content/40">
-            {t("auth.login.anonymousHint")}
-          </p>
-
-          {showTurnstile && (
+              <p className="text-xs text-base-content/40">
+                {t("auth.login.anonymousHint")}
+              </p>
+            </>
+          ) : (
             <div className="w-full overflow-hidden">
               <Turnstile
                 className="w-full"
                 siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
                 onSuccess={async (token) => {
                   setTurnstileToken(token);
-                  setShowTurnstile(false);
                   await handleAnonymousLogin(token);
                 }}
                 onError={(errorCode) => {
