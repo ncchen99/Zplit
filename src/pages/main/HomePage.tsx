@@ -100,7 +100,7 @@ export function HomePage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <img src="/favicon.svg" alt="Zplit Logo" className="w-8 h-8" />
-          <h1 className="text-xl font-bold tracking-tight text-primary">
+          <h1 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-[#2D8F44] via-[#63C452] to-[#85D156] bg-clip-text text-transparent">
             Zplit
           </h1>
         </div>
