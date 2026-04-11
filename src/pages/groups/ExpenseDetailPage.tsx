@@ -11,7 +11,7 @@ import {
 import { db } from "@/lib/firebase";
 import { useGroupStore, type Expense, type Group } from "@/store/groupStore";
 import { PageHeader, HeaderIconButton } from "@/components/ui/PageHeader";
-import { Pencil as PencilIcon, RotateCw as ArrowPathIcon } from "lucide-react";
+import { Pencil as PencilIcon } from "lucide-react";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 
 export function ExpenseDetailPage() {
@@ -170,8 +170,6 @@ export function ExpenseDetailPage() {
   const date = expense.date?.seconds
     ? new Date(expense.date.seconds * 1000).toLocaleString()
     : "";
-  const isRepeat =
-    expense.repeat && (expense.repeat as { type?: string }).type !== "none";
 
   return (
     <div className="flex min-h-[100dvh] md:min-h-[inherit] flex-col">
@@ -181,12 +179,7 @@ export function ExpenseDetailPage() {
         {/* Summary stat */}
         <div className="stats w-full border border-base-300 bg-base-100">
           <div className="stat">
-            <div className="stat-title flex items-center gap-2">
-              {expense.title}
-              {isRepeat && (
-                <ArrowPathIcon className="h-4 w-4 text-base-content/50" />
-              )}
-            </div>
+            <div className="stat-title flex items-center gap-2">{expense.title}</div>
             <div className="stat-value text-warning">
               NT${expense.amount.toLocaleString()}
             </div>

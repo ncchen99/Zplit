@@ -13,12 +13,6 @@ import { db } from "@/lib/firebase";
 import { logger } from "@/utils/logger";
 import { ZplitError } from "@/utils/errors";
 import type { ExpenseSplit, EditLogEntry } from "@/store/groupStore";
-import type { ExpenseRepeatType } from "@/store/groupStore";
-import {
-  getIntervalDays,
-  getNextRecurringDate,
-  isValidRecurringEndDate,
-} from "@/lib/algorithm/recurring";
 
 type ExpenseActivityAction = "created" | "updated" | "deleted";
 
@@ -46,10 +40,6 @@ export interface NewExpenseInput {
   imageUrl: string | null;
   date: Date;
   createdBy: string;
-  repeat?: {
-    type: ExpenseRepeatType;
-    endDate: Date | null;
-  } | null;
 }
 
 async function syncGroupLastExpenseAt(groupId: string): Promise<void> {
@@ -83,16 +73,6 @@ export async function addExpense(
     );
   }
 
-  if (
-    data.repeat?.endDate &&
-    !isValidRecurringEndDate(data.date, data.repeat.endDate)
-  ) {
-    throw new ZplitError(
-      "EXPENSE_INVALID_REPEAT_END_DATE",
-      "重複記帳結束日期不可早於帳務日期",
-    );
-  }
-
   try {
     const ref = doc(collection(db, `groups/${groupId}/expenses`));
     const activityRef = doc(collection(db, `groups/${groupId}/activity`));
@@ -111,22 +91,11 @@ export async function addExpense(
       },
     ];
 
-    const repeat = data.repeat
-      ? {
-          type: data.repeat.type,
-          endDate: data.repeat.endDate,
-          nextRunAt: getNextRecurringDate(data.date, data.repeat.type),
-          intervalDays: getIntervalDays(data.repeat.type),
-          originExpenseId: ref.id,
-        }
-      : null;
-
     const batch = writeBatch(db);
     batch.set(ref, {
       ...data,
       expenseId: ref.id,
       date: data.date,
-      repeat,
       editLog,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),

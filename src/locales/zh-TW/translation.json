@@ -28,7 +28,6 @@
     "loading": "載入中...",
     "error": "發生錯誤",
     "errorDetail": {
-      "invalidRepeatEndDate": "重複記帳的結束日期不可早於帳務日期",
       "invalidTurnstile": "人機驗證失敗，請再試一次",
       "loadFailed": "載入失敗，請稍後重試"
     },
@@ -219,20 +218,8 @@
       "percentTotal": "總計：{{percent}}%",
       "mismatch": "金額不符"
     },
-    "repeat": {
-      "label": "重複記帳",
-      "none": "不重複",
-      "daily": "每日",
-      "weekly": "每週",
-      "monthly": "每月",
-      "custom": "自訂",
-      "endDate": "結束日期",
-      "enabled": "開啟",
-      "disabled": "關閉"
-    },
     "paidFor": "{{name}} 代墊",
     "deleteConfirm": "確定要刪除這筆帳務嗎？",
-    "recurring": "重複記帳",
     "detail": {
       "title": "帳務詳情"
     }

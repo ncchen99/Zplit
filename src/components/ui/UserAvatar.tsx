@@ -13,6 +13,8 @@ interface UserAvatarProps {
   textSize?: string;
   /** Background class for placeholder */
   bgClass?: string;
+  /** Text color class for placeholder initial */
+  initialTextClass?: string;
 }
 
 export function UserAvatar({
@@ -21,6 +23,7 @@ export function UserAvatar({
   size = "w-10",
   textSize = "text-[17px]",
   bgClass = "bg-base-300 text-base-content",
+  initialTextClass = "text-base-content/60",
 }: UserAvatarProps) {
   const [imgError, setImgError] = useState(false);
   const initial = name?.charAt(0) || "?";
@@ -40,7 +43,7 @@ export function UserAvatar({
           />
         ) : (
           <span
-            className={`${textSize} text-base-content/60 font-semibold leading-none select-none`}
+            className={`${textSize} ${initialTextClass} font-semibold leading-none select-none`}
           >
             {initial}
           </span>

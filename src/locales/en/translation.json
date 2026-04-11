@@ -28,7 +28,6 @@
     "loading": "Loading...",
     "error": "An error occurred",
     "errorDetail": {
-      "invalidRepeatEndDate": "Repeat end date cannot be earlier than expense date",
       "invalidTurnstile": "Verification failed. Please try again.",
       "loadFailed": "Failed to load. Please try again later."
     },
@@ -219,20 +218,8 @@
       "percentTotal": "Total: {{percent}}%",
       "mismatch": "Amount mismatch"
     },
-    "repeat": {
-      "label": "Repeat",
-      "none": "None",
-      "daily": "Daily",
-      "weekly": "Weekly",
-      "monthly": "Monthly",
-      "custom": "Custom",
-      "endDate": "End date",
-      "enabled": "On",
-      "disabled": "Off"
-    },
     "paidFor": "{{name}} paid for",
     "deleteConfirm": "Delete this expense?",
-    "recurring": "Recurring",
     "detail": {
       "title": "Expense Detail"
     }

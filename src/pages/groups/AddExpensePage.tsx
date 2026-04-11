@@ -15,14 +15,13 @@ import {
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import { PageHeader, HeaderIconButton } from "@/components/ui/PageHeader";
 import { UserAvatar } from "@/components/ui/UserAvatar";
+import { ActionSheetSelect } from "@/components/ui/ActionSheetSelect";
 import {
   Check as CheckIcon,
   CircleCheck as CheckCircleIcon,
-  ChevronDown as ChevronDownIcon,
 } from "lucide-react";
 
 type SplitMode = "equal" | "amount" | "percent";
-type RepeatType = "none" | "daily" | "weekly" | "monthly";
 
 export function AddExpensePage() {
   const { t } = useTranslation();
@@ -48,9 +47,6 @@ export function AddExpensePage() {
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
-  const [showRepeat, setShowRepeat] = useState(false);
-  const [repeatType, setRepeatType] = useState<RepeatType>("none");
-  const [repeatEndDate, setRepeatEndDate] = useState("");
   const [expenseDate, setExpenseDate] = useState(() =>
     getTaipeiDateTimeLocalString(),
   );
@@ -170,15 +166,6 @@ export function AddExpensePage() {
         imageUrl,
         date: parseTaipeiDateTimeLocalString(expenseDate),
         createdBy: user.uid,
-        repeat:
-          repeatType === "none"
-            ? null
-            : {
-                type: repeatType,
-                endDate: repeatEndDate
-                  ? new Date(`${repeatEndDate}T23:59:59`)
-                  : null,
-              },
       });
 
       await recalculateSettlements(groupId);
@@ -255,24 +242,17 @@ export function AddExpensePage() {
         {/* Paid By */}
         <fieldset className="fieldset w-full">
           <legend className="fieldset-legend">{t("expense.paidBy")}</legend>
-          <div className="relative">
-            <select
-              className="select w-full appearance-none pr-10"
-              style={{ backgroundImage: "none" }}
-              value={paidBy}
-              onChange={(e) => setPaidBy(e.target.value)}
-            >
-              {members.map((m) => (
-                <option key={m.memberId} value={m.memberId}>
-                  {m.displayName}
-                </option>
-              ))}
-            </select>
-            <ChevronDownIcon
-              aria-hidden="true"
-              className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-base-content/50"
-            />
-          </div>
+          <ActionSheetSelect
+            ariaLabel={t("expense.paidBy")}
+            placeholder={t("expense.paidBy")}
+            value={paidBy}
+            onChange={setPaidBy}
+            options={members.map((m) => ({
+              value: m.memberId,
+              label: m.displayName,
+              avatarUrl: m.avatarUrl,
+            }))}
+          />
         </fieldset>
 
         {/* Date */}
@@ -291,22 +271,18 @@ export function AddExpensePage() {
           <legend className="fieldset-legend">
             {t("expense.splitMode.label")}
           </legend>
-          <div className="relative">
-            <select
-              className="select w-full appearance-none pr-10"
-              style={{ backgroundImage: "none" }}
-              value={splitMode}
-              onChange={(e) => handleSplitModeChange(e.target.value as SplitMode)}
-            >
-              <option value="equal">{t("expense.splitMode.equal")}</option>
-              <option value="amount">{t("expense.splitMode.amount")}</option>
-              <option value="percent">{t("expense.splitMode.percent")}</option>
-            </select>
-            <ChevronDownIcon
-              aria-hidden="true"
-              className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-base-content/50"
-            />
-          </div>
+          <ActionSheetSelect
+            ariaLabel={t("expense.splitMode.label")}
+            placeholder={t("expense.splitMode.label")}
+            value={splitMode}
+            onChange={(value) => handleSplitModeChange(value as SplitMode)}
+            showAvatar={false}
+            options={[
+              { value: "equal", label: t("expense.splitMode.equal") },
+              { value: "amount", label: t("expense.splitMode.amount") },
+              { value: "percent", label: t("expense.splitMode.percent") },
+            ]}
+          />
         </fieldset>
 
         {/* Split With */}
@@ -524,53 +500,6 @@ export function AddExpensePage() {
                 className="w-full"
               />
             </fieldset>
-          </div>
-        </div>
-
-        {/* Expandable Repeat */}
-        <div className="collapse collapse-arrow bg-base-200 rounded-xl">
-          <input
-            type="checkbox"
-            checked={showRepeat}
-            onChange={(e) => setShowRepeat(e.target.checked)}
-          />
-          <div className="collapse-title font-medium text-sm">
-            {t("expense.repeat.label")}{" "}
-            <span className="text-base-content/50">
-              {repeatType === "none"
-                ? t("expense.repeat.disabled")
-                : t("expense.repeat.enabled")}
-            </span>
-          </div>
-          <div className="collapse-content flex flex-col gap-3">
-            <div className="join w-full">
-              {(["none", "daily", "weekly", "monthly"] as RepeatType[]).map(
-                (type) => (
-                  <button
-                    key={type}
-                    type="button"
-                    className={`join-item btn btn-sm flex-1 ${repeatType === type ? "btn-active text-base-content/85" : "text-base-content/55 hover:text-base-content/65"}`}
-                    onClick={() => setRepeatType(type)}
-                  >
-                    {t(`expense.repeat.${type}`)}
-                  </button>
-                ),
-              )}
-            </div>
-
-            {repeatType !== "none" && (
-              <fieldset className="fieldset w-full">
-                <legend className="fieldset-legend">
-                  {t("expense.repeat.endDate")}
-                </legend>
-                <input
-                  type="date"
-                  className="input w-full"
-                  value={repeatEndDate}
-                  onChange={(e) => setRepeatEndDate(e.target.value)}
-                />
-              </fieldset>
-            )}
           </div>
         </div>
       </form>

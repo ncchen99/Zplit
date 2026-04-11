@@ -9,7 +9,6 @@ import {
 import {
   ChevronDown,
   FileText as DocumentTextIcon,
-  RotateCw as ArrowPathIcon,
 } from "lucide-react";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { AvatarGroup } from "@/components/ui/AvatarGroup";
@@ -160,9 +159,6 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
             {sortedExpenses.map((expense) => {
               const payer = getName(expense.paidBy);
               const payerAvatar = memberAvatarMap.get(expense.paidBy) ?? null;
-              const isRepeat =
-                expense.repeat &&
-                (expense.repeat as { type?: string }).type !== "none";
               const dateStr = expense.date?.seconds
                 ? new Date(expense.date.seconds * 1000).toLocaleDateString()
                 : "";
@@ -182,9 +178,6 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1">
                       <p className="font-semibold truncate">{expense.title}</p>
-                      {isRepeat && (
-                        <ArrowPathIcon className="h-3.5 w-3.5 flex-shrink-0 text-base-content/50" />
-                      )}
                     </div>
                     <p className="text-xs text-base-content/50">
                       {dateStr && <span className="mr-1">{dateStr}</span>}

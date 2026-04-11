@@ -41,16 +41,6 @@ export interface ExpenseSplit {
   amount: number;
 }
 
-export type ExpenseRepeatType = "daily" | "weekly" | "monthly" | "custom";
-
-export interface ExpenseRepeat {
-  type: ExpenseRepeatType;
-  endDate: Timestamp | null;
-  nextRunAt: Timestamp;
-  intervalDays: number | null;
-  originExpenseId: string | null;
-}
-
 export interface EditLogEntry {
   memberId: string;
   action: "created" | "updated" | "deleted";
@@ -68,7 +58,6 @@ export interface Expense {
   description: string | null;
   imageUrl: string | null;
   date: Timestamp;
-  repeat: ExpenseRepeat | null;
   createdBy: string;
   editLog: EditLogEntry[];
   createdAt: Timestamp;
