@@ -18,7 +18,7 @@ interface ActionSheetProps {
 
 function resolveButtonClass(tone: ActionTone | undefined): string {
   if (tone === "active") {
-    return "join-item btn btn-active h-11 border-base-300 bg-base-300 text-primary font-semibold hover:border-base-300 hover:bg-base-300 hover:text-primary";
+    return "join-item btn btn-active h-11 border-base-300 bg-base-300 text-base-content font-semibold hover:border-base-300 hover:bg-base-300 hover:text-base-content";
   }
   if (tone === "danger") {
     return "join-item btn btn-danger-soft h-11 text-error font-semibold";

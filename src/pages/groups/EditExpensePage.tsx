@@ -27,6 +27,7 @@ import {
   Check as CheckIcon,
   Trash2 as TrashIcon,
   CircleCheck as CheckCircleIcon,
+  ChevronDown as ChevronDownIcon,
 } from "lucide-react";
 
 type SplitMode = "equal" | "amount" | "percent";
@@ -350,17 +351,24 @@ export function EditExpensePage() {
         {/* Paid By */}
         <fieldset className="fieldset w-full">
           <legend className="fieldset-legend">{t("expense.paidBy")}</legend>
-          <select
-            className="select w-full"
-            value={paidBy}
-            onChange={(e) => setPaidBy(e.target.value)}
-          >
-            {members.map((m) => (
-              <option key={m.memberId} value={m.memberId}>
-                {m.displayName}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              className="select w-full appearance-none pr-10"
+              style={{ backgroundImage: "none" }}
+              value={paidBy}
+              onChange={(e) => setPaidBy(e.target.value)}
+            >
+              {members.map((m) => (
+                <option key={m.memberId} value={m.memberId}>
+                  {m.displayName}
+                </option>
+              ))}
+            </select>
+            <ChevronDownIcon
+              aria-hidden="true"
+              className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-base-content/50"
+            />
+          </div>
         </fieldset>
 
         {/* Date */}
@@ -379,15 +387,22 @@ export function EditExpensePage() {
           <legend className="fieldset-legend">
             {t("expense.splitMode.label")}
           </legend>
-          <select
-            className="select w-full"
-            value={splitMode}
-            onChange={(e) => handleSplitModeChange(e.target.value as SplitMode)}
-          >
-            <option value="equal">{t("expense.splitMode.equal")}</option>
-            <option value="amount">{t("expense.splitMode.amount")}</option>
-            <option value="percent">{t("expense.splitMode.percent")}</option>
-          </select>
+          <div className="relative">
+            <select
+              className="select w-full appearance-none pr-10"
+              style={{ backgroundImage: "none" }}
+              value={splitMode}
+              onChange={(e) => handleSplitModeChange(e.target.value as SplitMode)}
+            >
+              <option value="equal">{t("expense.splitMode.equal")}</option>
+              <option value="amount">{t("expense.splitMode.amount")}</option>
+              <option value="percent">{t("expense.splitMode.percent")}</option>
+            </select>
+            <ChevronDownIcon
+              aria-hidden="true"
+              className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-base-content/50"
+            />
+          </div>
         </fieldset>
 
         {/* Split With */}
