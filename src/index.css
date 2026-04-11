@@ -81,15 +81,13 @@
 
   .fab-in-frame {
     position: fixed;
-    right: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
     bottom: 1.5rem;
     z-index: 50;
 
     @media (min-width: 768px) {
-      right: calc(
-        (100vw - min(var(--app-frame-max-width), calc(100vw - 2rem))) / 2 +
-          1rem
-      );
+      left: 50%;
       bottom: calc(
         (100vh - min(var(--app-frame-height), calc(100vh - 2rem))) / 2 + 1.5rem
       );
@@ -202,6 +200,43 @@
     }
   }
 
+  .btn-success-soft {
+    @apply btn text-success;
+    --btn-border: color-mix(
+      in oklab,
+      var(--color-success) 14%,
+      var(--color-base-100)
+    );
+    background-color: color-mix(
+      in oklab,
+      var(--color-success) 14%,
+      var(--color-base-100)
+    ) !important;
+    border-color: color-mix(
+      in oklab,
+      var(--color-success) 14%,
+      var(--color-base-100)
+    ) !important;
+
+    &:hover {
+      --btn-border: color-mix(
+        in oklab,
+        var(--color-success) 22%,
+        var(--color-base-100)
+      );
+      background-color: color-mix(
+        in oklab,
+        var(--color-success) 22%,
+        var(--color-base-100)
+      ) !important;
+      border-color: color-mix(
+        in oklab,
+        var(--color-success) 22%,
+        var(--color-base-100)
+      ) !important;
+    }
+  }
+
   .btn-danger-soft {
     @apply btn text-error;
     --btn-border: color-mix(
@@ -237,6 +272,10 @@
         var(--color-base-100)
       ) !important;
     }
+  }
+
+  .btn-pagination-compact {
+    @apply h-auto min-h-10 py-1.5 whitespace-normal leading-tight;
   }
 
   .toast-soft {

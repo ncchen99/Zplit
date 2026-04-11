@@ -233,13 +233,14 @@ export function GroupDetailPage() {
       </div>
 
       {/* FAB - Add Expense */}
-        <div className="fab-in-frame">
+      <div className="fab-in-frame">
         <button
-          className="btn btn-primary btn-circle btn-lg shadow-xl"
+          className="btn btn-primary btn-md h-11 min-w-28 rounded-full px-4 text-sm shadow-lg"
           onClick={() => navigate(`/groups/${groupId}/expense/new`)}
           aria-label={t("expense.add")}
         >
-          <PlusIcon className="h-6 w-6" />
+          <PlusIcon className="h-4 w-4" />
+          <span>{t("expense.add")}</span>
         </button>
       </div>
     </div>

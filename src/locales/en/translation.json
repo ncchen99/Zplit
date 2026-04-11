@@ -252,6 +252,7 @@
     "linked": "Linked",
     "paidFor": "You paid for {{name}}",
     "contactPaidByName": "{{name}} paid",
+    "contactSettledByName": "{{name}} settled",
     "settledRecord": "Settled",
     "contact": "Contact",
     "selectContact": "Select Contact",

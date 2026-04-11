@@ -330,11 +330,12 @@ export function PersonalContactDetailPage() {
       {/* FAB - Add Expense */}
       <div className="fab-in-frame">
         <button
-          className="btn btn-primary btn-circle btn-lg shadow-xl"
+          className="btn btn-primary btn-md h-11 min-w-28 rounded-full px-4 text-sm shadow-lg"
           onClick={() => navigate(`/personal/${contactId}/expense/new`)}
           aria-label={t("personal.addExpense")}
         >
-          <PlusIcon className="h-6 w-6" />
+          <PlusIcon className="h-4 w-4" />
+          <span>{t("personal.addExpense")}</span>
         </button>
       </div>
 
@@ -464,17 +465,14 @@ function ExpenseCard({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
           <p className="font-semibold truncate">{expense.title}</p>
-          {isSettlement && (
-            <span className="badge badge-success badge-xs">
-              {t("personal.settledRecord")}
-            </span>
-          )}
         </div>
         <p className="text-xs text-base-content/50">
           {dateStr && <span className="mr-1">{dateStr}</span>}
         </p>
         <p className="text-xs text-base-content/50">
-          {isSelfPaid
+          {isSettlement
+            ? t("personal.contactSettledByName", { name: contactName })
+            : isSelfPaid
             ? t("personal.paidFor", { name: contactName })
             : t("personal.contactPaidByName", { name: contactName })}
         </p>

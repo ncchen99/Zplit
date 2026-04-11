@@ -388,7 +388,7 @@ export function AddPersonalExpensePage() {
           <div className="join w-full">
             <button
               type="button"
-              className={`join-item btn btn-sm flex-1 h-auto min-h-11 py-2 whitespace-normal leading-tight ${paidBy === "self" ? "btn-active text-base-content/85" : "text-base-content/55 hover:text-base-content/65"}`}
+              className={`join-item btn btn-sm btn-pagination-compact flex-1 ${paidBy === "self" ? "btn-active text-base-content/85" : "text-base-content/55 hover:text-base-content/65"}`}
               onClick={() => setPaidBy("self")}
             >
               {resolvedContactName
@@ -397,7 +397,7 @@ export function AddPersonalExpensePage() {
             </button>
             <button
               type="button"
-              className={`join-item btn btn-sm flex-1 h-auto min-h-11 py-2 whitespace-normal leading-tight ${paidBy === "contact" ? "btn-active text-base-content/85" : "text-base-content/55 hover:text-base-content/65"}`}
+              className={`join-item btn btn-sm btn-pagination-compact flex-1 ${paidBy === "contact" ? "btn-active text-base-content/85" : "text-base-content/55 hover:text-base-content/65"}`}
               onClick={() => setPaidBy("contact")}
             >
               {resolvedContactName

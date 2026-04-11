@@ -252,6 +252,7 @@
     "linked": "已連結",
     "paidFor": "你替 {{name}} 付款",
     "contactPaidByName": "{{name}} 代墊",
+    "contactSettledByName": "{{name}} 結清",
     "settledRecord": "已還款",
     "contact": "聯絡人",
     "selectContact": "選擇聯絡人",

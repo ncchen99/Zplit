@@ -210,11 +210,12 @@ export function PersonalPage() {
       {/* FAB - 新增個人分帳 */}
       <div className="fab-in-frame fab-in-frame-nav">
         <button
-          className="btn btn-primary btn-circle btn-lg shadow-xl"
+          className="btn btn-primary btn-md h-11 min-w-28 rounded-full px-4 text-sm shadow-lg"
           onClick={() => navigate("/personal/expense/new")}
           aria-label={t("personal.addExpense")}
         >
-          <PlusIcon className="h-6 w-6" />
+          <PlusIcon className="h-4 w-4" />
+          <span>{t("personal.addExpense")}</span>
         </button>
       </div>
     </div>
