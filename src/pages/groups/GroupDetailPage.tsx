@@ -117,7 +117,17 @@ export function GroupDetailPage() {
       // 僅取消 Firebase 訂閱，保留 store 資料供 AddExpensePage 等子頁面讀取
       unsubscribeListeners();
     };
-  }, [groupId]);
+  }, [
+    clearCurrentGroup,
+    groupId,
+    setCurrentGroup,
+    setExpenses,
+    setSettlements,
+    setUnsubscribeExpenses,
+    setUnsubscribeGroup,
+    setUnsubscribeSettlements,
+    unsubscribeListeners,
+  ]);
 
   const handleShare = async () => {
     if (!currentGroup) return;

@@ -74,7 +74,7 @@ export function EditPersonalExpensePage() {
     } finally {
       setLoading(false);
     }
-  }, [user, contactId, expenseId]);
+  }, [contactId, expenseId, showToast, storeContact, storeExpenses, t, user]);
 
   useEffect(() => {
     loadData();

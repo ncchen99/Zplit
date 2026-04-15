@@ -91,7 +91,7 @@ export function EditExpensePage() {
       groupUnsub();
       expensesUnsub();
     };
-  }, [groupId]);
+  }, [groupId, needsFetch, setCurrentGroup, setExpenses]);
 
   const currentGroup = storeGroup?.groupId === groupId ? storeGroup : null;
   const expense = storeExpenses.find((e) => e.expenseId === expenseId);

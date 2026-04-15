@@ -63,6 +63,7 @@ export function CalculatorInput({
   const openCalculator = useCallback(() => {
     setExpression(value || "");
     justOpenedRef.current = !!value;
+    setVisible(false);
     setIsOpen(true);
   }, [value]);
 
@@ -70,8 +71,6 @@ export function CalculatorInput({
     if (isOpen) {
       const raf = requestAnimationFrame(() => setVisible(true));
       return () => cancelAnimationFrame(raf);
-    } else {
-      setVisible(false);
     }
   }, [isOpen]);
 

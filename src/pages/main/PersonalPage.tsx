@@ -68,7 +68,7 @@ export function PersonalPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, [setContacts, setIsLoading, showToast, t, user]);
 
   useEffect(() => {
     loadContacts();

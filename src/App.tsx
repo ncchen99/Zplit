@@ -63,7 +63,7 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
     });
 
     return () => unsub();
-  }, []);
+  }, [setFirebaseUser, setStatus, setUser]);
 
   return <>{children}</>;
 }
@@ -87,7 +87,7 @@ function NetworkListener() {
       window.removeEventListener("offline", onOffline);
       window.removeEventListener("online", onOnline);
     };
-  }, []);
+  }, [showToast]);
 
   return null;
 }

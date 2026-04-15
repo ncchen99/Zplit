@@ -53,7 +53,7 @@ export function AddExpensePage() {
   const [saving, setSaving] = useState(false);
   const [showDiscardModal, setShowDiscardModal] = useState(false);
 
-  const members = currentGroup?.members ?? [];
+  const members = useMemo(() => currentGroup?.members ?? [], [currentGroup]);
 
   // 若 currentGroup 不在 store（例如直接導航到此頁），從 Firestore 載入
   useEffect(() => {
@@ -63,7 +63,7 @@ export function AddExpensePage() {
         if (group) setCurrentGroup(group);
       })
       .catch((err) => logger.error("addExpense", "載入群組失敗", err));
-  }, [groupId]);
+  }, [currentGroup?.groupId, groupId, setCurrentGroup]);
 
   // 當成員列表第一次有資料時，初始化 paidBy（找到當前使用者的 memberId）和 selectedMembers
   useEffect(() => {

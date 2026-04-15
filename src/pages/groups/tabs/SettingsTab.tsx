@@ -62,7 +62,15 @@ export function SettingsTab() {
     }, 600);
 
     return () => window.clearTimeout(timer);
-  }, [currentGroup?.groupId, normalizedName, normalizedCover, hasEditChanges]);
+  }, [
+    currentGroup,
+    currentGroup?.groupId,
+    hasEditChanges,
+    normalizedCover,
+    normalizedName,
+    showToast,
+    t,
+  ]);
 
   const autoSaveText =
     autoSaveState === "saving"

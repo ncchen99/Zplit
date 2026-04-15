@@ -60,7 +60,7 @@ export function PersonalExpenseDetailPage() {
     } finally {
       setLoading(false);
     }
-  }, [user, contactId, expenseId, storeContact, storeExpenses]);
+  }, [contactId, expenseId, showToast, storeContact, storeExpenses, t, user]);
 
   useEffect(() => {
     loadData();

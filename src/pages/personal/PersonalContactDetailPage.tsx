@@ -75,14 +75,22 @@ export function PersonalContactDetailPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [user, contactId]);
+  }, [
+    contactId,
+    setCurrentContact,
+    setCurrentExpenses,
+    setIsLoading,
+    showToast,
+    t,
+    user,
+  ]);
 
   useEffect(() => {
     // 清除前一個聯絡人的舊資料（避免短暫顯示過期內容）
     clearCurrentContact();
     loadData();
     // 不在 unmount 時清除，保留資料供 AddPersonalExpensePage 使用
-  }, [loadData]);
+  }, [clearCurrentContact, loadData]);
 
   const closeConfirm = () =>
     setConfirmModal((prev) => ({ ...prev, open: false }));

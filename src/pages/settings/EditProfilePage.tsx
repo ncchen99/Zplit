@@ -46,7 +46,7 @@ export function EditProfilePage() {
       setDisplayName(user.displayName ?? "");
       setAvatarUrl(user.avatarUrl ?? null);
     }
-  }, [user]);
+  }, [avatarUrl, displayName, user]);
 
   // Auto-save displayName with debounce
   useEffect(() => {
@@ -72,7 +72,15 @@ export function EditProfilePage() {
     }, 600);
 
     return () => window.clearTimeout(timer);
-  }, [displayName]);
+  }, [
+    avatarUrl,
+    displayName,
+    firebaseUser,
+    setUser,
+    showToast,
+    t,
+    user?.displayName,
+  ]);
 
   // Auto-save avatarUrl when changed
   const handleAvatarChange = async (url: string | null) => {
