@@ -220,21 +220,29 @@ export function JoinPage() {
                   </button>
                 </div>
               ) : needsAuth ? (
-                /* 需要登入 */
+                /* 需要登入或完成註冊 */
                 <div className="flex flex-col gap-3">
                   <p className="text-sm text-base-content/50 text-center">
-                    {t("join.loginFirst")}
+                    {status === "onboarding"
+                      ? t("auth.onboarding.title")
+                      : t("join.loginFirst")}
                   </p>
                   <button
                     className="btn-theme-green btn-block"
                     onClick={() =>
-                      navigate("/login", {
+                      navigate(status === "onboarding" ? "/onboarding" : "/login", {
                         state: { redirectTo: `/join/${code}` },
                       })
                     }
                   >
-                    <LogIn className="h-5 w-5" />
-                    {t("join.loginButton")}
+                    {status === "onboarding" ? (
+                      <ChevronRight className="h-5 w-5" />
+                    ) : (
+                      <LogIn className="h-5 w-5" />
+                    )}
+                    {status === "onboarding"
+                      ? t("auth.onboarding.title")
+                      : t("join.loginButton")}
                   </button>
                 </div>
               ) : (

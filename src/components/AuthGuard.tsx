@@ -20,13 +20,14 @@ function getRedirect(
       if (pathname.startsWith("/join")) return null;
       return "/onboarding";
     case "ready":
-      if (pathname === "/login") {
-        // 若登入前有儲存的 redirectTo（例如從 join 頁引導登入），登入後跳回原頁
+      if (pathname === "/login" || pathname === "/onboarding") {
+        // 若之前有儲存的 redirectTo，登入/註冊後跳回原頁
         const redirectTo = (state as { redirectTo?: string } | null)?.redirectTo;
-        if (redirectTo?.startsWith("/")) return redirectTo;
+        if (redirectTo?.startsWith("/") && redirectTo !== "/onboarding") {
+          return redirectTo;
+        }
         return "/home";
       }
-      if (pathname === "/onboarding") return "/home";
       return null;
     default:
       return null;
@@ -47,7 +48,16 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   const redirect = getRedirect(status, location.pathname, location.state);
   if (redirect) {
-    return <Navigate to={redirect} state={{ from: location }} replace />;
+    return (
+      <Navigate
+        to={redirect}
+        state={{
+          from: location,
+          ...(typeof location.state === "object" ? location.state : {}),
+        }}
+        replace
+      />
+    );
   }
 
   return <>{children}</>;

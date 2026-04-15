@@ -41,17 +41,19 @@ export function EditProfilePage() {
 
   const isAnonymous = user?.isAnonymous ?? firebaseUser?.isAnonymous ?? false;
 
-  // Sync initial values when user loads
+  // Sync initial values when user loads (only on first load)
+  const [synced, setSynced] = useState(false);
   useEffect(() => {
-    if (user && !displayName && !avatarUrl) {
+    if (user && !synced) {
       setDisplayName(user.displayName ?? "");
       setAvatarUrl(user.avatarUrl ?? null);
+      setSynced(true);
     }
-  }, [avatarUrl, displayName, user]);
+  }, [user, synced]);
 
   // Auto-save displayName with debounce
   useEffect(() => {
-    if (!firebaseUser || !displayName.trim()) return;
+    if (!firebaseUser || !synced) return;
     if (displayName === (user?.displayName ?? "")) return;
 
     setAutoSaveState("saving");
@@ -79,6 +81,7 @@ export function EditProfilePage() {
     firebaseUser,
     setUser,
     showToast,
+    synced,
     t,
     user?.displayName,
   ]);
@@ -86,7 +89,7 @@ export function EditProfilePage() {
   // Auto-save avatarUrl when changed
   const handleAvatarChange = async (url: string | null) => {
     setAvatarUrl(url);
-    if (!firebaseUser || !displayName.trim()) return;
+    if (!firebaseUser) return;
     setAutoSaveState("saving");
     try {
       const updated = await createOrUpdateUser(firebaseUser.uid, {

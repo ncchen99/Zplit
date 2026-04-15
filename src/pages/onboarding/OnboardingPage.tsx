@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import { useUIStore } from "@/store/uiStore";
 import { createOrUpdateUser } from "@/services/userService";
@@ -12,6 +12,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 export function OnboardingPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const firebaseUser = useAuthStore((s) => s.firebaseUser);
   const setUser = useAuthStore((s) => s.setUser);
   const setStatus = useAuthStore((s) => s.setStatus);
@@ -48,7 +49,9 @@ export function OnboardingPage() {
       setUser(user);
       setStatus("ready");
       logger.info("onboarding", "個人資料設定完成", { uid: firebaseUser.uid });
-      navigate("/home", { replace: true });
+
+      const redirectTo = (location.state as { redirectTo?: string })?.redirectTo;
+      navigate(redirectTo || "/home", { replace: true });
     } catch (err) {
       logger.error("onboarding", "個人資料儲存失敗", err);
       showToast(t("common.error"), "error");
