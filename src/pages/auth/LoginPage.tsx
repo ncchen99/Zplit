@@ -86,7 +86,7 @@ export function LoginPage() {
         {/* Logo & Tagline - upper area */}
         <div className="mb-12 flex flex-col items-center">
           <img src="/favicon.svg" alt="Zplit Logo" className="w-24 h-24 mb-4" />
-          <h1 className="text-5xl font-bold tracking-tight text-primary">
+          <h1 className="text-5xl font-extrabold tracking-tight bg-gradient-to-r from-[#2D8F44] via-[#63C452] to-[#85D156] bg-clip-text text-transparent">
             Zplit
           </h1>
           <p className="mt-3 text-lg text-base-content/60">
@@ -97,7 +97,7 @@ export function LoginPage() {
         {/* Login Buttons */}
         <div className="flex flex-col gap-3">
           <button
-            className="btn btn-primary btn-block btn-lg"
+            className="btn-success-soft btn-block"
             onClick={handleGoogleLogin}
             disabled={loading}
           >
@@ -121,7 +121,7 @@ export function LoginPage() {
           {!showTurnstile ? (
             <>
               <button
-                className="btn btn-outline btn-block"
+                className="btn-muted btn-block"
                 onClick={() => void handleAnonymousLogin()}
                 disabled={loading}
               >

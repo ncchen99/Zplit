@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -42,6 +43,7 @@ interface MemberSuggestion {
 
 export function MembersTab() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const currentGroup = useGroupStore((s) => s.currentGroup);
   const expenses = useGroupStore((s) => s.expenses);
   const settlements = useGroupStore((s) => s.settlements);
@@ -330,12 +332,16 @@ export function MembersTab() {
   const handleRemoveMember = async () => {
     if (!currentGroup || !selectedMember) return;
 
+    const isRemovingCurrentUser = selectedMember.userId === user?.uid;
     setActionLoading(true);
     try {
       await removeGroupMember(currentGroup.groupId, selectedMember.memberId);
       setShowDeleteModal(false);
       setSelectedMember(null);
       showToast(t("common.button.done"), "success");
+      if (isRemovingCurrentUser) {
+        navigate("/home", { replace: true });
+      }
     } catch (err) {
       logger.error("members.remove", "移除成員失敗", err);
       if (

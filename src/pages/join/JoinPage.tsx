@@ -87,7 +87,7 @@ export function JoinPage() {
   // ── Loading ─────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="flex min-h-[100dvh] flex-col">
+      <div className="flex min-h-[100dvh] md:min-h-full flex-col">
         {/* Header placeholder */}
         <div className="flex items-center px-4 pt-4 pb-2 min-h-[3.5rem]" />
 
@@ -124,7 +124,7 @@ export function JoinPage() {
   // ── Invalid link ─────────────────────────────────────────
   if (!group) {
     return (
-      <div className="flex min-h-[100dvh] flex-col items-center justify-center px-6 text-center gap-4">
+      <div className="flex min-h-[100dvh] md:min-h-full flex-col items-center justify-center px-6 text-center gap-4">
         <AlertCircle className="h-12 w-12 text-warning" />
         <p className="text-lg font-bold">{t("join.invalidLink")}</p>
         <button
@@ -143,7 +143,7 @@ export function JoinPage() {
   const needsAuth = status === "guest" || status === "onboarding";
 
   return (
-    <div className="flex min-h-[100dvh] flex-col">
+    <div className="flex min-h-[100dvh] md:min-h-full flex-col">
       {/* Header：select 步驟才顯示返回按鈕與標題 */}
       <div className="flex items-center px-4 pt-4 pb-2 min-h-[3.5rem]">
         {step === "select" && (
@@ -224,13 +224,11 @@ export function JoinPage() {
               ) : needsAuth ? (
                 /* 需要登入 */
                 <div className="flex flex-col gap-3">
-                  <div className="rounded-2xl bg-base-200 px-4 py-3.5 text-center">
-                    <p className="text-sm text-base-content/70">
-                      {t("join.loginFirst")}
-                    </p>
-                  </div>
+                  <p className="text-sm text-base-content/50 text-center">
+                    {t("join.loginFirst")}
+                  </p>
                   <button
-                    className="btn btn-primary btn-block btn-lg"
+                    className="btn-success-soft btn-block"
                     onClick={() =>
                       navigate("/login", {
                         state: { redirectTo: `/join/${code}` },
@@ -244,7 +242,7 @@ export function JoinPage() {
               ) : (
                 /* 已登入，可加入 */
                 <button
-                  className="btn btn-primary btn-block btn-lg"
+                  className="btn-success-soft btn-block"
                   onClick={() => setStep("select")}
                 >
                   {t("join.title")}
@@ -310,13 +308,13 @@ export function JoinPage() {
                   ))}
                 </div>
 
-                <div className="divider text-xs text-base-content/30 my-4">
+                <div className="divider text-xs text-base-content/30 mt-4 mb-7">
                   {t("common.or")}
                 </div>
 
                 {/* 以全新成員加入 */}
                 <button
-                  className="btn btn-neutral btn-block"
+                  className="btn-muted btn-block"
                   onClick={() => void handleJoin(null)}
                   disabled={joiningId !== null}
                 >
