@@ -210,12 +210,11 @@ export function JoinPage() {
               {isAlreadyMember ? (
                 /* 已是成員 */
                 <div className="flex flex-col gap-3">
-                  <div className="flex items-center justify-center gap-2 text-success text-sm font-medium">
-                    <CheckCircle2 className="h-4 w-4 shrink-0" />
+                  <p className="text-sm text-base-content/50 text-center">
                     {t("join.alreadyMember")}
-                  </div>
+                  </p>
                   <button
-                    className="btn btn-primary btn-block btn-lg"
+                    className="btn-success-soft btn-block"
                     onClick={() => navigate(`/groups/${group.groupId}`)}
                   >
                     {t("join.goToGroup")}
