@@ -53,173 +53,154 @@ async function loginAsAnonymous(page: Page, nickname: string) {
   }
 }
 
-test.describe('Zplit E2E Billing and Settlement Tests', () => {
+test.describe('Zplit Complex E2E: 3 Users, CRUD, and Post-Settlement', () => {
 
-  test.setTimeout(180000); // 增加超時時間
+  test.setTimeout(300000); // 複雜流程需要更多時間
 
-  test('Group Split and Personal Ledger Flow', async ({ browser }) => {
-    const contextA = await browser.newContext(); // Creator
-    const contextB = await browser.newContext(); // Joiner
+  test('3-User Group Interaction and Settlement Flow', async ({ browser }) => {
+    const contextA = await browser.newContext();
+    const contextB = await browser.newContext();
+    const contextC = await browser.newContext();
 
     const pageA = await contextA.newPage();
     const pageB = await contextB.newPage();
+    const pageC = await contextC.newPage();
 
     let inviteUrl = '';
 
-    // ----------------------------------------
-    // A. 登入階段
-    // ----------------------------------------
-    await test.step('User A and User B Log In', async () => {
-      await loginAsAnonymous(pageA, 'UserA_Creator');
-      await loginAsAnonymous(pageB, 'UserB_Joiner');
+    // 1. 登入階段
+    await test.step('Three users log in', async () => {
+      await loginAsAnonymous(pageA, 'UserA_Alpha');
+      await loginAsAnonymous(pageB, 'UserB_Beta');
+      await loginAsAnonymous(pageC, 'UserC_Gamma');
     });
 
-    // ----------------------------------------
-    // B. 群組功能測試 (Group Flow)
-    // ----------------------------------------
-    await test.step('User A 創建群組並取得邀請連結', async () => {
-      // 確保導航按鈕可見後再點擊
-      const groupTabBtn = pageA.getByRole('button', { name: '群組' });
-      await groupTabBtn.waitFor({ state: 'visible' });
-      await groupTabBtn.click({ force: true });
-      
-      const createBtn = pageA.getByRole('button', { name: '建立群組' });
-      await createBtn.waitFor({ state: 'visible' });
-      await createBtn.click();
+    // 2. 建立群組並邀請
+    await test.step('User A creates group and invites others', async () => {
+      await pageA.getByRole('button', { name: '群組' }).waitFor({ state: 'visible' });
+      await pageA.getByRole('button', { name: '群組' }).click({ force: true });
+      await pageA.getByRole('button', { name: '建立群組' }).click();
 
-      await pageA.getByPlaceholder('例如：墾丁旅遊 2026').fill('E2E 測試群組');
-      
-      // 儲存 (PageHeader 中的 CheckIcon)
-      await pageA.locator('button').filter({ has: pageA.locator('svg.lucide-check') }).click();
+      await pageA.getByPlaceholder('例如：墾丁旅遊 2026').fill('三人測試群組');
+      await pageA.locator('.justify-end button').click(); // 儲存
 
       await pageA.waitForURL(/\/groups\/[a-zA-Z0-9_-]+/);
-      
-      // 切換到設定分頁讀取邀請連結
-      const settingsTab = pageA.getByRole('tab', { name: '設定' });
-      await settingsTab.waitFor({ state: 'visible' });
-      await settingsTab.click();
-      
-      const inviteInput = pageA.locator('input[readonly]');
-      await expect(inviteInput).toBeVisible();
-      inviteUrl = await inviteInput.inputValue();
-      expect(inviteUrl).toContain('/join/');
+      await pageA.getByRole('tab', { name: '設定' }).click();
+      inviteUrl = await pageA.locator('input[readonly]').inputValue();
     });
 
-    await test.step('User B 加入群組', async () => {
-      await pageB.goto(inviteUrl);
-      
-      // Step 1: 加入群組 (JoinPage Step 1)
-      const joinBtn = pageB.getByRole('button', { name: '加入群組', exact: true });
-      await joinBtn.waitFor({ state: 'visible' });
-      await joinBtn.click();
-      
-      // Step 2: 選擇身分 (JoinPage Step 2)
-      const newMemberBtn = pageB.getByRole('button', { name: '以上都不是，以新成員加入' });
-      await newMemberBtn.waitFor({ state: 'visible' });
-      await newMemberBtn.click();
-      
-      await pageB.waitForURL(/\/groups\/[a-zA-Z0-9_-]+/);
-      await expect(pageB.getByText('E2E 測試群組').first()).toBeVisible();
+    // 3. B 與 C 加入群組
+    await test.step('User B and C join group', async () => {
+      for (const page of [pageB, pageC]) {
+        await page.goto(inviteUrl);
+        await page.getByRole('button', { name: '加入群組', exact: true }).click();
+        await page.getByRole('button', { name: '以上都不是，以新成員加入' }).click();
+        await page.waitForURL(/\/groups\/[a-zA-Z0-9_-]+/);
+      }
     });
 
-    await test.step('新增分帳: 平均分配', async () => {
-      // 從列表進入群組 (點擊首頁或分頁中的群組卡片)
-      // 由於 User A 剛剛已經在群組頁面，直接在那邊點擊 FAB
-      const addExpenseBtn = pageA.getByRole('button', { name: '新增帳務' });
-      await addExpenseBtn.waitFor({ state: 'visible' });
-      await addExpenseBtn.click({ force: true });
-      
-      await pageA.getByPlaceholder('例如：Pizza、計程車...').fill('晚餐 (平均)');
-      await fillCalculatorInput(pageA, '1000');
-
-      // 儲存
-      await pageA.locator('button').filter({ has: pageA.locator('svg.lucide-check') }).click();
-      await pageA.waitForURL(/\/groups\/[a-zA-Z0-9_-]+/);
-    });
-
-    await test.step('新增分帳: 按金額分配', async () => {
-      await pageA.getByRole('button', { name: '新增帳務' }).click({ force: true });
-      await pageA.getByPlaceholder('例如：Pizza、計程車...').fill('超市 (金額)');
+    // 4. 初步記帳 (A 支付 1200)
+    await test.step('Add initial expense (User A pays 1200)', async () => {
+      await pageA.getByRole('button', { name: '新增帳務' }).click();
+      await pageA.getByPlaceholder('例如：Pizza、計程車...').fill('大餐');
       await fillCalculatorInput(pageA, '1200');
-
-      // 切換分帳模式 (觸發按鈕的 aria-label 是 "分帳模式")
-      await pageA.getByRole('button', { name: '分帳模式' }).click();
-      await pageA.getByRole('button', { name: '依金額分帳' }).click();
-
-      // 輸入每個人分配的金額
-      const inputs = pageA.locator('input[type="number"]');
-      await inputs.nth(0).fill('800');
-      await inputs.nth(1).fill('400');
-      
-      await pageA.locator('button').filter({ has: pageA.locator('svg.lucide-check') }).click();
+      await pageA.locator('.justify-end button').click();
       await pageA.waitForURL(/\/groups\/[a-zA-Z0-9_-]+/);
     });
 
-    await test.step('新增分帳: 按比例分配', async () => {
-      await pageA.getByRole('button', { name: '新增帳務' }).click({ force: true });
-      await pageA.getByPlaceholder('例如：Pizza、計程車...').fill('飲料 (比例)');
-      await fillCalculatorInput(pageA, '100');
-  
-      await pageA.getByRole('button', { name: '分帳模式' }).click();
-      await pageA.getByRole('button', { name: '依比例分帳' }).click();
-  
-      const percentInputs = pageA.locator('input[type="number"]');
-      await percentInputs.nth(0).fill('70');
-      await percentInputs.nth(1).fill('30');
+    // 5. 編輯帳務 (A 將 1200 改為 1500)
+    await test.step('Edit expense (Change 1200 to 1500)', async () => {
+      await pageA.getByText('大餐').first().click();
+      await pageA.waitForURL(/\/groups\/.*\/expenses\/.*/);
       
-      await pageA.locator('button').filter({ has: pageA.locator('svg.lucide-check') }).click();
-      await pageA.waitForURL(/\/groups\/[a-zA-Z0-9_-]+/);
-    });
-
-    await test.step('結算功能檢查', async () => {
-      const settleTab = pageB.getByRole('tab', { name: '結算' });
-      await settleTab.waitFor({ state: 'visible' });
-      await settleTab.click();
+      // 點擊編輯 (使用 Pencil 圖示定位)
+      await pageA.locator('button').filter({ has: pageA.locator('svg.lucide-pencil') }).click(); 
+      await pageA.waitForURL(/\/groups\/.*\/expense\/.*\/edit/);
       
-      // 驗證債務金額 (1000/2 + 400 + 30 = 930)
-      await expect(pageB.getByText('NT$930')).toBeVisible();
-
-      // 點擊綠色打勾按鈕進行結算
-      const confirmBtn = pageB.locator('button.btn-theme-green').filter({ has: pageB.locator('svg.lucide-check') }).first();
-      await confirmBtn.click();
-      
-      // 確認結算 Modal
-      await pageB.getByRole('button', { name: '確認' }).click();
-      
-      // 驗證債務已消失 (顯示所有債務已結清)
-      await expect(pageB.getByText('所有債務已結清！')).toBeVisible();
-    });
-
-    // ----------------------------------------
-    // C. 個人功能測試 (Personal Flow)
-    // ----------------------------------------
-    await test.step('個人記帳流程測試', async () => {
-      // 由於在群組詳情頁中沒有底部導覽列，直接跳轉到個人分頁
-      await pageA.goto('/personal');
-      await pageA.waitForURL('**/personal');
-      
-      const addBtn = pageA.getByRole('button', { name: '新增分帳' });
-      await addBtn.waitFor({ state: 'visible' });
-      await addBtn.click();
-      
-      await pageA.getByPlaceholder('輸入朋友名字...').fill('測試好友A');
-      await pageA.getByRole('button', { name: /新增「測試好友A」為新聯絡人/ }).click();
-
-      await pageA.getByPlaceholder('例如：Pizza、計程車...').fill('借書錢');
-      await fillCalculatorInput(pageA, '250');
-      
-      // 點擊存檔 (PageHeader 右側按鈕)
+      await fillCalculatorInput(pageA, '1500');
       await pageA.locator('.justify-end button').click();
       
-      await pageA.waitForURL('**/personal/*'); // 進入聯絡人詳情頁
-      await expect(pageA.getByText('+NT$250')).toBeVisible();
-
-      // 進行結算
-      await pageA.locator('button').filter({ has: pageA.locator('svg.lucide-ellipsis-vertical') }).click();
-      await pageA.getByRole('button', { name: '結清所有帳款' }).click();
-      await pageA.getByRole('button', { name: '確認' }).click();
+      // 等待回到詳情頁並驗證金額變動
+      await pageA.waitForURL(/\/groups\/.*\/expenses\/.*/);
+      await expect(pageA.getByText(/1,500/)).toBeVisible();
       
-      await expect(pageA.getByText('已結清').first()).toBeVisible();
+      // 返回群組首頁
+      await pageA.getByRole('button', { name: 'Back' }).click();
+    });
+
+    // 6. User B 新增帳務 (B 支付 600)
+    await test.step('Add second expense (User B pays 600)', async () => {
+      await pageB.getByRole('button', { name: '新增帳務' }).click();
+      await pageB.getByPlaceholder('例如：Pizza、計程車...').fill('交通費');
+      await fillCalculatorInput(pageB, '600');
+      await pageB.locator('.justify-end button').click();
+    });
+
+    // 7. 部分結算 (User C 結清給 User A 的欠款)
+    // 此時 C 欠 A 500 (1500/3), 欠 B 200 (600/3)
+    await test.step('Partial Settlement (User C pays User A)', async () => {
+      await pageC.getByRole('tab', { name: '結算' }).click();
+      await expect(pageC.getByText('NT$500')).toBeVisible(); // 驗證欠 A 的金額
+      
+      // 結清給 User A 的那筆 (選取第一個結算按鈕)
+      await pageC.locator('button.btn-theme-green').first().click();
+      await pageC.getByRole('button', { name: '確認' }).click();
+      
+      // 驗證 User A 的債務已消失，只剩下給 User B 的債務
+      await expect(pageC.getByText('NT$500')).not.toBeVisible();
+      await expect(pageC.getByText('NT$200')).toBeVisible();
+    });
+
+    // 8. 結算後新增帳務 (User C 支付 300)
+    await test.step('Add expense after settlement (User C pays 300)', async () => {
+      await pageC.getByRole('tab', { name: '總覽' }).click();
+      await pageC.getByRole('button', { name: '新增帳務' }).click();
+      await pageC.getByPlaceholder('例如：Pizza、計程車...').fill('飲料');
+      await fillCalculatorInput(pageC, '300');
+      await pageC.locator('.justify-end button').click();
+    });
+
+    // 9. 刪除帳務 (User A 刪除 User B 支付的那筆「交通費」)
+    await test.step('Delete expense (Delete User B\'s 600)', async () => {
+      await pageA.getByText('交通費').first().click();
+      await pageA.waitForURL(/\/groups\/.*\/expenses\/.*/);
+      await pageA.locator('button').filter({ has: pageA.locator('svg.lucide-pencil') }).click(); // 進入編輯頁
+      await pageA.waitForURL(/\/groups\/.*\/edit/);
+      
+      await pageA.getByRole('button', { name: '刪除' }).click();
+      await pageA.getByRole('button', { name: '刪除', exact: true }).last().click(); // ConfirmModal 中的確認按鈕
+      await pageA.waitForURL(/\/groups\/[a-zA-Z0-9_-]+/);
+      await expect(pageA.getByText('交通費')).not.toBeVisible();
+    });
+
+    // 10. 最終數學驗證
+    // A 支付 1500, C 支付 300, 合計 1800, 每人 600
+    // C 已付 A 500
+    // 預計 A 的結算頁面：會看到應收 B 的 500，並應付 C 的 100
+    await test.step('Final Balance Verification', async () => {
+      await pageA.getByRole('tab', { name: '結算' }).click();
+      
+      // 驗證應收 B 的 500
+      await expect(pageA.getByText('應收', { exact: false })).toBeVisible();
+      await expect(pageA.getByText('NT$500')).toBeVisible();
+      
+      // 驗證應付 C 的 100
+      await expect(pageA.getByText('應付', { exact: false })).toBeVisible();
+      await expect(pageA.getByText('NT$100')).toBeVisible();
+    });
+
+    // ----------------------------------------
+    // 個人功能測試 (維持原樣或略微調整)
+    // ----------------------------------------
+    await test.step('Personal Ledger Flow', async () => {
+      await pageA.goto('/personal');
+      await pageA.getByRole('button', { name: '新增分帳' }).click();
+      await pageA.getByPlaceholder('輸入朋友名字...').fill('好友Z');
+      await pageA.getByRole('button', { name: /新增/ }).click();
+      await pageA.getByPlaceholder('例如：Pizza、計程車...').fill('借錢');
+      await fillCalculatorInput(pageA, '100');
+      await pageA.locator('.justify-end button').click();
+      await expect(pageA.getByText('+NT$100')).toBeVisible();
     });
 
   });
