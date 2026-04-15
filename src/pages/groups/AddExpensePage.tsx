@@ -278,10 +278,10 @@ export function AddExpensePage() {
 
         {/* Split With */}
         <fieldset className="fieldset w-full">
-          <legend className="fieldset-legend mb-2 flex w-full items-center justify-between">
-            <span>{t("expense.splitWith")}</span>
+          <div className="flex items-center justify-between">
+            <span className="fieldset-legend !m-0">{t("expense.splitWith")}</span>
             {splitMode === "equal" && (
-              <span className="flex items-center gap-2">
+              <div className="flex gap-2">
                 <button
                   type="button"
                   className="btn btn-ghost btn-xs"
@@ -297,9 +297,9 @@ export function AddExpensePage() {
                 >
                   {t("common.button.clearAll")}
                 </button>
-              </span>
+              </div>
             )}
-          </legend>
+          </div>
 
           {splitMode === "equal" && (
             <div className="filter mb-3 flex w-full flex-wrap gap-2">
