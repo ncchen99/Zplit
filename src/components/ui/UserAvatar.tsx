@@ -2,7 +2,8 @@
  * Reusable avatar component that properly handles text initials
  * when no avatar image is available, preventing text overflow.
  */
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { prefetchImage, getCachedImageSrc } from "@/hooks/useImageCache";
 
 interface UserAvatarProps {
   src: string | null | undefined;
@@ -27,7 +28,13 @@ export function UserAvatar({
 }: UserAvatarProps) {
   const [imgError, setImgError] = useState(false);
   const initial = name?.charAt(0) || "?";
-  const showImage = src && !imgError;
+  const cachedSrc = getCachedImageSrc(src);
+  const showImage = cachedSrc && !imgError;
+
+  // Kick off background prefetch on first render
+  useEffect(() => {
+    if (src) prefetchImage(src);
+  }, [src]);
 
   return (
     <div className="avatar placeholder flex-shrink-0">
@@ -36,7 +43,7 @@ export function UserAvatar({
       >
         {showImage ? (
           <img
-            src={src}
+            src={cachedSrc}
             alt=""
             className="w-full h-full object-cover"
             onError={() => setImgError(true)}

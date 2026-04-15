@@ -160,7 +160,10 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
               const payer = getName(expense.paidBy);
               const payerAvatar = memberAvatarMap.get(expense.paidBy) ?? null;
               const dateStr = expense.date?.seconds
-                ? new Date(expense.date.seconds * 1000).toLocaleDateString()
+                ? new Date(expense.date.seconds * 1000).toLocaleTimeString(
+                    [],
+                    { hour: "2-digit", minute: "2-digit" },
+                  )
                 : "";
               const splitMembers = expense.splits
                 .map((s) => memberFullMap.get(s.memberId))

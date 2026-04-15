@@ -27,6 +27,7 @@ export function HomePage() {
   const [personalContacts, setPersonalContacts] = useState<
     (PersonalContact & { netAmount: number })[]
   >([]);
+  const [unsettledPersonalCount, setUnsettledPersonalCount] = useState(0);
 
   const getTimestampMs = (value: unknown): number => {
     if (!value) return 0;
@@ -66,7 +67,15 @@ export function HomePage() {
     const fetchPersonal = async () => {
       try {
         const contacts = await getContacts(user.uid);
-        const activeContacts = contacts
+        const allWithNet = await Promise.all(
+          contacts.map(async (c) => {
+            const expenses = await getPersonalExpenses(user.uid, c.contactId);
+            return { ...c, netAmount: computePersonalNetAmount(expenses) };
+          }),
+        );
+        const unsettled = allWithNet.filter((c) => c.netAmount !== 0);
+        setUnsettledPersonalCount(unsettled.length);
+        const withNet = unsettled
           .filter((c) => {
             const hasRecordTime = getTimestampMs(c.lastExpenseAt) > 0;
             return hasRecordTime || c.interactionCount > 0;
@@ -77,14 +86,7 @@ export function HomePage() {
               getTimestampMs(a.lastExpenseAt ?? a.updatedAt),
           )
           .slice(0, 3);
-
-        const withNet = await Promise.all(
-          activeContacts.map(async (c) => {
-            const expenses = await getPersonalExpenses(user.uid, c.contactId);
-            return { ...c, netAmount: computePersonalNetAmount(expenses) };
-          }),
-        );
-        setPersonalContacts(withNet.filter((c) => c.netAmount !== 0));
+        setPersonalContacts(withNet);
       } catch (err) {
         logger.error("home.fetchPersonal", "載入個人記錄失敗", err);
       }
@@ -125,8 +127,10 @@ export function HomePage() {
           {t("home.welcome", { name: user?.displayName ?? "" })}
         </p>
         <p className="text-sm text-base-content/50">
-          {groups.length > 0
-            ? t("home.pendingCount", { count: groups.length })
+          {groups.length + unsettledPersonalCount > 0
+            ? t("home.pendingCount", {
+                count: groups.length + unsettledPersonalCount,
+              })
             : t("home.noPending")}
         </p>
       </div>

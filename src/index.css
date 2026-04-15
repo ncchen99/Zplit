@@ -322,6 +322,15 @@
   }
 }
 
+/* Fix fieldset-legend text going vertical on iPad (DaisyUI uses inline-block
+   which triggers vertical writing mode in some WebKit versions) */
+.fieldset-legend {
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+  display: block !important;
+  white-space: nowrap;
+}
+
 /* Customize lemonade (light) theme */
 [data-theme="lemonade"] {
   --color-primary: oklch(54.937% 0.14028 149.554);

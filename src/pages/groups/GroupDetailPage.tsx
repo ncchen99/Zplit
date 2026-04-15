@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useParams, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   collection,
@@ -22,11 +22,12 @@ import { SettleTab } from "./tabs/SettleTab";
 import { MembersTab } from "./tabs/MembersTab";
 import { SettingsTab } from "./tabs/SettingsTab";
 import { PageHeader, HeaderIconButton } from "@/components/ui/PageHeader";
-import { useState } from "react";
 import { Plus as PlusIcon, Share2 as ShareIcon } from "lucide-react";
 
 type TabKey = "summary" | "settle" | "members" | "settings";
 type GroupDetailLocationState = { from?: string };
+
+const VALID_TABS: TabKey[] = ["summary", "settle", "members", "settings"];
 
 export function GroupDetailPage() {
   const { t } = useTranslation();
@@ -34,12 +35,22 @@ export function GroupDetailPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const showToast = useUIStore((s) => s.showToast);
-  const [activeTab, setActiveTab] = useState<TabKey>("summary");
 
   const navigationState = location.state as GroupDetailLocationState | null;
   const backTarget = navigationState?.from?.startsWith("/")
     ? navigationState.from
     : "/home";
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const rawTab = searchParams.get("tab");
+  const activeTab: TabKey =
+    rawTab && VALID_TABS.includes(rawTab as TabKey)
+      ? (rawTab as TabKey)
+      : "summary";
+
+  const setActiveTab = (tab: TabKey) => {
+    setSearchParams({ tab }, { replace: false });
+  };
 
   const currentGroup = useGroupStore((s) => s.currentGroup);
   const setCurrentGroup = useGroupStore((s) => s.setCurrentGroup);
