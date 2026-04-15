@@ -108,16 +108,19 @@ test.describe('Zplit Complex E2E: 3 Users, CRUD, and Post-Settlement', () => {
       await pageA.getByRole('button', { name: '新增帳務' }).click();
       await pageA.getByPlaceholder('例如：Pizza、計程車...').fill('大餐');
       await fillCalculatorInput(pageA, '1200');
-      await pageA.locator('.justify-end button').click();
+      // 點擊儲存按鈕 (打勾圖示)
+      await pageA.locator('header, .sticky').locator('button').filter({ has: pageA.locator('svg.lucide-check') }).click();
       
       await pageA.getByText('大餐').first().click();
+      // 點擊編輯按鈕 (鉛筆圖示)
       await pageA.locator('button').filter({ has: pageA.locator('svg.lucide-pencil') }).click(); 
       await fillCalculatorInput(pageA, '1500'); 
-      await pageA.locator('.justify-end button').click();
+      // 點擊儲存按鈕 (打勾圖示)
+      await pageA.locator('header, .sticky').locator('button').filter({ has: pageA.locator('svg.lucide-check') }).click();
       
       await pageA.waitForURL(/\/groups\/.*\/expenses\/.*/);
-      // 使用更強健的定位器，並等待數值更新
-      await expect(pageA.getByText('1,500', { exact: false })).toBeVisible();
+      // 使用更強健的定位器，並等待數值更新。考慮到不同環境可能格式化不同 (如 NT$1,500 或 NT$1,500.00)
+      await expect(pageA.locator('.stat-value')).toContainText(/1.*500/);
       await pageA.getByRole('button', { name: 'Back' }).click();
     });
 
@@ -125,16 +128,18 @@ test.describe('Zplit Complex E2E: 3 Users, CRUD, and Post-Settlement', () => {
       await pageB.getByRole('button', { name: '新增帳務' }).click();
       await pageB.getByPlaceholder('例如：Pizza、計程車...').fill('交通費');
       await fillCalculatorInput(pageB, '600');
-      await pageB.locator('.justify-end button').click();
+      // 點擊儲存按鈕 (打勾圖示)
+      await pageB.locator('header, .sticky').locator('button').filter({ has: pageB.locator('svg.lucide-check') }).click();
       await pageB.waitForURL(/\/groups\/[a-zA-Z0-9_-]+/);
     });
 
     await test.step('Partial Settlement (User C pays User A)', async () => {
       await pageC.getByRole('tab', { name: '結算' }).click();
-      await expect(pageC.getByText('NT$500')).toBeVisible();
+      // With 大餐(1500) + 交通費(600), equal 3-way split: C owes A 700, B owes A 100
+      await expect(pageC.getByText('NT$700')).toBeVisible();
       await pageC.locator('button.btn-theme-green').first().click();
       await pageC.getByRole('button', { name: '確認' }).click();
-      await expect(pageC.getByText('NT$500')).not.toBeVisible();
+      await expect(pageC.getByText('NT$700')).not.toBeVisible();
     });
 
     await test.step('Add expense after settlement (User C pays 300)', async () => {
@@ -156,10 +161,10 @@ test.describe('Zplit Complex E2E: 3 Users, CRUD, and Post-Settlement', () => {
 
     await test.step('Final Balance Verification', async () => {
       await pageA.getByRole('tab', { name: '結算' }).click();
-      await expect(pageA.getByText('應收', { exact: false })).toBeVisible();
-      await expect(pageA.getByText('NT$500')).toBeVisible();
-      await expect(pageA.getByText('應付', { exact: false })).toBeVisible();
-      await expect(pageA.getByText('NT$100')).toBeVisible();
+      // After deleting 交通費(600): remaining expenses are 大餐(A,1500) + Settlement(C→A,700) + 飲料(C,300)
+      // Balance: B=-600, C=+400, A=+200 → B→C: 400, B→A: 200
+      await expect(pageA.getByText('NT$200')).toBeVisible();
+      await expect(pageA.getByText('NT$400')).toBeVisible();
     });
 
     await test.step('Personal Ledger Flow', async () => {

@@ -32,7 +32,7 @@ export function ExpenseDetailPage() {
   const loading = needsFetch;
 
   useEffect(() => {
-    if (!groupId || !needsFetch) return;
+    if (!groupId) return;
 
     const groupUnsub = onSnapshot(doc(db, "groups", groupId), (snap) => {
       if (snap.exists()) {
@@ -58,7 +58,7 @@ export function ExpenseDetailPage() {
       groupUnsub();
       expensesUnsub();
     };
-  }, [groupId, needsFetch, setCurrentGroup, setExpenses]);
+  }, [groupId, setCurrentGroup, setExpenses]);
 
   const currentGroup = storeGroup?.groupId === groupId ? storeGroup : null;
   const expense = storeExpenses.find((e) => e.expenseId === expenseId);
