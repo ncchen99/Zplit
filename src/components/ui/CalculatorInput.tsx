@@ -15,7 +15,6 @@ function liveEval(expr: string): string {
   try {
     const sanitized = trimmed.replace(/×/g, "*").replace(/÷/g, "/");
     if (!/^[0-9+\-*/.]+$/.test(sanitized)) return trimmed;
-    // eslint-disable-next-line no-new-func
     const result = new Function("return (" + sanitized + ")")() as unknown;
     if (typeof result !== "number" || !isFinite(result) || result < 0) {
       return trimmed;
@@ -71,8 +70,9 @@ export function CalculatorInput({
     if (isOpen) {
       const raf = requestAnimationFrame(() => setVisible(true));
       return () => cancelAnimationFrame(raf);
+    } else {
+      setVisible(false);
     }
-    setVisible(false);
   }, [isOpen]);
 
   const hasOp = /[+\-×÷]/.test(expression);
@@ -140,9 +140,12 @@ export function CalculatorInput({
 
   const numKeyCls = "btn-muted";
   const opKeyCls = "btn-muted";
+  const sheetVisibleCls = visible
+    ? "translate-y-0 opacity-100"
+    : "translate-y-full opacity-0 md:translate-y-2";
 
   return (
-    <>
+    <div className="relative w-full">
       {/* Trigger field */}
       <div
         className="input flex items-center gap-2 w-full cursor-pointer"
@@ -164,16 +167,16 @@ export function CalculatorInput({
 
       {/* Bottom sheet overlay */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex flex-col justify-end">
+        <div className="fixed inset-0 z-50 flex flex-col justify-end md:absolute md:inset-x-0 md:top-full md:bottom-auto md:mt-2 md:z-30">
           {/* Backdrop */}
           <div
-            className={`absolute inset-0 bg-black/40 transition-opacity duration-200 ${visible ? "opacity-100" : "opacity-0"}`}
+            className={`absolute inset-0 bg-black/40 transition-opacity duration-200 md:hidden ${visible ? "opacity-100" : "opacity-0"}`}
             onClick={handleClose}
           />
 
           {/* Calculator card */}
           <div
-            className={`relative bg-base-100 rounded-2xl shadow-2xl transition-transform duration-200 ease-out mx-3 mb-3 ${visible ? "translate-y-0" : "translate-y-full"}`}
+            className={`relative bg-base-100 rounded-2xl shadow-2xl transition-all duration-200 ease-out mx-3 mb-3 md:mx-0 md:mb-0 ${sheetVisibleCls}`}
           >
             {/* Display */}
             <div className="bg-base-200 rounded-t-2xl px-4 pt-3 pb-2">
@@ -252,6 +255,6 @@ export function CalculatorInput({
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
