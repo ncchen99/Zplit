@@ -25,6 +25,7 @@ export function SettleTab() {
   const user = useAuthStore((s) => s.user);
   const showToast = useUIStore((s) => s.showToast);
   const [showMarkAllConfirm, setShowMarkAllConfirm] = useState(false);
+  const [pendingDebt, setPendingDebt] = useState<SettlementResult | null>(null);
 
   const memberMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -106,37 +107,27 @@ export function SettleTab() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* 待結清計數卡片 */}
-      <div className="stats stats-horizontal w-full flex border border-base-300 bg-base-100">
-        <div className="stat py-3.5 px-4 min-w-0">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-base-content/70">
-              {t("group.settle.progress")}
-            </h3>
-            <span className="text-sm font-black text-warning px-2 py-0.5 rounded-full">
-              {t("group.settle.progressDetail", {
-                completed: 0,
-                total: remainingDebts.length,
-              })}
-            </span>
-          </div>
-
-          <div className="flex justify-end items-center mt-2">
-            <button
-              className="btn btn-ghost btn-xs text-primary hover:bg-primary/10 px-2"
-              onClick={() => setShowMarkAllConfirm(true)}
-            >
-              {t("group.settle.markAllDone")}
-            </button>
-          </div>
-        </div>
+    <div className="space-y-4">
+      {/* 列表標題列：待結清筆數 + 全部標記完成 */}
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-semibold text-base-content/60">
+          {t("group.settle.pendingCount", { count: remainingDebts.length })}
+        </span>
+        <button
+          className="btn btn-ghost btn-xs text-primary hover:bg-primary/10 px-2"
+          onClick={() => setShowMarkAllConfirm(true)}
+        >
+          {t("group.settle.markAllDone")}
+        </button>
       </div>
 
+      {/* 全部結清確認 Modal */}
       <ConfirmModal
         open={showMarkAllConfirm}
         title={t("group.settle.markAllDone")}
-        message={t("group.settle.markAllDone") + "?"}
+        message={t("group.settle.markAllDoneConfirm", {
+          count: remainingDebts.length,
+        })}
         confirmLabel={t("common.button.confirm")}
         cancelLabel={t("common.button.cancel")}
         onConfirm={() => {
@@ -144,6 +135,28 @@ export function SettleTab() {
           handleMarkAllDone();
         }}
         onCancel={() => setShowMarkAllConfirm(false)}
+      />
+
+      {/* 單筆結清確認 Modal */}
+      <ConfirmModal
+        open={!!pendingDebt}
+        title={t("group.settle.markDone")}
+        message={
+          pendingDebt
+            ? t("group.settle.markDoneConfirm", {
+                from: getName(pendingDebt.from),
+                to: getName(pendingDebt.to),
+                amount: pendingDebt.amount.toLocaleString(),
+              })
+            : ""
+        }
+        confirmLabel={t("common.button.confirm")}
+        cancelLabel={t("common.button.cancel")}
+        onConfirm={() => {
+          if (pendingDebt) handleMarkDone(pendingDebt);
+          setPendingDebt(null);
+        }}
+        onCancel={() => setPendingDebt(null)}
       />
 
       {/* 待結清列表 */}
@@ -180,7 +193,7 @@ export function SettleTab() {
             <div className="flex-shrink-0">
               <button
                 className="btn-theme-green btn-sm btn-circle"
-                onClick={() => handleMarkDone(debt)}
+                onClick={() => setPendingDebt(debt)}
                 title={t("group.settle.markDone")}
               >
                 <CheckIcon className="h-5 w-5" />
