@@ -194,9 +194,9 @@ test.describe('Zplit E2E Billing and Settlement Tests', () => {
     // C. 個人功能測試 (Personal Flow)
     // ----------------------------------------
     await test.step('個人記帳流程測試', async () => {
-      const personalTab = pageA.getByRole('button', { name: '個人' });
-      await personalTab.waitFor({ state: 'visible' });
-      await personalTab.click({ force: true });
+      // 由於在群組詳情頁中沒有底部導覽列，直接跳轉到個人分頁
+      await pageA.goto('/personal');
+      await pageA.waitForURL('**/personal');
       
       const addBtn = pageA.getByRole('button', { name: '新增分帳' });
       await addBtn.waitFor({ state: 'visible' });
@@ -208,7 +208,8 @@ test.describe('Zplit E2E Billing and Settlement Tests', () => {
       await pageA.getByPlaceholder('例如：Pizza、計程車...').fill('借書錢');
       await fillCalculatorInput(pageA, '250');
       
-      await pageA.locator('button').filter({ has: pageA.locator('svg.lucide-check') }).click();
+      // 點擊存檔 (PageHeader 右側按鈕)
+      await pageA.locator('.justify-end button').click();
       
       await pageA.waitForURL('**/personal/*'); // 進入聯絡人詳情頁
       await expect(pageA.getByText('+NT$250')).toBeVisible();
