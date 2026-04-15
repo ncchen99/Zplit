@@ -5,7 +5,6 @@ import { useGroupStore } from "@/store/groupStore";
 import { useAuthStore } from "@/store/authStore";
 import { useUIStore } from "@/store/uiStore";
 import { addExpense } from "@/services/expenseService";
-import { recalculateSettlements } from "@/services/settlementService";
 import { getGroupById } from "@/services/groupService";
 import { logger } from "@/utils/logger";
 import {
@@ -167,8 +166,6 @@ export function AddExpensePage() {
         date: parseTaipeiDateTimeLocalString(expenseDate),
         createdBy: user.uid,
       });
-
-      await recalculateSettlements(groupId);
 
       showToast(t("common.toast.expenseAdded"), "success");
       navigate(`/groups/${groupId}`, { replace: true });

@@ -1,64 +1,37 @@
 import {
   collection,
-  doc,
   getDocs,
   query,
   where,
   writeBatch,
-  serverTimestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import {
-  computeBalances,
-  computeSettlements,
-} from "@/lib/algorithm/settlement";
 import { logger } from "@/utils/logger";
-import type { Expense } from "@/store/groupStore";
 
-export async function recalculateSettlements(groupId: string): Promise<void> {
+/**
+ * 清除群組中殘留的 completed: false 結算記錄（舊資料相容性清理）。
+ *
+ * 新架構下結算記錄只會在使用者主動點擊結清時建立（始終 completed: true）。
+ * 此函式僅用於清理舊版本遺留的 incomplete 記錄，不再主動建立任何記錄。
+ */
+export async function cleanupStaleSettlements(groupId: string): Promise<void> {
   try {
-    // Read all expenses
-    const expensesSnap = await getDocs(
-      collection(db, `groups/${groupId}/expenses`),
-    );
-    const expenses = expensesSnap.docs.map((d) => d.data() as Expense);
-
-    // Compute new settlements
-    const balances = computeBalances(expenses);
-    const newSettlements = computeSettlements(balances);
-
     const settlementsRef = collection(db, `groups/${groupId}/settlements`);
-    // Get all existing incomplete settlements to delete
-    const incompleteSnap = await getDocs(
+    const staleSnap = await getDocs(
       query(settlementsRef, where("completed", "==", false)),
     );
 
+    if (staleSnap.empty) return;
+
     const batch = writeBatch(db);
-
-    // Delete incomplete settlements
-    incompleteSnap.docs.forEach((d) => {
-      batch.delete(d.ref);
-    });
-
-    // Write new settlements
-    for (const s of newSettlements) {
-      const ref = doc(collection(db, `groups/${groupId}/settlements`));
-      batch.set(ref, {
-        ...s,
-        completed: false,
-        completedBy: null,
-        completedAt: null,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      });
-    }
-
+    staleSnap.docs.forEach((d) => batch.delete(d.ref));
     await batch.commit();
-    logger.info("settlement.recalculate", "結算重算完成", {
+
+    logger.info("settlement.cleanup", "清理舊版 incomplete 結算記錄", {
       groupId,
-      count: newSettlements.length,
+      count: staleSnap.size,
     });
   } catch (err) {
-    logger.error("settlement.recalculate", "結算重算失敗", { groupId, err });
+    logger.error("settlement.cleanup", "清理結算記錄失敗", { groupId, err });
   }
 }

@@ -7,7 +7,11 @@ function isPublicPath(pathname: string) {
   return publicPaths.some((p) => pathname.startsWith(p));
 }
 
-function getRedirect(status: AuthStatus, pathname: string): string | null {
+function getRedirect(
+  status: AuthStatus,
+  pathname: string,
+  state: unknown,
+): string | null {
   switch (status) {
     case "guest":
       return isPublicPath(pathname) ? null : "/login";
@@ -16,7 +20,12 @@ function getRedirect(status: AuthStatus, pathname: string): string | null {
       if (pathname.startsWith("/join")) return null;
       return "/onboarding";
     case "ready":
-      if (pathname === "/login") return "/home";
+      if (pathname === "/login") {
+        // 若登入前有儲存的 redirectTo（例如從 join 頁引導登入），登入後跳回原頁
+        const redirectTo = (state as { redirectTo?: string } | null)?.redirectTo;
+        if (redirectTo?.startsWith("/")) return redirectTo;
+        return "/home";
+      }
       if (pathname === "/onboarding") return "/home";
       return null;
     default:
@@ -36,7 +45,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  const redirect = getRedirect(status, location.pathname);
+  const redirect = getRedirect(status, location.pathname, location.state);
   if (redirect) {
     return <Navigate to={redirect} state={{ from: location }} replace />;
   }

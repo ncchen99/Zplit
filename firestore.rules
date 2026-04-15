@@ -35,7 +35,9 @@ service cloud.firestore {
 
     // ── inviteCodes（公開查詢用，僅存 groupId）──────────────
     match /inviteCodes/{code} {
-      allow read: if isSignedIn();
+      // 公開讀取：inviteCode 文件只包含 groupId，無任何敏感資訊
+      // 讓未登入使用者也能透過邀請連結預覽群組資訊
+      allow read: if true;
       // 已登入使用者可建立邀請碼（建立群組時使用）
       allow create: if isSignedIn()
         && hasOnlyKeys(request.resource.data, ['groupId'])
@@ -49,10 +51,10 @@ service cloud.firestore {
 
     // ── groups ─────────────────────────────────────────────
     match /groups/{groupId} {
-      // 已登入使用者可讀取單一群組文件（加入群組流程需要）
-      allow get: if isSignedIn();
+      // 公開讀取單一群組文件：讓未登入使用者也能透過邀請連結預覽群組名稱與成員
+      allow get: if true;
       // 列表查詢必須帶 memberUids 過濾條件，確保只回傳自己的群組
-      allow list: if resource.data.memberUids[request.auth.uid] == true;
+      allow list: if isSignedIn() && resource.data.memberUids[request.auth.uid] == true;
 
       // 任何已登入使用者可建立新群組（建立者欄位必須是自己）
       allow create: if isSignedIn()
@@ -62,14 +64,32 @@ service cloud.firestore {
           ['name', 'coverUrl', 'inviteCode', 'createdBy', 'members', 'memberNameMap', 'memberUids', 'lastExpenseAt', 'createdAt', 'updatedAt']
         );
 
-      // 群組成員可更新（新增成員、修改名稱、封面等）
-      allow update: if isGroupMember(groupId)
+      allow update: if (
+        // ① 現有群組成員更新群組資料（修改名稱、封面、新增/移除成員等）
+        // 直接讀取 resource.data 以避免對同一文件重複 get()
+        isSignedIn()
+        && resource.data.memberUids[request.auth.uid] == true
         && request.resource.data.createdBy == resource.data.createdBy
         && request.resource.data.inviteCode == resource.data.inviteCode
         && hasOnlyKeys(
           request.resource.data,
           ['name', 'coverUrl', 'inviteCode', 'createdBy', 'members', 'memberNameMap', 'memberUids', 'lastExpenseAt', 'createdAt', 'updatedAt']
-        );
+        )
+      ) || (
+        // ② 透過邀請連結自助加入：已登入的非成員將自己加入群組
+        //    確保：原本不是成員、加入後成為成員、核心群組屬性不變
+        isSignedIn()
+        && resource.data.memberUids[request.auth.uid] != true
+        && request.resource.data.memberUids[request.auth.uid] == true
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.inviteCode == resource.data.inviteCode
+        && request.resource.data.name == resource.data.name
+        && request.resource.data.coverUrl == resource.data.coverUrl
+        && hasOnlyKeys(
+          request.resource.data,
+          ['name', 'coverUrl', 'inviteCode', 'createdBy', 'members', 'memberNameMap', 'memberUids', 'lastExpenseAt', 'createdAt', 'updatedAt']
+        )
+      );
 
       // 僅允許群組建立者刪除群組
       allow delete: if isSignedIn() && resource.data.createdBy == request.auth.uid;

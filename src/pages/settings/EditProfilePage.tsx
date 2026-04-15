@@ -158,16 +158,8 @@ export function EditProfilePage() {
 
         {/* Nickname with auto-save */}
         <fieldset className="fieldset w-full">
-          <legend className="fieldset-legend flex items-center justify-between w-full">
-            <span>{t("auth.onboarding.nickname")}</span>
-            {autoSaveText && (
-              <span className="inline-flex items-center gap-1 text-xs text-base-content/50 font-normal">
-                {autoSaveState === "saved" && (
-                  <CheckIcon className="h-3.5 w-3.5" />
-                )}
-                {autoSaveText}
-              </span>
-            )}
+          <legend className="fieldset-legend">
+            {t("auth.onboarding.nickname")}
           </legend>
           <input
             type="text"
@@ -177,9 +169,19 @@ export function EditProfilePage() {
             onChange={(e) => setDisplayName(e.target.value)}
             maxLength={20}
           />
-          <p className="mt-1 text-xs text-base-content/40 text-right">
-            {displayName.length}/20
-          </p>
+          <div className="mt-1 flex items-center justify-between">
+            <span className="text-xs text-base-content/40">
+              {displayName.length}/20
+            </span>
+            {autoSaveText && (
+              <span className="inline-flex items-center gap-1 text-xs text-base-content/50">
+                {autoSaveState === "saved" && (
+                  <CheckIcon className="h-3.5 w-3.5" />
+                )}
+                {autoSaveText}
+              </span>
+            )}
+          </div>
         </fieldset>
 
         {/* Account Actions */}

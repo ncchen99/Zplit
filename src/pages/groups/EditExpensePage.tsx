@@ -13,7 +13,6 @@ import { useGroupStore, type Expense, type Group } from "@/store/groupStore";
 import { useAuthStore } from "@/store/authStore";
 import { useUIStore } from "@/store/uiStore";
 import { updateExpense, deleteExpense } from "@/services/expenseService";
-import { recalculateSettlements } from "@/services/settlementService";
 import { logger } from "@/utils/logger";
 import {
   getTaipeiDateTimeLocalString,
@@ -244,7 +243,6 @@ export function EditExpensePage() {
         user.uid,
       );
 
-      await recalculateSettlements(groupId);
       showToast(t("common.toast.saved"), "success");
       navigate(`/groups/${groupId}/expenses/${expenseId}`, { replace: true });
     } catch (err) {
@@ -268,7 +266,6 @@ export function EditExpensePage() {
         },
         user.uid,
       );
-      await recalculateSettlements(groupId);
       showToast(t("common.button.done"), "success");
       navigate(`/groups/${groupId}`, { replace: true });
     } catch (err) {

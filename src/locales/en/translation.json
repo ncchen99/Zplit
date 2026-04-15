@@ -163,7 +163,9 @@
       "undoComplete": "Undo",
       "completed": "Completed",
       "progress": "Settlement Progress",
-      "progressDetail": "{{completed}} done / {{total}} total"
+      "progressDetail": "{{completed}} done / {{total}} total",
+      "settlementTitle": "Pay {{to}}",
+      "settlementNote": "{{from}} settled"
     },
     "members": {
       "title": "Members & Activity",
@@ -277,6 +279,9 @@
     "displayAs": "Display as:",
     "confirmJoin": "Confirm & Join Group",
     "updateName": "Update display name",
+    "loginButton": "Log In",
+    "alreadyMember": "You're already a member of this group",
+    "goToGroup": "Go to Group",
     "joined": "Successfully joined!",
     "invalidLink": "This invite link is invalid or the group doesn't exist",
     "backToHome": "Back to Home"

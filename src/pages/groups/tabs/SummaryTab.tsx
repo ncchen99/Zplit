@@ -27,7 +27,6 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
   const [sortBy, setSortBy] = useState<"date" | "amount" | "name">("date");
   const [showSortMenu, setShowSortMenu] = useState(false);
   const expenses = useGroupStore((s) => s.expenses);
-  const settlements = useGroupStore((s) => s.settlements);
   const currentGroup = useGroupStore((s) => s.currentGroup);
 
   const memberMap = useMemo(() => {
@@ -53,31 +52,17 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
     return map;
   }, [currentGroup]);
 
-  // Build DebtEntry[] for treemap — only negative balances (debtors),
-  // adjusted for completed settlements
+  // Build DebtEntry[] for treemap — only negative balances (debtors).
+  // Settlement expenses are already included in the expenses array, so
+  // computeBalances naturally reflects the remaining debts.
   const treemapData: DebtEntry[] = useMemo(() => {
     if (!expenses.length) return [];
     const balances = computeBalances(expenses);
     const debts = computeSettlements(balances);
 
-    // Subtract completed settlements from the computed debts
-    const completedSettlements = settlements.filter((s) => s.completed);
-    const remainingDebts = debts
-      .map((debt) => {
-        const matching = completedSettlements.find(
-          (s) =>
-            s.from === debt.from &&
-            s.to === debt.to &&
-            s.amount === debt.amount,
-        );
-        if (matching) return { ...debt, amount: 0 };
-        return debt;
-      })
-      .filter((d) => d.amount > 0);
-
-    // Aggregate remaining debts per debtor (from)
+    // Aggregate per debtor (from)
     const debtorMap = new Map<string, number>();
-    for (const d of remainingDebts) {
+    for (const d of debts) {
       debtorMap.set(d.from, (debtorMap.get(d.from) ?? 0) + d.amount);
     }
 
@@ -90,7 +75,7 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
       }))
       .filter((d) => d.owed > 0)
       .sort((a, b) => b.owed - a.owed);
-  }, [expenses, settlements, memberMap, memberAvatarMap, t]);
+  }, [expenses, memberMap, memberAvatarMap, t]);
 
   const sortedExpenses = useMemo(() => {
     return [...expenses].sort((a, b) => {
@@ -160,10 +145,14 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
               const payer = getName(expense.paidBy);
               const payerAvatar = memberAvatarMap.get(expense.paidBy) ?? null;
               const dateStr = expense.date?.seconds
-                ? new Date(expense.date.seconds * 1000).toLocaleTimeString(
-                    [],
-                    { hour: "2-digit", minute: "2-digit" },
-                  )
+                ? (() => {
+                    const d = new Date(expense.date.seconds * 1000);
+                    const month = d.getMonth() + 1;
+                    const day = d.getDate();
+                    const hours = String(d.getHours()).padStart(2, "0");
+                    const minutes = String(d.getMinutes()).padStart(2, "0");
+                    return `${month}/${day} ${hours}:${minutes}`;
+                  })()
                 : "";
               const splitMembers = expense.splits
                 .map((s) => memberFullMap.get(s.memberId))
@@ -185,9 +174,15 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
                     <p className="text-xs text-base-content/50">
                       {dateStr && <span className="mr-1">{dateStr}</span>}
                     </p>
-                    <p className="text-xs text-base-content/50">
-                      {t("expense.paidFor", { name: payer })}
-                    </p>
+                    {expense.description ? (
+                      <p className="text-xs text-base-content/40 truncate">
+                        {expense.description}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-base-content/50">
+                        {t("expense.paidFor", { name: payer })}
+                      </p>
+                    )}
                   </div>
                   <div className="flex flex-col items-end gap-1 flex-shrink-0">
                     <span className="font-bold text-warning">

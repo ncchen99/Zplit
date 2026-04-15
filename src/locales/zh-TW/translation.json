@@ -163,7 +163,9 @@
       "undoComplete": "撤銷完成",
       "completed": "已完成",
       "progress": "結算進度",
-      "progressDetail": "{{completed}} 筆完成 / 共 {{total}} 筆"
+      "progressDetail": "{{completed}} 筆完成 / 共 {{total}} 筆",
+      "settlementTitle": "支付 {{to}}",
+      "settlementNote": "{{from}} 結算"
     },
     "members": {
       "title": "成員與動態",
@@ -277,6 +279,9 @@
     "displayAs": "在此群組內顯示為：",
     "confirmJoin": "確認並加入群組",
     "updateName": "更新群組內顯示名稱",
+    "loginButton": "立即登入",
+    "alreadyMember": "你已是此群組的成員",
+    "goToGroup": "前往群組",
     "joined": "已成功加入群組！",
     "invalidLink": "此邀請連結已失效或群組不存在",
     "backToHome": "返回首頁"
