@@ -4,16 +4,14 @@
 
 <table>
   <tr>
-    <td align="center" width="25%">GIF 1<br/>登入與開始使用</td>
-    <td align="center" width="25%">GIF 2<br/>建立群組</td>
-    <td align="center" width="25%">GIF 3<br/>加入群組</td>
-    <td align="center" width="25%">GIF 4<br/>新增群組帳務</td>
+    <td align="center" width="33.3%">登入與開始使用<br/><img src="docs/demo/login.gif" width="100%" /></td>
+    <td align="center" width="33.3%">建立群組<br/><img src="docs/demo/create group.gif" width="100%" /></td>
+    <td align="center" width="33.3%">新增群組帳務<br/><img src="docs/demo/group add.gif" width="100%" /></td>
   </tr>
   <tr>
-    <td align="center" width="25%">GIF 5<br/>檢視總覽與結算</td>
-    <td align="center" width="25%">GIF 6<br/>個人往來記錄</td>
-    <td align="center" width="25%">GIF 7<br/>編輯帳務與附件</td>
-    <td align="center" width="25%">GIF 8<br/>主題與語言設定</td>
+    <td align="center" width="33.3%">編輯帳務與附件<br/><img src="docs/demo/group edit.gif" width="100%" /></td>
+    <td align="center" width="33.3%">個人記錄<br/><img src="docs/demo/persona add.gif" width="100%" /></td>
+    <td align="center" width="33.3%">主題與語言設定<br/><img src="docs/demo/setting.gif" width="100%" /></td>
   </tr>
 </table>
 
