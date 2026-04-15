@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { deleteUser } from "firebase/auth";
+import { FirebaseError } from "firebase/app";
 import { useAuthStore } from "@/store/authStore";
 import { useUIStore } from "@/store/uiStore";
 import { createOrUpdateUser } from "@/services/userService";
@@ -135,10 +136,21 @@ export function EditProfilePage() {
     if (!firebaseUser) return;
     try {
       await deleteUser(firebaseUser);
+      setShowDeleteConfirm(false);
+      setDeleteText("");
       showToast(t("settings.deleteAccountSuccess"), "success");
       logger.info("editProfile", "帳號已刪除");
     } catch (err) {
       logger.error("editProfile.deleteAccount", "帳號刪除失敗", err);
+      if (
+        err instanceof FirebaseError &&
+        err.code === "auth/requires-recent-login"
+      ) {
+        showToast(t("settings.deleteAccountRequiresRecentLogin"), "error");
+        await logout();
+        navigate("/login", { replace: true });
+        return;
+      }
       showToast(t("common.error"), "error");
     }
   };

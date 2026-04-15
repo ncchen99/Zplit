@@ -312,6 +312,7 @@
     "deleteAccountConfirm": "請輸入「刪除」以確認",
     "deleteAccountPlaceholder": "輸入「刪除」",
     "deleteAccountSuccess": "帳號已刪除",
+    "deleteAccountRequiresRecentLogin": "為了安全，請重新登入後再刪除帳號",
     "about": "關於",
     "sourceCode": "本網站的原始碼",
     "openSourceLicense": "開放原始碼協議",

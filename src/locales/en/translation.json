@@ -312,6 +312,7 @@
     "deleteAccountConfirm": "Type \"DELETE\" to confirm",
     "deleteAccountPlaceholder": "Type DELETE",
     "deleteAccountSuccess": "Account deleted",
+    "deleteAccountRequiresRecentLogin": "For security, please sign in again before deleting your account.",
     "about": "About",
     "sourceCode": "Source Code",
     "openSourceLicense": "Open Source License",
