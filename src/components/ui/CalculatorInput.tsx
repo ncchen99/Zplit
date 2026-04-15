@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { BackspaceIcon } from "@heroicons/react/24/outline";
+import { CornerDownLeft } from "lucide-react";
 
 interface CalculatorInputProps {
   value: string;
@@ -205,7 +206,7 @@ export function CalculatorInput({
                 [ 0      ][ . ][ + ][   ]  ← 0 spans cols 1-2
             */}
             <div
-              className="grid grid-cols-5 grid-rows-4 gap-1.5 p-2.5 bg-base-200/50 rounded-b-2xl"
+              className="grid grid-cols-5 grid-rows-4 gap-1.5 p-2.5 bg-base-200/35 rounded-b-2xl"
               style={{
                 paddingBottom: "max(10px, env(safe-area-inset-bottom, 10px))",
               }}
@@ -230,7 +231,7 @@ export function CalculatorInput({
                 onClick={handleEquals}
                 className="col-start-5 row-start-2 row-span-3 btn-theme-green rounded-xl text-xl font-bold flex items-center justify-center active:opacity-60 touch-manipulation select-none h-full"
               >
-                =
+                <CornerDownLeft className="h-5 w-5" />
               </button>
 
               {/* Row 3 */}
