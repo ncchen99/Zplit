@@ -15,7 +15,6 @@ import {
   ArrowLeft,
   UserPlus,
   LogIn,
-  CheckCircle2,
   Link2,
   AlertCircle,
   ChevronRight,

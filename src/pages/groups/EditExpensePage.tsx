@@ -19,6 +19,7 @@ import {
   parseTaipeiDateTimeLocalString,
 } from "@/utils/datetime";
 import { ImageUpload } from "@/components/ui/ImageUpload";
+import { CalculatorInput } from "@/components/ui/CalculatorInput";
 import { PageHeader, HeaderIconButton } from "@/components/ui/PageHeader";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
@@ -331,18 +332,11 @@ export function EditExpensePage() {
         {/* Amount */}
         <fieldset className="fieldset w-full">
           <legend className="fieldset-legend">{t("expense.amount")}</legend>
-          <div className="input flex items-center gap-2 w-full">
-            <span className="text-base-content/50 font-semibold">NT$</span>
-            <input
-              type="number"
-              className="grow"
-              placeholder={t("expense.amountPlaceholder")}
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              min={1}
-              required
-            />
-          </div>
+          <CalculatorInput
+            value={amount}
+            onChange={setAmount}
+            placeholder={t("expense.amountPlaceholder")}
+          />
         </fieldset>
 
         {/* Paid By */}

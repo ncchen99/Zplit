@@ -13,6 +13,7 @@ import {
   ensureContact,
   type PersonalContact,
 } from "@/services/personalLedgerService";
+import { CalculatorInput } from "@/components/ui/CalculatorInput";
 import { getUserGroups } from "@/services/groupService";
 import { logger } from "@/utils/logger";
 import {
@@ -382,18 +383,11 @@ export function AddPersonalExpensePage() {
         {/* Amount */}
         <fieldset className="fieldset w-full">
           <legend className="fieldset-legend">{t("expense.amount")}</legend>
-          <div className="input flex items-center gap-2 w-full">
-            <span className="text-base-content/50 font-semibold">NT$</span>
-            <input
-              type="number"
-              className="grow"
-              placeholder={t("expense.amountPlaceholder")}
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              min="1"
-              inputMode="numeric"
-            />
-          </div>
+          <CalculatorInput
+            value={amount}
+            onChange={setAmount}
+            placeholder={t("expense.amountPlaceholder")}
+          />
         </fieldset>
 
         {/* Paid By */}
