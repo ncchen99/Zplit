@@ -87,15 +87,35 @@ export function JoinPage() {
   // ── Loading ─────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="flex min-h-[100dvh] items-center justify-center px-6">
-        <div className="w-full max-w-sm space-y-4">
-          <div className="flex justify-center gap-2">
-            <div className="skeleton h-1.5 w-8 rounded-full" />
-            <div className="skeleton h-1.5 w-4 rounded-full" />
+      <div className="flex min-h-[100dvh] flex-col">
+        {/* Header placeholder */}
+        <div className="flex items-center px-4 pt-4 pb-2 min-h-[3.5rem]" />
+
+        <div className="flex-1 flex flex-col px-5 pb-10">
+          <div className="mx-auto w-full max-w-sm flex-1 flex flex-col">
+            {/* Step indicator */}
+            <div className="flex justify-center gap-2 mb-6">
+              <div className="skeleton h-1.5 w-8 rounded-full" />
+              <div className="skeleton h-1.5 w-4 rounded-full" />
+            </div>
+
+            {/* Step 1: Group Info Placeholder */}
+            <div className="flex-1 flex flex-col">
+              <div className="skeleton h-4 w-32 mx-auto mb-4 rounded-full" />
+
+              {/* Group info card skeleton */}
+              <div className="border border-base-300 rounded-2xl bg-base-100 flex flex-col items-center text-center gap-2 px-6 py-6 mb-6">
+                <div className="skeleton w-16 h-16 rounded-full" />
+                <div className="skeleton h-7 w-48 mt-1 rounded-lg" />
+                <div className="skeleton h-4 w-24 rounded-md" />
+              </div>
+
+              <div className="flex-1" />
+
+              {/* Action button skeleton */}
+              <div className="skeleton h-12 w-full rounded-xl" />
+            </div>
           </div>
-          <div className="skeleton h-4 w-32 mx-auto rounded-full" />
-          <div className="skeleton h-56 w-full rounded-2xl" />
-          <div className="skeleton h-12 w-full rounded-xl" />
         </div>
       </div>
     );

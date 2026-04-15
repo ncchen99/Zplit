@@ -18,11 +18,15 @@ service cloud.firestore {
     //     正確做法：在 Group 文件中維護一個 memberUids: { [uid]: true } Map
     function isGroupMember(groupId) {
       let group = get(/databases/$(database)/documents/groups/$(groupId));
-      return group.data.memberUids[request.auth.uid] == true;
+      return request.auth.uid in group.data.memberUids && group.data.memberUids[request.auth.uid] == true;
     }
 
     function hasOnlyKeys(data, allowedKeys) {
       return data.keys().hasOnly(allowedKeys);
+    }
+
+    function hasOnlyAffectedKeys(newData, oldData, allowedKeys) {
+      return newData.diff(oldData).affectedKeys().hasOnly(allowedKeys);
     }
 
     // ── users ──────────────────────────────────────────────
@@ -54,7 +58,7 @@ service cloud.firestore {
       // 公開讀取單一群組文件：讓未登入使用者也能透過邀請連結預覽群組名稱與成員
       allow get: if true;
       // 列表查詢必須帶 memberUids 過濾條件，確保只回傳自己的群組
-      allow list: if isSignedIn() && resource.data.memberUids[request.auth.uid] == true;
+      allow list: if isSignedIn() && request.auth.uid in resource.data.memberUids && resource.data.memberUids[request.auth.uid] == true;
 
       // 任何已登入使用者可建立新群組（建立者欄位必須是自己）
       allow create: if isSignedIn()
@@ -68,26 +72,30 @@ service cloud.firestore {
         // ① 現有群組成員更新群組資料（修改名稱、封面、新增/移除成員等）
         // 直接讀取 resource.data 以避免對同一文件重複 get()
         isSignedIn()
+        && (request.auth.uid in resource.data.memberUids)
         && resource.data.memberUids[request.auth.uid] == true
         && request.resource.data.createdBy == resource.data.createdBy
         && request.resource.data.inviteCode == resource.data.inviteCode
-        && hasOnlyKeys(
+        && hasOnlyAffectedKeys(
           request.resource.data,
-          ['name', 'coverUrl', 'inviteCode', 'createdBy', 'members', 'memberNameMap', 'memberUids', 'lastExpenseAt', 'createdAt', 'updatedAt']
+          resource.data,
+          ['name', 'coverUrl', 'members', 'memberNameMap', 'memberUids', 'lastExpenseAt', 'updatedAt']
         )
       ) || (
         // ② 透過邀請連結自助加入：已登入的非成員將自己加入群組
         //    確保：原本不是成員、加入後成為成員、核心群組屬性不變
         isSignedIn()
-        && resource.data.memberUids[request.auth.uid] != true
+        && !(request.auth.uid in resource.data.memberUids)
+        && (request.auth.uid in request.resource.data.memberUids)
         && request.resource.data.memberUids[request.auth.uid] == true
         && request.resource.data.createdBy == resource.data.createdBy
         && request.resource.data.inviteCode == resource.data.inviteCode
         && request.resource.data.name == resource.data.name
         && request.resource.data.coverUrl == resource.data.coverUrl
-        && hasOnlyKeys(
+        && hasOnlyAffectedKeys(
           request.resource.data,
-          ['name', 'coverUrl', 'inviteCode', 'createdBy', 'members', 'memberNameMap', 'memberUids', 'lastExpenseAt', 'createdAt', 'updatedAt']
+          resource.data,
+          ['members', 'memberNameMap', 'memberUids', 'updatedAt']
         )
       );
 

@@ -10,7 +10,6 @@ import {
   updateDoc,
   arrayUnion,
   deleteDoc,
-  deleteField,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { nanoid } from "nanoid";
@@ -142,19 +141,26 @@ export async function addMemberToGroup(
   member: GroupMember,
 ): Promise<void> {
   const ref = doc(db, "groups", groupId);
+  const group = await getGroupById(groupId);
+  if (!group) throw new ZplitError("GROUP_NOT_FOUND", "群組不存在");
 
-  const updateData: Record<string, unknown> = {
-    members: arrayUnion(member),
-    [`memberNameMap.${member.memberId}`]: member.displayName,
-    updatedAt: serverTimestamp(),
+  const alreadyExists = group.members.some((m) => m.memberId === member.memberId);
+  const nextMembers = alreadyExists ? group.members : [...group.members, member];
+  const nextMemberNameMap = {
+    ...(group.memberNameMap ?? {}),
+    [member.memberId]: member.displayName,
   };
-
-  // 若為已綁定帳號的成員，同步更新 memberUids Map（供 Security Rules 查詢）
+  const nextMemberUids = { ...(group.memberUids ?? {}) };
   if (member.isBound && member.userId) {
-    updateData[`memberUids.${member.userId}`] = true;
+    nextMemberUids[member.userId] = true;
   }
 
-  await updateDoc(ref, updateData);
+  await updateDoc(ref, {
+    members: nextMembers,
+    memberNameMap: nextMemberNameMap,
+    memberUids: nextMemberUids,
+    updatedAt: serverTimestamp(),
+  });
   logger.info("groupService.addMember", "成員加入群組", {
     groupId,
     memberId: member.memberId,
@@ -215,9 +221,17 @@ export async function addPlaceholderMember(
   };
 
   const ref = doc(db, "groups", groupId);
+  const group = await getGroupById(groupId);
+  if (!group) throw new ZplitError("GROUP_NOT_FOUND", "群組不存在");
+
+  const nextMemberNameMap = {
+    ...(group.memberNameMap ?? {}),
+    [member.memberId]: member.displayName,
+  };
+
   await updateDoc(ref, {
     members: arrayUnion(member),
-    [`memberNameMap.${member.memberId}`]: member.displayName,
+    memberNameMap: nextMemberNameMap,
     updatedAt: serverTimestamp(),
   });
 
@@ -240,11 +254,20 @@ export async function bindMemberToUser(
       : m,
   );
 
+  const nextMemberNameMap = {
+    ...(group.memberNameMap ?? {}),
+    [memberId]: displayName,
+  };
+  const nextMemberUids = {
+    ...(group.memberUids ?? {}),
+    [userId]: true as const,
+  };
+
   await updateDoc(doc(db, "groups", groupId), {
     members: updatedMembers,
-    [`memberNameMap.${memberId}`]: displayName,
+    memberNameMap: nextMemberNameMap,
     // 同步更新 memberUids，讓 Security Rules 可以驗證此使用者的成員身份
-    [`memberUids.${userId}`]: true,
+    memberUids: nextMemberUids,
     updatedAt: serverTimestamp(),
   });
 
@@ -285,7 +308,10 @@ export async function renameGroupMember(
 
   await updateDoc(doc(db, "groups", groupId), {
     members: updatedMembers,
-    [`memberNameMap.${memberId}`]: normalizedName,
+    memberNameMap: {
+      ...(group.memberNameMap ?? {}),
+      [memberId]: normalizedName,
+    },
     updatedAt: serverTimestamp(),
   });
 
@@ -470,6 +496,7 @@ export async function removeGroupMember(
 
   const updateData: Record<string, unknown> = {
     members: updatedMembers,
+    memberNameMap: buildMemberNameMap(updatedMembers),
     updatedAt: serverTimestamp(),
   };
 
@@ -478,7 +505,9 @@ export async function removeGroupMember(
       (member) => member.userId === targetMember.userId,
     );
     if (!stillExists) {
-      updateData[`memberUids.${targetMember.userId}`] = deleteField();
+      const nextMemberUids = { ...(group.memberUids ?? {}) };
+      delete nextMemberUids[targetMember.userId];
+      updateData.memberUids = nextMemberUids;
     }
   }
 
