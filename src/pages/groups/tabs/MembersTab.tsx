@@ -11,7 +11,7 @@ import {
   type PersonalContact,
 } from "@/services/personalLedgerService";
 import { logger } from "@/utils/logger";
-import { LinkIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { PlusIcon } from "@heroicons/react/24/outline";
 import { StarIcon } from "@heroicons/react/24/solid";
 import {
   EllipsisVerticalIcon,
@@ -387,8 +387,7 @@ export function MembersTab() {
                 </div>
                 <div className="flex items-center gap-1 mt-0.5">
                   {m.isBound ? (
-                    <span className="badge badge-soft badge-success badge-xs gap-0.5">
-                      <LinkIcon className="h-2.5 w-2.5" />
+                    <span className="badge badge-soft badge-success badge-xs">
                       {t("group.members.bound")}
                     </span>
                   ) : (
