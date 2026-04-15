@@ -309,7 +309,7 @@ export function CreateGroupPage() {
           </legend>
 
           {/* Member list (split-target style) */}
-          <div className="filter mt-2 flex w-full flex-wrap gap-2">
+          <div className="filter mt-1 flex w-full flex-wrap gap-2">
             {preMembers.map((m) => (
               <label
                 key={m.id}

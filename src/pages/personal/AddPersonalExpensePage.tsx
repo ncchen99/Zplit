@@ -54,6 +54,7 @@ export function AddPersonalExpensePage() {
   const [description, setDescription] = useState("");
   const [date, setDate] = useState(() => getTaipeiDateTimeLocalString());
   const [saving, setSaving] = useState(false);
+  const [showDiscardModal, setShowDiscardModal] = useState(false);
 
   // 若從個人頁 FAB 進入（無 contactId），需載入聯絡人清單
   const loadContacts = useCallback(async () => {
@@ -239,6 +240,19 @@ export function AddPersonalExpensePage() {
   };
 
   const handleBack = () => {
+    const hasInput = title.trim() || amount;
+    if (hasInput) {
+      setShowDiscardModal(true);
+      return;
+    }
+    if (contactId) {
+      navigate(`/personal/${contactId}`);
+    } else {
+      navigate("/personal");
+    }
+  };
+
+  const handleConfirmDiscard = () => {
     if (contactId) {
       navigate(`/personal/${contactId}`);
     } else {
@@ -432,6 +446,33 @@ export function AddPersonalExpensePage() {
           />
         </fieldset>
       </div>
+
+      {/* Discard confirmation modal */}
+      {showDiscardModal && (
+        <div className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="font-bold">{t("common.discard.title")}</h3>
+            <p className="mt-2 text-sm text-base-content/70">
+              {t("common.discard.message")}
+            </p>
+            <div className="modal-action">
+              <button
+                className="btn-white-soft"
+                onClick={() => setShowDiscardModal(false)}
+              >
+                {t("common.discard.cancel")}
+              </button>
+              <button className="btn-danger-soft" onClick={handleConfirmDiscard}>
+                {t("common.discard.confirm")}
+              </button>
+            </div>
+          </div>
+          <div
+            className="modal-backdrop"
+            onClick={() => setShowDiscardModal(false)}
+          />
+        </div>
+      )}
     </div>
   );
 }
