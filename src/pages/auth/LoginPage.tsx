@@ -97,7 +97,7 @@ export function LoginPage() {
         {/* Login Buttons */}
         <div className="flex flex-col gap-3">
           <button
-            className="btn-success-soft btn-block"
+            className="btn-theme-green btn-block"
             onClick={handleGoogleLogin}
             disabled={loading}
           >

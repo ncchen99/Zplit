@@ -125,7 +125,7 @@ export function OnboardingPage() {
 
           <button
             type="submit"
-            className="btn-success-soft btn-block"
+            className="btn-theme-green btn-block"
             disabled={!displayName.trim() || saving}
           >
             {saving && <span className="loading loading-spinner loading-sm" />}

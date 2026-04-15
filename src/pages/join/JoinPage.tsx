@@ -214,7 +214,7 @@ export function JoinPage() {
                     {t("join.alreadyMember")}
                   </p>
                   <button
-                    className="btn-success-soft btn-block"
+                    className="btn-theme-green btn-block"
                     onClick={() => navigate(`/groups/${group.groupId}`)}
                   >
                     {t("join.goToGroup")}
@@ -227,7 +227,7 @@ export function JoinPage() {
                     {t("join.loginFirst")}
                   </p>
                   <button
-                    className="btn-success-soft btn-block"
+                    className="btn-theme-green btn-block"
                     onClick={() =>
                       navigate("/login", {
                         state: { redirectTo: `/join/${code}` },
@@ -241,7 +241,7 @@ export function JoinPage() {
               ) : (
                 /* 已登入，可加入 */
                 <button
-                  className="btn-success-soft btn-block"
+                  className="btn-theme-green btn-block"
                   onClick={() => setStep("select")}
                 >
                   {t("join.title")}
