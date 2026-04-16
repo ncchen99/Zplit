@@ -325,6 +325,42 @@
     "editProfileTitle": "Edit Profile",
     "changeAvatar": "Tap to change photo"
   },
+  "pwa": {
+    "install": {
+      "title": "Install Zplit App",
+      "settingsHint": "Open Zplit instantly from your home screen",
+      "installed": "App Installed",
+      "installedHint": "Installed",
+      "understood": "Got it",
+      "ios": {
+        "subtitle": "Add to Home Screen via Safari",
+        "step1": "Tap the Share button at the bottom of Safari",
+        "step1Hint": "The square with an arrow icon in the toolbar",
+        "step2": "Scroll down and tap \"Add to Home Screen\"",
+        "step2Hint": "Look for the box with a + icon",
+        "step3": "Tap \"Add\" in the top right to confirm",
+        "step3Hint": "The Zplit icon will appear on your home screen"
+      },
+      "android": {
+        "subtitle": "Install via Chrome browser",
+        "step1": "Tap the \"⋮\" menu in the top right of Chrome",
+        "step1Hint": "The three-dot icon on the right side of the toolbar",
+        "step2": "Select \"Install app\" or \"Add to Home Screen\"",
+        "step2Hint": "The exact wording may vary by Chrome version",
+        "step3": "Tap \"Install\" to confirm",
+        "step3Hint": "The Zplit icon will appear on your home screen"
+      },
+      "iosChrome": {
+        "subtitle": "Chrome on iOS doesn't support install — use Safari instead",
+        "step1": "Tap the \"⋮\" menu in the top right of Chrome",
+        "step1Hint": "The three-dot icon on the right side of the toolbar",
+        "step2": "Select \"Open in Safari\"",
+        "step2Hint": "Safari is the only browser on iOS that supports PWA installation",
+        "step3": "In Safari, tap the Share button below and select \"Add to Home Screen\"",
+        "step3Hint": "The square with an arrow icon in the Safari toolbar"
+      }
+    }
+  },
   "nav": {
     "home": "Home",
     "groups": "Groups",

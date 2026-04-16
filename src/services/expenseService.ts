@@ -93,13 +93,18 @@ export async function addExpense(
       },
     ];
 
-    // isSettlement is metadata for the activity doc only — exclude from the expense document
-    const { isSettlement: _isSettlement, ...expenseData } = data;
     const batch = writeBatch(db);
     batch.set(ref, {
-      ...expenseData,
-      expenseId: ref.id,
+      title: data.title,
+      amount: data.amount,
+      paidBy: data.paidBy,
+      splitMode: data.splitMode,
+      splits: data.splits,
+      description: data.description,
+      imageUrl: data.imageUrl,
       date: data.date,
+      createdBy: data.createdBy,
+      expenseId: ref.id,
       editLog,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),

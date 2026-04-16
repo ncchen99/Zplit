@@ -325,6 +325,42 @@
     "editProfileTitle": "編輯個人資料",
     "changeAvatar": "點擊更換照片"
   },
+  "pwa": {
+    "install": {
+      "title": "安裝 Zplit App",
+      "settingsHint": "安裝後可從主畫面快速開啟",
+      "installed": "已安裝 App",
+      "installedHint": "已安裝",
+      "understood": "知道了",
+      "ios": {
+        "subtitle": "在 Safari 中加入主畫面",
+        "step1": "點擊瀏覽器下方的「分享」按鈕",
+        "step1Hint": "Safari 工具列中的方框加箭頭圖示",
+        "step2": "向下滑動選單，選擇「加入主畫面」",
+        "step2Hint": "尋找帶有 + 號的方框圖示",
+        "step3": "點擊右上角「新增」完成安裝",
+        "step3Hint": "Zplit 圖示將出現在你的主畫面"
+      },
+      "android": {
+        "subtitle": "透過 Chrome 瀏覽器安裝",
+        "step1": "點擊瀏覽器右上角的「⋮」選單",
+        "step1Hint": "Chrome 工具列右側的三個點圖示",
+        "step2": "選擇「安裝應用程式」或「加入主畫面」",
+        "step2Hint": "不同版本的 Chrome 用詞可能略有不同",
+        "step3": "點擊「安裝」確認",
+        "step3Hint": "Zplit 圖示將出現在你的主畫面"
+      },
+      "iosChrome": {
+        "subtitle": "iOS Chrome 不支援安裝，請改用 Safari",
+        "step1": "點擊右上角的「⋮」選單",
+        "step1Hint": "Chrome 工具列右上角的三個點圖示",
+        "step2": "選擇「在 Safari 中開啟」",
+        "step2Hint": "Safari 是 iOS 上唯一支援安裝 PWA 的瀏覽器",
+        "step3": "在 Safari 中點擊下方「分享」按鈕，選擇「加入主畫面」",
+        "step3Hint": "Safari 工具列中的方框加箭頭圖示"
+      }
+    }
+  },
   "nav": {
     "home": "首頁",
     "groups": "群組",

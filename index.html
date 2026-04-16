@@ -3,7 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Zplit" />
+    <meta name="theme-color" content="#2D8F44" />
     <title>Zplit | 長期分帳與共同生活帳本</title>
     <meta
       name="description"
@@ -39,6 +46,17 @@
       content="群組與個人分帳一站完成，帳務即時同步，長期使用也順手。"
     />
     <meta name="twitter:image" content="https://zplit.app/cover.webp" />
+    <script>
+      // Capture beforeinstallprompt before React mounts to avoid race condition.
+      // React hooks (useEffect) run after the first render, so the event can
+      // fire and be missed if we only listen inside a component.
+      window.__pwaInstallPrompt = null;
+      window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        window.__pwaInstallPrompt = e;
+        window.dispatchEvent(new CustomEvent('pwa-prompt-ready'));
+      });
+    </script>
   </head>
   <body class="bg-base-200 text-base-content font-sans antialiased">
     <div id="root"></div>
