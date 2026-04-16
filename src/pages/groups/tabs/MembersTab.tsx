@@ -12,11 +12,8 @@ import {
   type PersonalContact,
 } from "@/services/personalLedgerService";
 import { logger } from "@/utils/logger";
-import { PlusIcon } from "@heroicons/react/24/outline";
+import { PlusIcon, EllipsisVerticalIcon } from "@heroicons/react/24/outline";
 import { StarIcon } from "@heroicons/react/24/solid";
-import {
-  EllipsisVerticalIcon,
-} from "@heroicons/react/24/outline";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import type { GroupMember } from "@/store/groupStore";
 import { ActionSheet } from "@/components/ui/ActionSheet";
@@ -26,6 +23,7 @@ import { ZplitError } from "@/utils/errors";
 
 interface ActivityItem {
   id: string;
+  expenseId?: string;
   memberId?: string;
   actorUid?: string;
   action?: "created" | "updated" | "deleted";
@@ -33,6 +31,9 @@ interface ActivityItem {
   title?: string;
   amount?: number;
   timestamp?: { seconds?: number } | null;
+  isSettlement?: boolean;
+  settlementFrom?: string;
+  settlementTo?: string;
 }
 
 interface MemberSuggestion {
@@ -196,18 +197,27 @@ export function MembersTab() {
   };
 
   const activityLog = useMemo(() => {
-    const legacyLogs: ActivityItem[] = expenses.flatMap(
-      (e) =>
+    // expenseIds already covered by the activity collection (new architecture)
+    const coveredExpenseIds = new Set(
+      groupActivities.map((a) => a.expenseId).filter(Boolean),
+    );
+
+    // Only include legacy editLog entries for expenses not yet in activity collection
+    const legacyLogs: ActivityItem[] = expenses.flatMap((e) => {
+      if (coveredExpenseIds.has(e.expenseId)) return [];
+      return (
         e.editLog?.map((log, index) => ({
           id: `legacy-${e.expenseId}-${index}`,
+          expenseId: e.expenseId,
           memberId: log.memberId,
           action: log.action,
           description: log.description,
           title: e.title,
           amount: e.amount,
           timestamp: log.timestamp,
-        })) ?? [],
-    );
+        })) ?? []
+      );
+    });
 
     return [...groupActivities, ...legacyLogs]
       .sort((a, b) => {
@@ -253,6 +263,16 @@ export function MembersTab() {
   }, [settlements]);
 
   const formatActivityText = (log: ActivityItem): string => {
+    if (log.isSettlement) {
+      const fromName =
+        (log.settlementFrom ? memberMap.get(log.settlementFrom) : undefined) ??
+        t("group.members.unknownMember");
+      const toName =
+        (log.settlementTo ? memberMap.get(log.settlementTo) : undefined) ??
+        t("group.members.unknownMember");
+      return `${fromName} 支付給 ${toName} NT$${log.amount ?? 0}`;
+    }
+
     if (log.description) return log.description;
 
     const amount = log.amount ?? 0;
@@ -499,29 +519,119 @@ export function MembersTab() {
         {activityLog.length === 0 ? (
           <p className="mt-2 text-sm text-base-content/40">No activity yet</p>
         ) : (
-          <div className="mt-2 flex flex-col">
+          <ul className="timeline timeline-snap-icon timeline-vertical timeline-compact mt-3">
             {activityLog.map((log, i) => {
               const actorName =
                 (log.memberId ? memberMap.get(log.memberId) : undefined) ??
                 (log.actorUid ? userMap.get(log.actorUid) : undefined) ??
                 t("group.members.unknownMember");
               const time = log.timestamp?.seconds
-                ? new Date(log.timestamp.seconds * 1000).toLocaleString()
+                ? new Date(log.timestamp.seconds * 1000).toLocaleString(
+                    "zh-TW",
+                    {
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: false,
+                    },
+                  )
                 : "";
+              const isLast = i === activityLog.length - 1;
+
+              type IconVariant = "plus" | "minus" | "slash";
+              let iconVariant: IconVariant;
+              let iconColorClass: string;
+              let iconBgClass: string;
+              if (log.action === "updated") {
+                iconVariant = "slash";
+                iconColorClass = "text-warning";
+                iconBgClass = "bg-warning/20";
+              } else if (log.action === "deleted") {
+                iconVariant = "minus";
+                iconColorClass = "text-error";
+                iconBgClass = "bg-error/20";
+              } else {
+                iconVariant = "plus";
+                iconColorClass = "text-success";
+                iconBgClass = "bg-success/20";
+              }
+
               return (
-                <div
-                  key={log.id || i}
-                  className="flex py-2 border-b border-base-200 last:border-b-0 text-xs text-base-content/60"
-                >
-                  <span className="font-semibold">{actorName}</span>{" "}
-                  {formatActivityText(log)}
-                  {time && (
-                    <span className="text-base-content/30 ml-2">{time}</span>
-                  )}
-                </div>
+                <li key={log.id || i}>
+                  {i !== 0 && <hr />}
+                  <div className="timeline-middle">
+                    <div className={`rounded-full p-1 ${iconBgClass}`}>
+                      {iconVariant === "slash" ? (
+                        <svg
+                          viewBox="0 0 14 14"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          className={`h-3.5 w-3.5 ${iconColorClass}`}
+                        >
+                          <line x1="10" y1="2" x2="4" y2="12" />
+                        </svg>
+                      ) : iconVariant === "minus" ? (
+                        <svg
+                          viewBox="0 0 14 14"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          className={`h-3.5 w-3.5 ${iconColorClass}`}
+                        >
+                          <line x1="2" y1="7" x2="12" y2="7" />
+                        </svg>
+                      ) : (
+                        <svg
+                          viewBox="0 0 14 14"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          className={`h-3.5 w-3.5 ${iconColorClass}`}
+                        >
+                          <line x1="7" y1="2" x2="7" y2="12" />
+                          <line x1="2" y1="7" x2="12" y2="7" />
+                        </svg>
+                      )}
+                    </div>
+                  </div>
+                  <div className="timeline-end mb-4 ps-2 pt-1.5 text-xs text-base-content/70">
+                    {log.isSettlement ? (
+                      <>
+                        <span className="font-semibold text-base-content">
+                          {(log.settlementFrom
+                            ? memberMap.get(log.settlementFrom)
+                            : undefined) ?? t("group.members.unknownMember")}
+                        </span>{" "}
+                        支付給{" "}
+                        <span className="font-semibold text-base-content">
+                          {(log.settlementTo
+                            ? memberMap.get(log.settlementTo)
+                            : undefined) ?? t("group.members.unknownMember")}
+                        </span>{" "}
+                        NT${log.amount ?? 0}
+                      </>
+                    ) : (
+                      <>
+                        <span className="font-semibold text-base-content">
+                          {actorName}
+                        </span>{" "}
+                        {formatActivityText(log)}
+                      </>
+                    )}
+                    {time && (
+                      <div className="text-base-content/30 mt-0.5">{time}</div>
+                    )}
+                  </div>
+                  {!isLast && <hr />}
+                </li>
               );
             })}
-          </div>
+          </ul>
         )}
       </div>
 

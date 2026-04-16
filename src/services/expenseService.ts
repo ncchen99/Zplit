@@ -40,6 +40,8 @@ export interface NewExpenseInput {
   imageUrl: string | null;
   date: Date;
   createdBy: string;
+  /** 標記此帳務為結算付款（由 SettleTab 建立） */
+  isSettlement?: boolean;
 }
 
 async function syncGroupLastExpenseAt(groupId: string): Promise<void> {
@@ -91,9 +93,11 @@ export async function addExpense(
       },
     ];
 
+    // isSettlement is metadata for the activity doc only — exclude from the expense document
+    const { isSettlement: _isSettlement, ...expenseData } = data;
     const batch = writeBatch(db);
     batch.set(ref, {
-      ...data,
+      ...expenseData,
       expenseId: ref.id,
       date: data.date,
       editLog,
@@ -110,6 +114,11 @@ export async function addExpense(
       description: buildActivityDescription("created", data.title, data.amount),
       timestamp: serverTimestamp(),
       createdAt: serverTimestamp(),
+      ...(data.isSettlement && {
+        isSettlement: true,
+        settlementFrom: data.paidBy,
+        settlementTo: data.splits[0]?.memberId ?? null,
+      }),
     });
     batch.update(groupRef, {
       lastExpenseAt: data.date,

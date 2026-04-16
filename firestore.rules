@@ -138,7 +138,7 @@ service cloud.firestore {
           && request.resource.data.actorUid == request.auth.uid
           && hasOnlyKeys(
             request.resource.data,
-            ['activityId', 'expenseId', 'actorUid', 'action', 'title', 'amount', 'description', 'timestamp', 'createdAt']
+            ['activityId', 'expenseId', 'actorUid', 'action', 'title', 'amount', 'description', 'timestamp', 'createdAt', 'isSettlement', 'settlementFrom', 'settlementTo']
           );
         allow update, delete: if false;
       }

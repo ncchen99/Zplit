@@ -72,6 +72,7 @@ export function SettleTab() {
     imageUrl: null,
     date: new Date(),
     createdBy: user!.uid,
+    isSettlement: true,
   });
 
   const handleMarkDone = async (debt: SettlementResult) => {
