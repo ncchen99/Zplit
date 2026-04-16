@@ -23,10 +23,21 @@ export type PWAPlatform = "ios-safari" | "ios-chrome" | "android" | "other";
 
 function detectPlatform(): PWAPlatform {
   const ua = navigator.userAgent;
-  const isIOS = /iPad|iPhone|iPod/.test(ua) && !("MSStream" in window);
+
+  // Modern iPads in "Request Desktop Website" mode send a Mac UA,
+  // so also check navigator.maxTouchPoints as a fallback.
+  const isIOS =
+    (/iPad|iPhone|iPod/.test(ua) && !("MSStream" in window)) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
   if (isIOS) {
-    return /CriOS/.test(ua) ? "ios-chrome" : "ios-safari";
+    // iOS Safari is the only iOS browser that includes "Version/X.Y" in UA.
+    // Chrome (CriOS), Firefox (FxiOS), Edge (EdgiOS) all lack it.
+    const isIOSSafari =
+      /Version\/\d/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua);
+    return isIOSSafari ? "ios-safari" : "ios-chrome";
   }
+
   if (/Android/.test(ua)) return "android";
   return "other";
 }
