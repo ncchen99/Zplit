@@ -4,8 +4,8 @@
   "description": "與親近的朋友長期分帳，支援群組與一對一記帳，即時同步、輕鬆清算。",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f2f2f2",
-  "theme_color": "#2D8F44",
+  "background_color": "#f9fef5",
+  "theme_color": "#f9fef5",
   "orientation": "portrait-primary",
   "lang": "zh-TW",
   "icons": [
