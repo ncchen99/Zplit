@@ -146,7 +146,9 @@ export function SettingsPage() {
                     : t("pwa.install.settingsHint")}
                 </p>
               </div>
-              <ChevronRightIcon className="h-5 w-5 text-base-content/30 shrink-0 mt-2" />
+              {!isInstalled && (
+                <ChevronRightIcon className="h-5 w-5 text-base-content/30 shrink-0 mt-2" />
+              )}
             </button>
           </div>
         </div>
