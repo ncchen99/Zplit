@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import type { Group } from "@/store/groupStore";
 import { getUserGroups } from "@/services/groupService";
+import { getGroupExpenses } from "@/services/expenseService";
+import { computeBalances } from "@/lib/algorithm/settlement";
 import { logger } from "@/utils/logger";
 import {
   Plus as PlusIcon,
@@ -19,6 +21,7 @@ export function GroupListPage() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [groupNetMap, setGroupNetMap] = useState<Record<string, number>>({});
 
   useEffect(() => {
     if (!user) return;
@@ -26,6 +29,24 @@ export function GroupListPage() {
       try {
         const myGroups = await getUserGroups(user.uid);
         setGroups(myGroups);
+        const netEntries = await Promise.all(
+          myGroups.map(async (g) => {
+            const myMember = g.members?.find((m) => m.userId === user.uid);
+            if (!myMember) return [g.groupId, 0] as const;
+            try {
+              const exps = await getGroupExpenses(g.groupId);
+              const balances = computeBalances(exps);
+              const mine = balances.find(
+                (b) => b.memberId === myMember.memberId,
+              );
+              return [g.groupId, mine?.amount ?? 0] as const;
+            } catch (err) {
+              logger.error("groupList.net", "計算群組淨額失敗", err);
+              return [g.groupId, 0] as const;
+            }
+          }),
+        );
+        setGroupNetMap(Object.fromEntries(netEntries));
       } catch (err) {
         logger.error("groupList.fetch", "載入群組失敗", err);
       } finally {
@@ -109,6 +130,7 @@ export function GroupListPage() {
                   <GroupListItem
                     key={g.groupId}
                     group={g}
+                    netAmount={groupNetMap[g.groupId]}
                     onClick={() =>
                       navigate(`/groups/${g.groupId}`, {
                         state: { from: "/groups" },

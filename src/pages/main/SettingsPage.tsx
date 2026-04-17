@@ -49,7 +49,7 @@ export function SettingsPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-[calc(100dvh-64px)] px-4 pt-4 pb-8">
+    <div className="flex flex-col min-h-[calc(100dvh-64px)] md:h-full px-4 pt-4 pb-8">
       <div className="flex-1">
         <h1 className="text-2xl font-bold tracking-tight">
           {t("settings.title")}
@@ -161,7 +161,7 @@ export function SettingsPage() {
       />
 
       {/* Footer Links */}
-      <div className="mt-8 flex flex-wrap justify-center gap-x-6 gap-y-2 px-4 pb-4">
+      <div className="mt-auto pt-6 flex flex-wrap justify-center gap-x-6 gap-y-2 px-4 pb-4">
         <a
           href="https://github.com/ncchen99/Zplit"
           target="_blank"

@@ -12,7 +12,14 @@ import {
 import { db } from "@/lib/firebase";
 import { logger } from "@/utils/logger";
 import { ZplitError } from "@/utils/errors";
-import type { ExpenseSplit, EditLogEntry } from "@/store/groupStore";
+import type { Expense, ExpenseSplit, EditLogEntry } from "@/store/groupStore";
+
+export async function getGroupExpenses(groupId: string): Promise<Expense[]> {
+  const snap = await getDocs(collection(db, `groups/${groupId}/expenses`));
+  return snap.docs.map(
+    (d) => ({ ...d.data(), expenseId: d.id }) as Expense,
+  );
+}
 
 type ExpenseActivityAction = "created" | "updated" | "deleted";
 

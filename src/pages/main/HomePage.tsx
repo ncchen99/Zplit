@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import type { Group } from "@/store/groupStore";
 import { getUserGroups, backfillInviteCodes } from "@/services/groupService";
+import { getGroupExpenses } from "@/services/expenseService";
+import { computeBalances } from "@/lib/algorithm/settlement";
 import {
   getContacts,
   getPersonalExpenses,
@@ -28,6 +30,7 @@ export function HomePage() {
     (PersonalContact & { netAmount: number })[]
   >([]);
   const [unsettledPersonalCount, setUnsettledPersonalCount] = useState(0);
+  const [groupNetMap, setGroupNetMap] = useState<Record<string, number>>({});
 
   const getTimestampMs = (value: unknown): number => {
     if (!value) return 0;
@@ -57,6 +60,27 @@ export function HomePage() {
         backfillInviteCodes(myGroups).catch((err) => {
           logger.error("home.backfill", "補建 inviteCode 失敗", err);
         });
+
+        // 只計算首頁顯示的前 3 個群組，避免過多讀取
+        const visibleGroups = sortedGroups.slice(0, 3);
+        const netEntries = await Promise.all(
+          visibleGroups.map(async (g) => {
+            const myMember = g.members?.find((m) => m.userId === user.uid);
+            if (!myMember) return [g.groupId, 0] as const;
+            try {
+              const exps = await getGroupExpenses(g.groupId);
+              const balances = computeBalances(exps);
+              const mine = balances.find(
+                (b) => b.memberId === myMember.memberId,
+              );
+              return [g.groupId, mine?.amount ?? 0] as const;
+            } catch (err) {
+              logger.error("home.groupNet", "計算群組淨額失敗", err);
+              return [g.groupId, 0] as const;
+            }
+          }),
+        );
+        setGroupNetMap(Object.fromEntries(netEntries));
       } catch (err) {
         logger.error("home.fetchGroups", "載入群組失敗", err);
       } finally {
@@ -181,6 +205,7 @@ export function HomePage() {
                   <GroupListItem
                     key={g.groupId}
                     group={g}
+                    netAmount={groupNetMap[g.groupId]}
                     onClick={() => navigate(`/groups/${g.groupId}`)}
                   />
                 ))}
