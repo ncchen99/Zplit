@@ -49,7 +49,7 @@ export function SettingsPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-[calc(100dvh-64px)] md:h-full px-4 pt-4 pb-8">
+    <div className="flex h-full min-h-full flex-col px-4 pt-4 pb-8">
       <div className="flex-1">
         <h1 className="text-2xl font-bold tracking-tight">
           {t("settings.title")}
