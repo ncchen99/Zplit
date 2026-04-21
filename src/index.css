@@ -1,4 +1,5 @@
 @import "tailwindcss";
+
 @plugin "daisyui" {
   themes:
     lemonade --default,
@@ -13,18 +14,23 @@
 }
 
 @layer base {
+
   /* Hide scrollbars globally inside root */
   #root,
   #root * {
-    scrollbar-width: none; /* Firefox */
+    scrollbar-width: none;
+    /* Firefox */
   }
+
   #root::-webkit-scrollbar,
   #root *::-webkit-scrollbar {
-    display: none; /* Chrome, Edge, Safari */
+    display: none;
+    /* Chrome, Edge, Safari */
   }
 
   body {
     background-color: var(--color-base-100);
+
     @media (min-width: 768px) {
       display: flex;
       justify-content: center;
@@ -53,7 +59,8 @@
     overscroll-behavior: contain;
 
     @media (min-width: 768px) {
-      max-width: var(--app-frame-max-width); /* 384px */
+      max-width: var(--app-frame-max-width);
+      /* 384px */
       height: 800px;
       max-height: calc(100vh - 2rem);
       min-height: auto;
@@ -88,9 +95,7 @@
 
     @media (min-width: 768px) {
       left: 50%;
-      bottom: calc(
-        (100vh - min(var(--app-frame-height), calc(100vh - 2rem))) / 2 + 1.5rem
-      );
+      bottom: calc((100vh - min(var(--app-frame-height), calc(100vh - 2rem))) / 2 + 1.5rem);
     }
   }
 
@@ -98,9 +103,7 @@
     bottom: 5rem;
 
     @media (min-width: 768px) {
-      bottom: calc(
-        (100vh - min(var(--app-frame-height), calc(100vh - 2rem))) / 2 + 5rem
-      );
+      bottom: calc((100vh - min(var(--app-frame-height), calc(100vh - 2rem))) / 2 + 5rem);
     }
   }
 
@@ -165,112 +168,76 @@
 
   .btn-theme-green {
     @apply btn text-primary;
-    --btn-border: color-mix(
-      in oklab,
-      var(--color-primary) 14%,
-      var(--color-base-100)
-    );
-    background-color: color-mix(
-      in oklab,
-      var(--color-primary) 14%,
-      var(--color-base-100)
-    ) !important;
-    border-color: color-mix(
-      in oklab,
-      var(--color-primary) 14%,
-      var(--color-base-100)
-    ) !important;
+    --btn-border: color-mix(in oklab,
+        var(--color-primary) 14%,
+        var(--color-base-100));
+    background-color: color-mix(in oklab,
+        var(--color-primary) 14%,
+        var(--color-base-100)) !important;
+    border-color: color-mix(in oklab,
+        var(--color-primary) 14%,
+        var(--color-base-100)) !important;
 
     &:hover {
-      --btn-border: color-mix(
-        in oklab,
-        var(--color-primary) 22%,
-        var(--color-base-100)
-      );
-      background-color: color-mix(
-        in oklab,
-        var(--color-primary) 22%,
-        var(--color-base-100)
-      ) !important;
-      border-color: color-mix(
-        in oklab,
-        var(--color-primary) 22%,
-        var(--color-base-100)
-      ) !important;
+      --btn-border: color-mix(in oklab,
+          var(--color-primary) 22%,
+          var(--color-base-100));
+      background-color: color-mix(in oklab,
+          var(--color-primary) 22%,
+          var(--color-base-100)) !important;
+      border-color: color-mix(in oklab,
+          var(--color-primary) 22%,
+          var(--color-base-100)) !important;
     }
   }
 
   .btn-success-soft {
     @apply btn text-success;
-    --btn-border: color-mix(
-      in oklab,
-      var(--color-success) 14%,
-      var(--color-base-100)
-    );
-    background-color: color-mix(
-      in oklab,
-      var(--color-success) 14%,
-      var(--color-base-100)
-    ) !important;
-    border-color: color-mix(
-      in oklab,
-      var(--color-success) 14%,
-      var(--color-base-100)
-    ) !important;
+    --btn-border: color-mix(in oklab,
+        var(--color-success) 14%,
+        var(--color-base-100));
+    background-color: color-mix(in oklab,
+        var(--color-success) 14%,
+        var(--color-base-100)) !important;
+    border-color: color-mix(in oklab,
+        var(--color-success) 14%,
+        var(--color-base-100)) !important;
 
     &:hover {
-      --btn-border: color-mix(
-        in oklab,
-        var(--color-success) 22%,
-        var(--color-base-100)
-      );
-      background-color: color-mix(
-        in oklab,
-        var(--color-success) 22%,
-        var(--color-base-100)
-      ) !important;
-      border-color: color-mix(
-        in oklab,
-        var(--color-success) 22%,
-        var(--color-base-100)
-      ) !important;
+      --btn-border: color-mix(in oklab,
+          var(--color-success) 22%,
+          var(--color-base-100));
+      background-color: color-mix(in oklab,
+          var(--color-success) 22%,
+          var(--color-base-100)) !important;
+      border-color: color-mix(in oklab,
+          var(--color-success) 22%,
+          var(--color-base-100)) !important;
     }
   }
 
   .btn-danger-soft {
     @apply btn text-error;
-    --btn-border: color-mix(
-      in oklab,
-      var(--color-error) 14%,
-      var(--color-base-100)
-    );
-    background-color: color-mix(
-      in oklab,
-      var(--color-error) 14%,
-      var(--color-base-100)
-    ) !important;
-    border-color: color-mix(
-      in oklab,
-      var(--color-error) 14%,
-      var(--color-base-100)
-    ) !important;
+    --btn-border: color-mix(in oklab,
+        var(--color-error) 14%,
+        var(--color-base-100));
+    background-color: color-mix(in oklab,
+        var(--color-error) 14%,
+        var(--color-base-100)) !important;
+    border-color: color-mix(in oklab,
+        var(--color-error) 14%,
+        var(--color-base-100)) !important;
 
     &:hover {
-      --btn-border: color-mix(
-        in oklab,
-        var(--color-error) 22%,
-        var(--color-base-100)
-      );
-      background-color: color-mix(
-        in oklab,
-        var(--color-error) 22%,
-        var(--color-base-100)
-      ) !important;
-      border-color: color-mix(
-        in oklab,
-        var(--color-error) 22%,
-        var(--color-base-100)
-      ) !important;
+      --btn-border: color-mix(in oklab,
+          var(--color-error) 22%,
+          var(--color-base-100));
+      background-color: color-mix(in oklab,
+          var(--color-error) 22%,
+          var(--color-base-100)) !important;
+      border-color: color-mix(in oklab,
+          var(--color-error) 22%,
+          var(--color-base-100)) !important;
     }
   }
 
@@ -281,38 +248,28 @@
   .toast-soft {
     @apply cursor-pointer rounded-xl border px-4 py-3 text-sm font-medium;
     box-shadow:
-      0 18px 36px -18px
-        color-mix(in oklab, var(--color-base-content) 28%, transparent),
-      0 8px 16px -10px
-        color-mix(in oklab, var(--color-base-content) 20%, transparent);
+      0 18px 36px -18px color-mix(in oklab, var(--color-base-content) 28%, transparent),
+      0 8px 16px -10px color-mix(in oklab, var(--color-base-content) 20%, transparent);
   }
 
   .toast-soft-success {
     @apply text-primary;
-    background-color: color-mix(
-      in oklab,
-      var(--color-primary) 14%,
-      var(--color-base-100)
-    );
-    border-color: color-mix(
-      in oklab,
-      var(--color-primary) 14%,
-      var(--color-base-100)
-    );
+    background-color: color-mix(in oklab,
+        var(--color-primary) 14%,
+        var(--color-base-100));
+    border-color: color-mix(in oklab,
+        var(--color-primary) 14%,
+        var(--color-base-100));
   }
 
   .toast-soft-error {
     @apply text-error;
-    background-color: color-mix(
-      in oklab,
-      var(--color-error) 14%,
-      var(--color-base-100)
-    );
-    border-color: color-mix(
-      in oklab,
-      var(--color-error) 14%,
-      var(--color-base-100)
-    );
+    background-color: color-mix(in oklab,
+        var(--color-error) 14%,
+        var(--color-base-100));
+    border-color: color-mix(in oklab,
+        var(--color-error) 14%,
+        var(--color-base-100));
   }
 
   .toast-soft-info {
@@ -339,4 +296,14 @@
   --color-warning: oklch(70% 0.13 86);
   --color-error: oklch(56.499% 0.1552 19.714);
   --color-error-content: oklch(98% 0 0);
+}
+
+/* Customize dim (dark) theme */
+[data-theme="dim"] {
+  --color-success: oklch(70% 0.14028 149.554);
+  /* 相同色相/彩度，提高明度適應深色背景 */
+  --color-success-content: oklch(10% 0.02 149);
+  --color-warning: oklch(75% 0.16 86);
+  /* 調降明度與彩度，深色背景下不刺眼 */
+  --color-warning-content: oklch(10% 0.02 86);
 }
