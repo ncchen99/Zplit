@@ -257,23 +257,13 @@ function ContactCard({
               {t("personal.settled")}
             </span>
           ) : isOwed ? (
-            <div>
-              <p className="text-xs text-success">
-                {t("personal.owedToYouTotal")}
-              </p>
-              <p className="font-bold text-success">
-                NT${contact.netAmount.toLocaleString()}
-              </p>
-            </div>
+            <p className="font-bold text-success">
+              +NT${contact.netAmount.toLocaleString()}
+            </p>
           ) : (
-            <div>
-              <p className="text-xs text-warning">
-                {t("personal.youOweTotal")}
-              </p>
-              <p className="font-bold text-warning">
-                NT${Math.abs(contact.netAmount).toLocaleString()}
-              </p>
-            </div>
+            <p className="font-bold text-warning">
+              -NT${Math.abs(contact.netAmount).toLocaleString()}
+            </p>
           )}
         </div>
       </div>
