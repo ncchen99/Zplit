@@ -208,7 +208,7 @@
 #### 情境 A：未登入使用者點擊邀請連結
 
 ```
-點擊邀請連結 https://zplit.app/join/xxxxxxxx
+點擊邀請連結 https://zplit.web.app/join/xxxxxxxx
     │
     ▼
 [加入群組頁 10 - 流程一]

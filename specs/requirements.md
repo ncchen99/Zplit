@@ -147,7 +147,7 @@ DaisyUI 官方提供 **LLM.txt**，供 AI 編輯器（如 Cursor、GitHub Copilo
 - 使用者可建立「活動群組」，並設定群組名稱
 - **群組紀念封面圖**：支援為群組上傳一張專屬的活動封面圖片（上傳至 Cloudflare R2）。除了提升視覺與辨識度外，更賦予該次活動或旅程一個美好的紀念意義。
 - 群組建立後，**立即自動產生專屬邀請連結**（無需手動操作）
-- 邀請連結格式範例：`https://zplit.app/join/xxxxxxxx`
+- 邀請連結格式範例：`https://zplit.web.app/join/xxxxxxxx`
 
 #### 4.1.2 成員管理
 

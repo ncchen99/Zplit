@@ -10,7 +10,7 @@
 2. **Firebase 專案**：是否已建立 Firebase 專案？需要 `firebaseConfig` 才能整合 Auth + Firestore。
 3. **Cloudflare R2 / Worker**：是否已建立？M1 的大頭貼上傳依賴此服務。若尚未建立，M1 先以 mock URL 替代。
 4. **Cloudflare Turnstile**：是否已取得 Site Key / Secret Key？匿名登入依賴此服務。
-5. **網域**：`zplit.app` 是否已註冊？邀請連結格式會用到。
+5. **網域**：`zplit.web.app` 是否已註冊？邀請連結格式會用到。
 
 ---
 

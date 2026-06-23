@@ -93,7 +93,7 @@ VITE_FIREBASE_APP_ID=1:123456789:web:abcdef
 1. 前往 Firebase Console → Authentication → **設定** 分頁
 2. 在「已授權網域」中，確認已有以下項目：
    - `localhost`（本地開發用）
-3. 正式部署後，將你的正式網域也加入（例如：`zplit.app`）
+3. 正式部署後，將你的正式網域也加入（例如：`zplit.web.app`）
 
 ---
 
