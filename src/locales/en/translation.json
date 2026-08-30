@@ -56,7 +56,15 @@
       "anonymousHint": "No account needed, try all features instantly",
       "termsLink": "Terms of Service",
       "privacyLink": "Privacy Policy",
-      "termsNotice": "By continuing, you agree to our"
+      "termsNotice": "By continuing, you agree to our",
+      "inAppBrowser": {
+        "title": "Google sign-in is unavailable in this app's built-in browser",
+        "description": "Google blocks sign-in requests from in-app browsers. Open this page in your normal browser, or continue with the guest option below.",
+        "openExternal": "Open in external browser",
+        "copyLink": "Copy link",
+        "linkCopied": "Link copied — paste it into your browser",
+        "hint": "Please use an external browser to sign in with Google"
+      }
     },
     "onboarding": {
       "title": "Set up your profile",

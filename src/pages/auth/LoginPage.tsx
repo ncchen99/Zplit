@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Turnstile } from "@marsidev/react-turnstile";
 import {
   signInWithPopup,
@@ -12,6 +12,10 @@ import {
 import { auth } from "@/lib/firebase";
 import { logger } from "@/utils/logger";
 import { useUIStore } from "@/store/uiStore";
+import {
+  buildExternalBrowserUrl,
+  detectInAppBrowser,
+} from "@/utils/browser";
 
 // Popup 無法使用的環境（PWA 獨立視窗、App 內建瀏覽器、行動瀏覽器阻擋彈窗），
 // 改用 redirect 流程重試，否則使用者會完全無法用 Google 登入
@@ -37,6 +41,7 @@ export function LoginPage() {
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [showTurnstile, setShowTurnstile] = useState(false);
   const [loading, setLoading] = useState(false);
+  const inAppBrowser = useMemo(() => detectInAppBrowser(), []);
 
   // redirect 流程回到本頁時，補抓登入結果與錯誤（成功時由 onAuthStateChanged 接手導頁）
   useEffect(() => {
@@ -81,6 +86,18 @@ export function LoginPage() {
     } catch (err) {
       const code = getAuthErrorCode(err);
 
+      // Google 會以 disallowed_useragent 擋下 App 內建瀏覽器，使用者關掉那頁錯誤
+      // 訊息後我們只會收到 popup-closed-by-user，因此一律導向外部瀏覽器的說明。
+      // 這裡也擋掉下面的 redirect fallback：redirect 只會讓整頁變成同一則錯誤。
+      if (inAppBrowser.app) {
+        logger.warn("auth.login", "App 內建瀏覽器無法使用 Google 登入", {
+          app: inAppBrowser.app,
+          code,
+        });
+        showToast(t("auth.login.inAppBrowser.hint"), "error");
+        return;
+      }
+
       if (POPUP_CANCEL_CODES.includes(code)) {
         logger.info("auth.login", "使用者取消 Google 登入", { code });
         return;
@@ -101,6 +118,22 @@ export function LoginPage() {
       showToast(t("common.errorDetail.googleLoginFailed"), "error");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleOpenExternally = async () => {
+    if (inAppBrowser.canOpenExternally) {
+      window.location.href = buildExternalBrowserUrl();
+      return;
+    }
+
+    // 其餘 App 沒有公開的跳出參數，只能讓使用者自己貼到瀏覽器
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      showToast(t("auth.login.inAppBrowser.linkCopied"), "success");
+    } catch (err) {
+      logger.warn("auth.login", "複製連結失敗", err);
+      showToast(t("common.error"), "error");
     }
   };
 
@@ -149,6 +182,26 @@ export function LoginPage() {
             {t("auth.login.tagline")}
           </p>
         </div>
+
+        {/* App 內建瀏覽器（LINE 等）無法使用 Google 登入，事先引導使用者 */}
+        {inAppBrowser.app && (
+          <div className="mb-4 rounded-2xl border border-warning/30 bg-warning/10 p-4 text-left">
+            <p className="text-sm font-semibold text-base-content/80">
+              {t("auth.login.inAppBrowser.title")}
+            </p>
+            <p className="mt-1 text-xs leading-relaxed text-base-content/60">
+              {t("auth.login.inAppBrowser.description")}
+            </p>
+            <button
+              className="btn btn-sm btn-warning btn-block mt-3"
+              onClick={() => void handleOpenExternally()}
+            >
+              {inAppBrowser.canOpenExternally
+                ? t("auth.login.inAppBrowser.openExternal")
+                : t("auth.login.inAppBrowser.copyLink")}
+            </button>
+          </div>
+        )}
 
         {/* Login Buttons */}
         <div className="flex flex-col gap-3">
