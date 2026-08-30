@@ -29,7 +29,10 @@
     "error": "An error occurred",
     "errorDetail": {
       "invalidTurnstile": "Verification failed. Please try again.",
-      "loadFailed": "Failed to load. Please try again later."
+      "loadFailed": "Failed to load. Please try again later.",
+      "googleLoginFailed": "Google sign-in failed. Please try again.",
+      "anonymousLoginFailed": "Sign-in failed. Please try again.",
+      "turnstileUnsupported": "This browser does not support verification. Please sign in with Google."
     },
     "retry": "Retry",
     "offline": "You are offline. Some features may not work.",

@@ -29,7 +29,10 @@
     "error": "發生錯誤",
     "errorDetail": {
       "invalidTurnstile": "人機驗證失敗，請再試一次",
-      "loadFailed": "載入失敗，請稍後重試"
+      "loadFailed": "載入失敗，請稍後重試",
+      "googleLoginFailed": "Google 登入失敗，請再試一次",
+      "anonymousLoginFailed": "登入失敗，請再試一次",
+      "turnstileUnsupported": "此瀏覽器不支援人機驗證，請改用 Google 登入"
     },
     "retry": "重試",
     "offline": "目前離線，部分功能可能無法使用",

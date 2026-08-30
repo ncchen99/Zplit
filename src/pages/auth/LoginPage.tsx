@@ -1,14 +1,35 @@
 import { useTranslation } from "react-i18next";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Turnstile } from "@marsidev/react-turnstile";
 import {
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
   signInAnonymously,
+  type AuthError,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { logger } from "@/utils/logger";
 import { useUIStore } from "@/store/uiStore";
+
+// Popup 無法使用的環境（PWA 獨立視窗、App 內建瀏覽器、行動瀏覽器阻擋彈窗），
+// 改用 redirect 流程重試，否則使用者會完全無法用 Google 登入
+const POPUP_FALLBACK_CODES = [
+  "auth/popup-blocked",
+  "auth/operation-not-supported-in-this-environment",
+  "auth/web-storage-unsupported",
+];
+
+// 使用者自行關閉彈窗或連點，不算錯誤
+const POPUP_CANCEL_CODES = [
+  "auth/popup-closed-by-user",
+  "auth/cancelled-popup-request",
+];
+
+function getAuthErrorCode(err: unknown): string {
+  return (err as AuthError | undefined)?.code ?? "";
+}
 
 export function LoginPage() {
   const { t } = useTranslation();
@@ -16,6 +37,23 @@ export function LoginPage() {
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [showTurnstile, setShowTurnstile] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // redirect 流程回到本頁時，補抓登入結果與錯誤（成功時由 onAuthStateChanged 接手導頁）
+  useEffect(() => {
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) logger.info("auth.login", "Google 登入成功（redirect）");
+      })
+      .catch((err) => {
+        logger.error("auth.login", "Google redirect 登入失敗", err);
+        showToast(t("common.errorDetail.googleLoginFailed"), "error");
+      });
+  }, [showToast, t]);
+
+  const resetTurnstile = useCallback(() => {
+    setTurnstileToken(null);
+    setShowTurnstile(false);
+  }, []);
 
   const verifyTurnstile = async (token: string): Promise<boolean> => {
     const workerUrl = import.meta.env.VITE_TURNSTILE_WORKER_URL;
@@ -41,8 +79,26 @@ export function LoginPage() {
       await signInWithPopup(auth, provider);
       logger.info("auth.login", "Google 登入成功");
     } catch (err) {
-      logger.error("auth.login", "Google 登入失敗", err);
-      showToast(t("common.error"), "error");
+      const code = getAuthErrorCode(err);
+
+      if (POPUP_CANCEL_CODES.includes(code)) {
+        logger.info("auth.login", "使用者取消 Google 登入", { code });
+        return;
+      }
+
+      if (POPUP_FALLBACK_CODES.includes(code)) {
+        logger.warn("auth.login", "Popup 不可用，改用 redirect 流程", { code });
+        try {
+          await signInWithRedirect(auth, new GoogleAuthProvider());
+          return;
+        } catch (redirectErr) {
+          logger.error("auth.login", "Google redirect 登入失敗", redirectErr);
+        }
+      } else {
+        logger.error("auth.login", "Google 登入失敗", err);
+      }
+
+      showToast(t("common.errorDetail.googleLoginFailed"), "error");
     } finally {
       setLoading(false);
     }
@@ -72,7 +128,7 @@ export function LoginPage() {
       setShowTurnstile(false);
     } catch (err) {
       logger.error("auth.login", "匿名登入失敗", err);
-      showToast(t("common.error"), "error");
+      showToast(t("common.errorDetail.anonymousLoginFailed"), "error");
       setTurnstileToken(null);
       setShowTurnstile(true);
     } finally {
@@ -146,10 +202,20 @@ export function LoginPage() {
                     errorCode,
                   });
                   showToast(t("common.errorDetail.invalidTurnstile"), "error");
+                  // 還原按鈕，否則畫面只剩空白的驗證區塊、使用者無法再登入
+                  resetTurnstile();
+                }}
+                onExpire={() => {
+                  logger.warn("auth.login", "Turnstile token 過期");
+                  resetTurnstile();
                 }}
                 onUnsupported={() => {
                   logger.error("auth.login", "瀏覽器不支援 Turnstile");
-                  showToast(t("common.errorDetail.invalidTurnstile"), "error");
+                  showToast(
+                    t("common.errorDetail.turnstileUnsupported"),
+                    "error",
+                  );
+                  resetTurnstile();
                 }}
                 options={{ theme: "auto", size: "flexible" }}
               />
