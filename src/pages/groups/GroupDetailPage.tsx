@@ -22,6 +22,7 @@ import { SettleTab } from "./tabs/SettleTab";
 import { MembersTab } from "./tabs/MembersTab";
 import { SettingsTab } from "./tabs/SettingsTab";
 import { PageHeader, HeaderIconButton } from "@/components/ui/PageHeader";
+import { buildExternalBrowserUrl } from "@/utils/browser";
 import { Plus as PlusIcon, Share2 as ShareIcon } from "lucide-react";
 
 type TabKey = "summary" | "settle" | "members" | "settings";
@@ -131,7 +132,11 @@ export function GroupDetailPage() {
 
   const handleShare = async () => {
     if (!currentGroup) return;
-    const inviteUrl = `${window.location.origin}/join/${currentGroup.inviteCode}`;
+    // 帶上 openExternalBrowser=1，讓從 LINE 點開的人直接進系統瀏覽器，
+    // 而不是無法使用 Google 登入的 LINE 內建瀏覽器
+    const inviteUrl = buildExternalBrowserUrl(
+      `${window.location.origin}/join/${currentGroup.inviteCode}`,
+    );
     if (navigator.share) {
       try {
         await navigator.share({

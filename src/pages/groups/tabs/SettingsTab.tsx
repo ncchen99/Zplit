@@ -6,6 +6,7 @@ import { useAuthStore } from "@/store/authStore";
 import { useUIStore } from "@/store/uiStore";
 import { deleteGroup, updateGroup } from "@/services/groupService";
 import { logger } from "@/utils/logger";
+import { buildExternalBrowserUrl } from "@/utils/browser";
 import { LinkIcon, TrashIcon, CheckIcon } from "@heroicons/react/24/outline";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { ImageUpload } from "@/components/ui/ImageUpload";
@@ -28,7 +29,11 @@ export function SettingsTab() {
   const currentName = currentGroup?.name ?? "";
   const currentCover = currentGroup?.coverUrl ?? "";
 
-  const inviteUrl = `${window.location.origin}/join/${currentGroup?.inviteCode ?? ""}`;
+  // 帶上 openExternalBrowser=1，讓從 LINE 點開的人直接進系統瀏覽器，
+  // 而不是無法使用 Google 登入的 LINE 內建瀏覽器
+  const inviteUrl = buildExternalBrowserUrl(
+    `${window.location.origin}/join/${currentGroup?.inviteCode ?? ""}`,
+  );
 
   useEffect(() => {
     setNameDraft(currentName);
