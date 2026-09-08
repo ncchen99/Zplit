@@ -175,7 +175,7 @@ export function LoginPage() {
         {/* Logo & Tagline - upper area */}
         <div className="mb-12 flex flex-col items-center">
           <img src="/favicon.svg" alt="Zplit Logo" className="w-24 h-24 mb-4" />
-          <h1 className="text-5xl font-extrabold tracking-tight bg-gradient-to-r from-[#2D8F44] via-[#63C452] to-[#85D156] bg-clip-text text-transparent">
+          <h1 className="text-5xl font-extrabold tracking-tight text-brand">
             Zplit
           </h1>
           <p className="mt-3 text-lg text-base-content/60">
