@@ -8,10 +8,15 @@ const THEME_COLORS = {
 
 function updateThemeColorMeta(isDark: boolean) {
   const color = isDark ? THEME_COLORS.dark : THEME_COLORS.light;
-  // Update all theme-color meta tags (there may be media-specific ones)
-  document.querySelectorAll<HTMLMetaElement>("meta[name='theme-color']").forEach((el) => {
-    el.content = color;
-  });
+  const existing = document.querySelector<HTMLMetaElement>("meta[name='theme-color']");
+  if (existing?.content === color) return;
+  // Replace the tag rather than editing it: some Android browsers / installed
+  // PWAs only pick up theme-color when the element itself changes.
+  const meta = document.createElement("meta");
+  meta.name = "theme-color";
+  meta.content = color;
+  document.querySelectorAll("meta[name='theme-color']").forEach((el) => el.remove());
+  document.head.appendChild(meta);
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
