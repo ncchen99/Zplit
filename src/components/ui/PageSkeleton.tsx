@@ -1,14 +1,23 @@
 import { useLocation } from "react-router-dom";
 
-const TAB_PATHS = ["/", "/home", "/groups", "/personal", "/settings"];
+// ⚠️ index.html 內有一份靜態版的 Home 骨架（首次載入、JS 尚未執行時顯示），
+//    修改 HomeSkeleton / NavSkeleton 版面時請同步更新，兩者需完全一致才不會跳動。
+
+const HOME_PATHS = ["/", "/home"];
+const TAB_PATHS = [...HOME_PATHS, "/groups", "/personal", "/settings"];
+
+type Variant = "home" | "list" | "detail";
 
 interface PageSkeletonProps {
   /**
-   * - `list`：底部導覽列分頁（標題 + 搜尋列 + 清單）
+   * - `home`：首頁（品牌標頭 + 歡迎列 + 區塊卡片）
+   * - `list`：其他底部導覽列分頁（標題 + 搜尋列 + 清單）
    * - `detail`：全螢幕子頁面（返回列 + 摘要卡 + 清單）
    * 未指定時依目前路由自動判斷。
    */
-  variant?: "list" | "detail";
+  variant?: Variant;
+  /** 在 MainLayout 內顯示時已有真正的導覽列，傳 false 避免重複 */
+  withNav?: boolean;
   rows?: number;
 }
 
@@ -29,10 +38,84 @@ function ListRows({ rows }: { rows: number }) {
   );
 }
 
+/** 首頁「我的群組 / 個人借貸」區塊載入中的骨架（HomePage 也使用同一份） */
+export function HomeSectionsSkeleton() {
+  return (
+    <div className="mt-6 space-y-4">
+      {["w-28", "w-32"].map((titleWidth) => (
+        <div key={titleWidth} className="space-y-2">
+          <div className={`skeleton h-4 ${titleWidth}`} />
+          <div className="skeleton h-16 w-full rounded-2xl" />
+          <div className="skeleton h-16 w-full rounded-2xl" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function HomeSkeleton() {
+  return (
+    <div className="px-4 pt-4 pb-4">
+      {/* 品牌標頭：與 HomePage 相同，載入時就先顯示 */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <img src="/favicon.svg" alt="Zplit Logo" className="w-8 h-8" />
+          <h1 className="text-2xl font-extrabold tracking-tight text-brand">
+            Zplit
+          </h1>
+        </div>
+        <div className="skeleton h-8 w-8 rounded-full" />
+      </div>
+      <div className="mt-4">
+        <div className="flex h-7 items-center">
+          <div className="skeleton h-5 w-32" />
+        </div>
+        <div className="flex h-5 items-center">
+          <div className="skeleton h-3.5 w-40" />
+        </div>
+      </div>
+      <HomeSectionsSkeleton />
+    </div>
+  );
+}
+
+function ListSkeleton({ rows }: { rows: number }) {
+  return (
+    <div className="px-4 pt-4 pb-4">
+      <div className="flex items-center justify-between">
+        <div className="skeleton h-8 w-28" />
+        <div className="skeleton h-8 w-8 rounded-full" />
+      </div>
+      <div className="skeleton mt-4 h-10 w-full rounded-xl" />
+      <ListRows rows={rows} />
+    </div>
+  );
+}
+
+/** 與 BottomNav 相同尺寸的導覽列骨架 */
+function NavSkeleton() {
+  return (
+    <div className="dock dock-sm dock-in-frame border-t border-base-300 bg-base-100 pb-safe">
+      {[0, 1, 2, 3].map((idx) => (
+        <div key={idx}>
+          <div className="skeleton h-6 w-6 rounded-md" />
+          <div className="skeleton h-2.5 w-8" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /** 頁面載入中的骨架畫面，取代全頁 spinner，讓版面在資料到達前就先成形 */
-export function PageSkeleton({ variant, rows = 4 }: PageSkeletonProps) {
+export function PageSkeleton({ variant, withNav = true, rows = 4 }: PageSkeletonProps) {
   const { pathname } = useLocation();
-  const resolved = variant ?? (TAB_PATHS.includes(pathname) ? "list" : "detail");
+  const resolved: Variant =
+    variant ??
+    (HOME_PATHS.includes(pathname)
+      ? "home"
+      : TAB_PATHS.includes(pathname)
+        ? "list"
+        : "detail");
 
   if (resolved === "detail") {
     return (
@@ -52,14 +135,19 @@ export function PageSkeleton({ variant, rows = 4 }: PageSkeletonProps) {
     );
   }
 
+  const content =
+    resolved === "home" ? <HomeSkeleton /> : <ListSkeleton rows={rows} />;
+
+  if (!withNav) return <div aria-busy="true">{content}</div>;
+
+  // 與 MainLayout 相同的外框，確保骨架 → 真實頁面時版面不跳動
   return (
-    <div className="px-4 pt-4 pb-4" aria-busy="true">
-      <div className="flex items-center justify-between">
-        <div className="skeleton h-8 w-28" />
-        <div className="skeleton h-8 w-8 rounded-full" />
-      </div>
-      <div className="skeleton mt-4 h-10 w-full rounded-xl" />
-      <ListRows rows={rows} />
+    <div
+      className="relative flex h-full min-h-[inherit] flex-col overflow-hidden"
+      aria-busy="true"
+    >
+      <main className="flex-1 overflow-y-auto pb-16">{content}</main>
+      <NavSkeleton />
     </div>
   );
 }

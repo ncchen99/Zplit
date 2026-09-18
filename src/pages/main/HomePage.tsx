@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { GroupListItem } from "@/components/ui/GroupListItem";
+import { HomeSectionsSkeleton } from "@/components/ui/PageSkeleton";
 
 export function HomePage() {
   const { t } = useTranslation();
@@ -95,18 +96,7 @@ export function HomePage() {
 
       {/* Main Content */}
       {loading ? (
-        <div className="mt-6 space-y-4">
-          <div className="space-y-2">
-            <div className="skeleton h-4 w-28" />
-            <div className="skeleton h-16 w-full rounded-2xl" />
-            <div className="skeleton h-16 w-full rounded-2xl" />
-          </div>
-          <div className="space-y-2">
-            <div className="skeleton h-4 w-32" />
-            <div className="skeleton h-16 w-full rounded-2xl" />
-            <div className="skeleton h-16 w-full rounded-2xl" />
-          </div>
-        </div>
+        <HomeSectionsSkeleton />
       ) : groups.length === 0 && personalContacts.length === 0 ? (
         <div
           className="mt-16 text-center text-base-content/40 cursor-pointer"
