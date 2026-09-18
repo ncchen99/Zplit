@@ -18,8 +18,13 @@ export default {
       return errorResponse(405, 'METHOD_NOT_ALLOWED', 'Method Not Allowed');
     }
 
-    const body = (await request.json()) as { token?: string };
-    const token = body?.token;
+    let token: string | undefined;
+    try {
+      const body = (await request.json()) as { token?: unknown };
+      token = typeof body?.token === 'string' ? body.token : undefined;
+    } catch {
+      return errorResponse(400, 'INVALID_BODY', '請求格式錯誤');
+    }
 
     if (!token) {
       return errorResponse(400, 'MISSING_TOKEN', '未提供 Turnstile Token');

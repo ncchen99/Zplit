@@ -32,7 +32,8 @@ service cloud.firestore {
     // ── users ──────────────────────────────────────────────
     match /users/{userId} {
       // 已登入的使用者可查看其他人（顯示頭像、名稱用）
-      allow read: if isSignedIn();
+      // 只開放單筆 get，不開放 list，避免任何登入者（含匿名）列舉整個使用者集合
+      allow get: if isSignedIn();
       // 只能修改自己的資料
       allow write: if isOwner(userId);
     }
@@ -42,10 +43,13 @@ service cloud.firestore {
       // 公開讀取：inviteCode 文件只包含 groupId，無任何敏感資訊
       // 讓未登入使用者也能透過邀請連結預覽群組資訊
       allow read: if true;
-      // 已登入使用者可建立邀請碼（建立群組時使用）
+      // 群組成員可為「自己群組目前的邀請碼」建立索引（建立群組、補建時使用）
+      // 避免任意使用者搶註邀請碼，或把邀請碼指向別人的群組
       allow create: if isSignedIn()
         && hasOnlyKeys(request.resource.data, ['groupId'])
-        && request.resource.data.groupId is string;
+        && request.resource.data.groupId is string
+        && get(/databases/$(database)/documents/groups/$(request.resource.data.groupId)).data.inviteCode == code
+        && isGroupMember(request.resource.data.groupId);
       allow update: if false;
       // 僅允許該群組建立者刪除 inviteCode（群組刪除時清理索引）
       allow delete: if isSignedIn()
@@ -97,6 +101,12 @@ service cloud.firestore {
           resource.data,
           ['members', 'memberNameMap', 'memberUids', 'updatedAt']
         )
+        // 加入者只能把「自己」加進 memberUids，不能移除或新增其他人
+        && request.resource.data.memberUids.diff(resource.data.memberUids).affectedKeys().hasOnly([request.auth.uid])
+        // 只能新增或綁定一位成員（自己），不能刪除既有成員
+        && request.resource.data.get('memberNameMap', {}).diff(resource.data.get('memberNameMap', {})).affectedKeys().size() <= 1
+        && request.resource.data.members.size() >= resource.data.members.size()
+        && request.resource.data.members.size() <= resource.data.members.size() + 1
       );
 
       // 僅允許群組建立者刪除群組
@@ -112,6 +122,9 @@ service cloud.firestore {
             ['title', 'amount', 'paidBy', 'splitMode', 'splits', 'description', 'imageUrl', 'date', 'createdBy', 'repeat', 'expenseId', 'editLog', 'createdAt', 'updatedAt']
           );
         allow update: if isGroupMember(groupId)
+          // 建立者與建立時間不可被竄改
+          && request.resource.data.createdBy == resource.data.createdBy
+          && request.resource.data.get('createdAt', null) == resource.data.get('createdAt', null)
           && hasOnlyKeys(
             request.resource.data,
             ['title', 'amount', 'paidBy', 'splitMode', 'splits', 'description', 'imageUrl', 'date', 'createdBy', 'repeat', 'expenseId', 'editLog', 'createdAt', 'updatedAt']

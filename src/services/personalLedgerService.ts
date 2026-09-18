@@ -12,8 +12,6 @@ import {
   serverTimestamp,
   increment,
   writeBatch,
-  documentId,
-  where,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { nanoid } from "nanoid";
@@ -81,18 +79,15 @@ async function loadLinkedUserAvatarMap(
   const avatarMap = new Map<string, string | null>();
   if (ids.length === 0) return avatarMap;
 
-  // Firestore `in` query has item limit; query in chunks.
-  const chunkSize = 30;
-  for (let i = 0; i < ids.length; i += chunkSize) {
-    const chunk = ids.slice(i, i + chunkSize);
-    const snap = await getDocs(
-      query(collection(db, "users"), where(documentId(), "in", chunk)),
-    );
-    snap.docs.forEach((userDoc) => {
-      const data = userDoc.data();
-      avatarMap.set(userDoc.id, (data.avatarUrl as string | null | undefined) ?? null);
-    });
-  }
+  // 逐筆 getDoc：users 集合只開放單筆讀取，避免任何登入者能列舉全部使用者
+  const snaps = await Promise.all(
+    ids.map((id) => getDoc(doc(db, "users", id))),
+  );
+  snaps.forEach((userDoc) => {
+    if (!userDoc.exists()) return;
+    const data = userDoc.data();
+    avatarMap.set(userDoc.id, (data.avatarUrl as string | null | undefined) ?? null);
+  });
 
   return avatarMap;
 }
