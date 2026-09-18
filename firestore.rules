@@ -29,20 +29,47 @@ service cloud.firestore {
       return newData.diff(oldData).affectedKeys().hasOnly(allowedKeys);
     }
 
+    function isShortString(v, maxLen) {
+      return v is string && v.size() <= maxLen;
+    }
+
+    function isOptionalString(v, maxLen) {
+      return v == null || isShortString(v, maxLen);
+    }
+
+    // 帳務欄位型別與長度檢查：避免寫入格式錯誤的資料讓其他成員的 App 當掉
+    function isValidExpense(d) {
+      return isShortString(d.title, 100) && d.title.size() > 0
+        && d.amount is number
+        && d.paidBy is string
+        && d.splitMode in ['equal', 'amount', 'percent']
+        && d.splits is list && d.splits.size() <= 200
+        && d.date is timestamp
+        && isOptionalString(d.get('description', null), 2000)
+        && isOptionalString(d.get('imageUrl', null), 2048)
+        && d.get('editLog', []) is list && d.get('editLog', []).size() <= 500;
+    }
+
     // ── users ──────────────────────────────────────────────
     match /users/{userId} {
       // 已登入的使用者可查看其他人（顯示頭像、名稱用）
       // 只開放單筆 get，不開放 list，避免任何登入者（含匿名）列舉整個使用者集合
       allow get: if isSignedIn();
-      // 只能修改自己的資料
-      allow write: if isOwner(userId);
+      // 只能修改自己的資料，且僅限已知欄位與合法型別
+      allow create, update: if isOwner(userId)
+        && hasOnlyKeys(request.resource.data, ['displayName', 'avatarUrl', 'isAnonymous', 'createdAt', 'updatedAt'])
+        && isShortString(request.resource.data.displayName, 50)
+        && isOptionalString(request.resource.data.get('avatarUrl', null), 2048)
+        && request.resource.data.get('isAnonymous', false) is bool;
+      allow delete: if isOwner(userId);
     }
 
     // ── inviteCodes（公開查詢用，僅存 groupId）──────────────
     match /inviteCodes/{code} {
-      // 公開讀取：inviteCode 文件只包含 groupId，無任何敏感資訊
-      // 讓未登入使用者也能透過邀請連結預覽群組資訊
-      allow read: if true;
+      // 公開單筆讀取：知道邀請碼才能查到對應群組（讓未登入者也能預覽邀請）
+      // 禁止 list：否則任何人都能列舉所有邀請碼 → 取得所有 groupId → 自行加入任意群組
+      allow get: if true;
+      allow list: if false;
       // 群組成員可為「自己群組目前的邀請碼」建立索引（建立群組、補建時使用）
       // 避免任意使用者搶註邀請碼，或把邀請碼指向別人的群組
       allow create: if isSignedIn()
@@ -65,8 +92,14 @@ service cloud.firestore {
       allow list: if isSignedIn() && request.auth.uid in resource.data.memberUids && resource.data.memberUids[request.auth.uid] == true;
 
       // 任何已登入使用者可建立新群組（建立者欄位必須是自己）
+      // memberUids 只能有建立者本人：不能把別人直接拉進群組（其他人需透過邀請連結自行加入）
       allow create: if isSignedIn()
         && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.memberUids.keys().hasOnly([request.auth.uid])
+        && request.resource.data.memberUids[request.auth.uid] == true
+        && isShortString(request.resource.data.name, 100)
+        && request.resource.data.inviteCode is string
+        && request.resource.data.members is list
         && hasOnlyKeys(
           request.resource.data,
           ['name', 'coverUrl', 'inviteCode', 'createdBy', 'members', 'memberNameMap', 'memberUids', 'lastExpenseAt', 'createdAt', 'updatedAt']
@@ -85,6 +118,13 @@ service cloud.firestore {
           resource.data,
           ['name', 'coverUrl', 'members', 'memberNameMap', 'memberUids', 'lastExpenseAt', 'updatedAt']
         )
+        && isShortString(request.resource.data.name, 100)
+        // 成員只能「移除」memberUids 中的人，不能新增或竄改（新成員須透過邀請連結自行加入）
+        && request.resource.data.memberUids.diff(resource.data.memberUids).addedKeys().size() == 0
+        && request.resource.data.memberUids.diff(resource.data.memberUids).changedKeys().size() == 0
+        // 群組建立者不可被移除
+        && (!(resource.data.createdBy in resource.data.memberUids)
+            || resource.data.createdBy in request.resource.data.memberUids)
       ) || (
         // ② 透過邀請連結自助加入：已登入的非成員將自己加入群組
         //    確保：原本不是成員、加入後成為成員、核心群組屬性不變
@@ -117,6 +157,8 @@ service cloud.firestore {
         allow read: if isGroupMember(groupId);
         allow create: if isGroupMember(groupId)
           && request.resource.data.createdBy == request.auth.uid
+          && request.resource.data.expenseId == expenseId
+          && isValidExpense(request.resource.data)
           && hasOnlyKeys(
             request.resource.data,
             ['title', 'amount', 'paidBy', 'splitMode', 'splits', 'description', 'imageUrl', 'date', 'createdBy', 'repeat', 'expenseId', 'editLog', 'createdAt', 'updatedAt']
@@ -125,6 +167,8 @@ service cloud.firestore {
           // 建立者與建立時間不可被竄改
           && request.resource.data.createdBy == resource.data.createdBy
           && request.resource.data.get('createdAt', null) == resource.data.get('createdAt', null)
+          && request.resource.data.get('expenseId', null) == resource.data.get('expenseId', null)
+          && isValidExpense(request.resource.data)
           && hasOnlyKeys(
             request.resource.data,
             ['title', 'amount', 'paidBy', 'splitMode', 'splits', 'description', 'imageUrl', 'date', 'createdBy', 'repeat', 'expenseId', 'editLog', 'createdAt', 'updatedAt']
@@ -134,13 +178,9 @@ service cloud.firestore {
 
       // ── settlements 子集合 ───────────────────────────────
       match /settlements/{settlementId} {
+        // 舊版資料：新架構改以「結算帳務」記錄在 expenses，App 只會讀取與清除舊記錄
         allow read: if isGroupMember(groupId);
-        allow create, update: if isGroupMember(groupId)
-          && hasOnlyKeys(
-            request.resource.data,
-            ['settlementId', 'from', 'to', 'amount', 'completed', 'completedBy', 'completedAt', 'createdAt', 'updatedAt']
-          );
-        // delete has no request.resource.data — check separately
+        allow create, update: if false;
         allow delete: if isGroupMember(groupId);
       }
 
@@ -149,6 +189,9 @@ service cloud.firestore {
         allow read: if isGroupMember(groupId);
         allow create: if isGroupMember(groupId)
           && request.resource.data.actorUid == request.auth.uid
+          && request.resource.data.activityId == activityId
+          && isShortString(request.resource.data.get('title', ''), 100)
+          && isShortString(request.resource.data.get('description', ''), 500)
           && hasOnlyKeys(
             request.resource.data,
             ['activityId', 'expenseId', 'actorUid', 'action', 'title', 'amount', 'description', 'timestamp', 'createdAt', 'isSettlement', 'settlementFrom', 'settlementTo']
