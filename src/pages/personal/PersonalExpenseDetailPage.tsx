@@ -14,6 +14,7 @@ import {
   type PersonalContact,
 } from "@/services/personalLedgerService";
 import { logger } from "@/utils/logger";
+import { cacheThenServer } from "@/lib/firestoreRead";
 
 export function PersonalExpenseDetailPage() {
   const { t } = useTranslation();
@@ -36,24 +37,30 @@ export function PersonalExpenseDetailPage() {
     if (!user || !contactId || !expenseId) return;
     setLoading(true);
     try {
-      // Try store first
-      let resolvedContact = storeContact;
-      let resolvedExpenses = storeExpenses;
-
-      if (!resolvedContact || resolvedContact.contactId !== contactId) {
-        resolvedContact = await getContact(user.uid, contactId);
-      }
-      if (
-        !resolvedExpenses.length ||
-        resolvedExpenses[0]?.expenseId === undefined
-      ) {
-        resolvedExpenses = await getPersonalExpenses(user.uid, contactId);
-      }
-
-      setContact(resolvedContact);
-      const found =
-        resolvedExpenses.find((e) => e.expenseId === expenseId) ?? null;
-      setExpense(found);
+      // 優先使用 store（從聯絡人頁點進來時已有資料），否則先讀本機快取再向伺服器更新
+      await cacheThenServer(
+        async (source) => {
+          const resolvedContact =
+            storeContact?.contactId === contactId
+              ? storeContact
+              : await getContact(user.uid, contactId, source);
+          const resolvedExpenses =
+            storeExpenses.length && storeExpenses[0]?.expenseId !== undefined
+              ? storeExpenses
+              : await getPersonalExpenses(user.uid, contactId, source);
+          return {
+            contact: resolvedContact,
+            expense:
+              resolvedExpenses.find((e) => e.expenseId === expenseId) ?? null,
+          };
+        },
+        (data) => {
+          setContact(data.contact);
+          setExpense(data.expense);
+          setLoading(false);
+        },
+        (data) => data.expense != null,
+      );
     } catch (err) {
       logger.error("personalExpenseDetail.load", "Failed to load", err);
       showToast(t("common.error"), "error");

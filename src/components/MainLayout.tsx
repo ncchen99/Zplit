@@ -1,6 +1,7 @@
 import { Suspense, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { BottomNav } from "@/components/ui/BottomNav";
+import { PageSkeleton } from "@/components/ui/PageSkeleton";
 
 // Warm up the other bottom-nav tabs once the current page is idle,
 // so switching tabs does not wait on a chunk download.
@@ -24,13 +25,7 @@ export function MainLayout() {
   return (
     <div className="relative flex h-full min-h-[inherit] flex-col overflow-hidden">
       <main className="flex-1 overflow-y-auto pb-16">
-        <Suspense
-          fallback={
-            <div className="flex h-full items-center justify-center py-24">
-              <span className="loading loading-spinner loading-lg text-primary" />
-            </div>
-          }
-        >
+        <Suspense fallback={<PageSkeleton variant="list" />}>
           <Outlet />
         </Suspense>
       </main>

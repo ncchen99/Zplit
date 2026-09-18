@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import {
@@ -11,68 +11,30 @@ import {
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { useAuthStore } from "@/store/authStore";
 import { usePersonalStore } from "@/store/personalStore";
-import {
-  getContacts,
-  getPersonalExpenses,
-  computePersonalNetAmount,
-  type PersonalContact,
-} from "@/services/personalLedgerService";
-import { useUIStore } from "@/store/uiStore";
-import { logger } from "@/utils/logger";
-
-interface ContactWithNet extends PersonalContact {
-  netAmount: number;
-  lastInteraction: Date | null;
-}
+import { useCachedQuery } from "@/hooks/useCachedQuery";
+import { loadContactsWithNet, type ContactWithNet } from "@/lib/listQueries";
 
 export function PersonalPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
-  const showToast = useUIStore((s) => s.showToast);
 
   const setContacts = usePersonalStore((s) => s.setContacts);
-  const isLoading = usePersonalStore((s) => s.isLoadingContacts);
-  const setIsLoading = usePersonalStore((s) => s.setIsLoadingContacts);
 
   const [search, setSearch] = useState("");
   const [showSettled, setShowSettled] = useState(false);
-  const [contactsWithNet, setContactsWithNet] = useState<ContactWithNet[]>([]);
 
-  const loadContacts = useCallback(async () => {
-    if (!user) return;
-    setIsLoading(true);
-    try {
-      const rawContacts = await getContacts(user.uid);
-      setContacts(rawContacts);
+  // 與首頁共用同一份快取：從首頁切過來時可立即顯示
+  const { data, loading: isLoading } = useCachedQuery(
+    user ? `personal:${user.uid}` : null,
+    (source) => loadContactsWithNet(user!.uid, source),
+  );
+  const contactsWithNet = useMemo(() => data ?? [], [data]);
 
-      // Compute net amounts for each contact
-      const withNet: ContactWithNet[] = await Promise.all(
-        rawContacts.map(async (c) => {
-          const expenses = await getPersonalExpenses(user.uid, c.contactId);
-          const netAmount = computePersonalNetAmount(expenses);
-          const lastDate =
-            expenses.length > 0
-              ? new Date(
-                  ((expenses[0].date as { seconds: number })?.seconds ?? 0) *
-                    1000,
-                )
-              : null;
-          return { ...c, netAmount, lastInteraction: lastDate };
-        }),
-      );
-      setContactsWithNet(withNet);
-    } catch (err) {
-      logger.error("personal.load", "載入個人記錄失敗", err);
-      showToast(t("common.error"), "error");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [setContacts, setIsLoading, showToast, t, user]);
-
+  // 新增帳務頁會使用 store 內的聯絡人清單
   useEffect(() => {
-    loadContacts();
-  }, [loadContacts]);
+    if (data) setContacts(data);
+  }, [data, setContacts]);
 
   const filtered = contactsWithNet.filter((c) =>
     c.displayName.toLowerCase().includes(search.toLowerCase()),

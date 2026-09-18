@@ -35,8 +35,9 @@
       "turnstileUnsupported": "此瀏覽器不支援人機驗證，請改用 Google 登入"
     },
     "retry": "重試",
-    "offline": "目前離線，部分功能可能無法使用",
+    "offline": "目前離線，仍可瀏覽與記帳，恢復連線後會自動同步",
     "online": "已恢復連線",
+    "offlineBanner": "離線模式・變更將於連線後同步",
     "viewAll": "全部",
     "search": "搜尋",
     "or": "或",

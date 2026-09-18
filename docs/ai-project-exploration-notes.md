@@ -243,17 +243,20 @@ return selectedMembers.map((memberId, i) => ({
 
 ### 7. ZUSTAND STORES & CACHING STRATEGY
 **Store Files:**
-- `/Users/ncchen/Documents/Zplit/src/store/authStore.ts` - User auth state
-- `/Users/ncchen/Documents/Zplit/src/store/groupStore.ts` - Current group, expenses, settlements
-- `/Users/ncchen/Documents/Zplit/src/store/personalStore.ts` - Contacts, expenses
-- `/Users/ncchen/Documents/Zplit/src/store/uiStore.ts` - Toast, theme
+- `authStore.ts` - User auth state (profile cached in localStorage `zplit.cachedUser` for instant startup)
+- `groupStore.ts` - Current group, expenses, settlements (onSnapshot listeners; data kept after unmount for sub-pages)
+- `personalStore.ts` - Current contact + expenses, contact list for the add-expense page
+- `uiStore.ts` - Toast, theme
 
-**Caching Pattern:**
-- **No aggressive caching** - mostly real-time listeners
-- **GroupStore**: Firebase listeners (`onSnapshot`) keep data in sync automatically
-- **PersonalStore**: Manual fetch + Zustand cache (no listeners)
-  - Called when navigating to pages, but data can become stale
-- **Cleanup**: On page unmount, listeners unsubscribed and stores cleared
+**Caching / offline (layered):**
+1. **Firestore persistent cache** (`src/lib/firebase.ts`): IndexedDB, multi-tab. Offline reads hit the cache; offline writes are queued and sync on reconnect.
+2. **Cache-then-server reads** (`src/lib/firestoreRead.ts`): service read functions take an optional `source` (`"default"` | `"cache"`). `cacheThenServer()` renders cached data first, then overwrites with the server result.
+3. **In-memory SWR hook** (`src/hooks/useCachedQuery.ts`): Home / Groups / Personal tabs keep their last data per key, so switching tabs never shows a skeleton. Loaders live in `src/lib/listQueries.ts` (Home and Personal share the `personal:<uid>` key).
+4. **Offline writes** (`src/lib/firestoreWrite.ts`): every service write is wrapped in `commitWrite()`, which does not wait for server ack when `navigator.onLine` is false (otherwise the UI hangs on "saving").
+5. **Service worker** (`public/sw.js` + `swPrecache` plugin in `vite.config.ts`): precaches every build file (manifest and hash-based cache version injected at build time); network-first navigation with a 3s timeout. Registered only in production builds.
+- Logout / account deletion clears the memory cache and Firestore IndexedDB, then reloads (`clearLocalDataAndReload`).
+- Local testing without touching prod: build with `VITE_USE_FIREBASE_EMULATORS=true` (auth :9099, firestore :8080).
+- Loading UI: `PageSkeleton` (route Suspense / auth loading) and a static skeleton in `index.html`. Avoid full-page spinners.
 
 ---
 

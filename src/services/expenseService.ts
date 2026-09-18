@@ -10,12 +10,17 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { commitWrite } from "@/lib/firestoreWrite";
+import { readDocs, type ReadSource } from "@/lib/firestoreRead";
 import { logger } from "@/utils/logger";
 import { ZplitError } from "@/utils/errors";
 import type { Expense, ExpenseSplit, EditLogEntry } from "@/store/groupStore";
 
-export async function getGroupExpenses(groupId: string): Promise<Expense[]> {
-  const snap = await getDocs(collection(db, `groups/${groupId}/expenses`));
+export async function getGroupExpenses(
+  groupId: string,
+  source: ReadSource = "default",
+): Promise<Expense[]> {
+  const snap = await readDocs(collection(db, `groups/${groupId}/expenses`), source);
   return snap.docs.map(
     (d) => ({ ...d.data(), expenseId: d.id }) as Expense,
   );
@@ -60,10 +65,10 @@ async function syncGroupLastExpenseAt(groupId: string): Promise<void> {
     ),
   );
   const lastExpenseAt = snap.docs[0]?.data().date ?? null;
-  await updateDoc(doc(db, "groups", groupId), {
+  await commitWrite(updateDoc(doc(db, "groups", groupId), {
     lastExpenseAt,
     updatedAt: serverTimestamp(),
-  });
+  }));
 }
 
 export async function addExpense(
@@ -137,7 +142,7 @@ export async function addExpense(
       updatedAt: serverTimestamp(),
     });
 
-    await batch.commit();
+    await commitWrite(batch.commit());
 
     logger.info(module, "帳務新增成功", { expenseId: ref.id, groupId });
     return ref.id;
@@ -176,7 +181,7 @@ export async function updateExpense(
       createdAt: serverTimestamp(),
     });
 
-    await batch.commit();
+    await commitWrite(batch.commit());
     await syncGroupLastExpenseAt(groupId).catch((err) => {
       logger.warn("expenses.update.syncLastExpenseAt", "同步最近記帳時間失敗", {
         groupId,
@@ -222,7 +227,7 @@ export async function deleteExpense(
       createdAt: serverTimestamp(),
     });
 
-    await batch.commit();
+    await commitWrite(batch.commit());
     await syncGroupLastExpenseAt(groupId).catch((err) => {
       logger.warn("expenses.delete.syncLastExpenseAt", "同步最近記帳時間失敗", {
         groupId,

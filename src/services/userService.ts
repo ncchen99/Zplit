@@ -1,5 +1,6 @@
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { commitWrite } from "@/lib/firestoreWrite";
 import type { AppUser } from "@/store/authStore";
 import { syncGroupMemberProfileByUserId } from "@/services/groupService";
 import { logger } from "@/utils/logger";
@@ -27,7 +28,7 @@ export async function createOrUpdateUser(
 ): Promise<AppUser> {
   const normalizedDisplayName = data.displayName.trim();
   const ref = doc(db, "users", uid);
-  await setDoc(
+  await commitWrite(setDoc(
     ref,
     {
       ...data,
@@ -36,7 +37,7 @@ export async function createOrUpdateUser(
       createdAt: serverTimestamp(),
     },
     { merge: true },
-  );
+  ));
 
   try {
     await syncGroupMemberProfileByUserId(uid, {

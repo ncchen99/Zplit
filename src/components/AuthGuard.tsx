@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuthStore, type AuthStatus } from "@/store/authStore";
+import { PageSkeleton } from "@/components/ui/PageSkeleton";
 
 const publicPaths = ["/login", "/join"];
 
@@ -39,11 +40,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   const location = useLocation();
 
   if (status === "loading") {
-    return (
-      <div className="flex min-h-[100dvh] items-center justify-center md:min-h-[min(var(--app-frame-height),calc(100vh-2rem))]">
-        <span className="loading loading-spinner loading-lg text-primary" />
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   const redirect = getRedirect(status, location.pathname, location.state);

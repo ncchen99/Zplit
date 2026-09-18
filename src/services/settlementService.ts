@@ -6,6 +6,7 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { commitWrite } from "@/lib/firestoreWrite";
 import { logger } from "@/utils/logger";
 
 /**
@@ -25,7 +26,7 @@ export async function cleanupStaleSettlements(groupId: string): Promise<void> {
 
     const batch = writeBatch(db);
     staleSnap.docs.forEach((d) => batch.delete(d.ref));
-    await batch.commit();
+    await commitWrite(batch.commit());
 
     logger.info("settlement.cleanup", "清理舊版 incomplete 結算記錄", {
       groupId,

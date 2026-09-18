@@ -10,6 +10,7 @@ interface ImportMetaEnv {
   readonly VITE_UPLOAD_WORKER_URL: string;
   readonly VITE_TURNSTILE_SITE_KEY: string;
   readonly VITE_TURNSTILE_WORKER_URL: string;
+  readonly VITE_USE_FIREBASE_EMULATORS?: string;
 }
 
 interface ImportMeta {

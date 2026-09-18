@@ -25,6 +25,7 @@ import {
 } from "@/services/personalLedgerService";
 import { syncGroupMemberNameByReference } from "@/services/groupService";
 import { logger } from "@/utils/logger";
+import { cacheThenServer } from "@/lib/firestoreRead";
 
 export function PersonalContactDetailPage() {
   const { t } = useTranslation();
@@ -60,15 +61,23 @@ export function PersonalContactDetailPage() {
     if (!user || !contactId) return;
     setIsLoading(true);
     try {
-      const [contact, expenses] = await Promise.all([
-        getContact(user.uid, contactId),
-        getPersonalExpenses(user.uid, contactId),
-      ]);
-      if (contact) {
-        setCurrentContact(contact);
-        setEditName(contact.displayName);
-      }
-      setCurrentExpenses(expenses);
+      // 先以本機快取立即顯示，再用伺服器資料更新
+      await cacheThenServer(
+        (source) =>
+          Promise.all([
+            getContact(user.uid, contactId, source),
+            getPersonalExpenses(user.uid, contactId, source),
+          ]),
+        ([contact, expenses]) => {
+          if (contact) {
+            setCurrentContact(contact);
+            setEditName(contact.displayName);
+          }
+          setCurrentExpenses(expenses);
+          setIsLoading(false);
+        },
+        ([contact]) => contact != null,
+      );
     } catch (err) {
       logger.error("personal.detail.load", "載入個人帳務失敗", err);
       showToast(t("common.error"), "error");
@@ -86,11 +95,13 @@ export function PersonalContactDetailPage() {
   ]);
 
   useEffect(() => {
-    // 清除前一個聯絡人的舊資料（避免短暫顯示過期內容）
-    clearCurrentContact();
+    // 切換到不同聯絡人時才清除舊資料；回到同一位聯絡人時直接沿用，避免閃 skeleton
+    if (usePersonalStore.getState().currentContact?.contactId !== contactId) {
+      clearCurrentContact();
+    }
     loadData();
     // 不在 unmount 時清除，保留資料供 AddPersonalExpensePage 使用
-  }, [clearCurrentContact, loadData]);
+  }, [clearCurrentContact, contactId, loadData]);
 
   const closeConfirm = () =>
     setConfirmModal((prev) => ({ ...prev, open: false }));
@@ -295,7 +306,7 @@ export function PersonalContactDetailPage() {
           {t("personal.lendingHistory")}
         </h2>
 
-        {isLoading ? (
+        {isLoading && currentExpenses.length === 0 ? (
           <div className="mt-3 space-y-3">
             {Array.from({ length: 3 }).map((_, idx) => (
               <div

@@ -5,7 +5,6 @@ import {
   updateDoc,
   deleteDoc,
   getDocs,
-  getDoc,
   query,
   orderBy,
   limit,
@@ -14,6 +13,8 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { commitWrite } from "@/lib/firestoreWrite";
+import { readDoc, readDocs, type ReadSource } from "@/lib/firestoreRead";
 import { nanoid } from "nanoid";
 import { logger } from "@/utils/logger";
 import { ZplitError } from "@/utils/errors";
@@ -66,25 +67,27 @@ async function syncContactLastExpenseAt(
   );
 
   const lastExpenseAt = latestSnap.docs[0]?.data().date ?? null;
-  await updateDoc(doc(db, `personalLedger/${userId}/contacts/${contactId}`), {
+  await commitWrite(updateDoc(doc(db, `personalLedger/${userId}/contacts/${contactId}`), {
     lastExpenseAt,
     updatedAt: serverTimestamp(),
-  });
+  }));
 }
 
 async function loadLinkedUserAvatarMap(
   linkedUserIds: string[],
+  source: ReadSource = "default",
 ): Promise<Map<string, string | null>> {
   const ids = Array.from(new Set(linkedUserIds.filter(Boolean)));
   const avatarMap = new Map<string, string | null>();
   if (ids.length === 0) return avatarMap;
 
   // 逐筆 getDoc：users 集合只開放單筆讀取，避免任何登入者能列舉全部使用者
+  // 單筆失敗（例如快取中沒有）只影響頭像，不影響聯絡人清單
   const snaps = await Promise.all(
-    ids.map((id) => getDoc(doc(db, "users", id))),
+    ids.map((id) => readDoc(doc(db, "users", id), source).catch(() => null)),
   );
   snaps.forEach((userDoc) => {
-    if (!userDoc.exists()) return;
+    if (!userDoc?.exists()) return;
     const data = userDoc.data();
     avatarMap.set(userDoc.id, (data.avatarUrl as string | null | undefined) ?? null);
   });
@@ -106,13 +109,17 @@ function withResolvedAvatar(
 
 // ─── Contact CRUD ────────────────────────────────────
 
-export async function getContacts(userId: string): Promise<PersonalContact[]> {
+export async function getContacts(
+  userId: string,
+  source: ReadSource = "default",
+): Promise<PersonalContact[]> {
   try {
-    const snap = await getDocs(
+    const snap = await readDocs(
       query(
         collection(db, `personalLedger/${userId}/contacts`),
         orderBy("interactionCount", "desc"),
       ),
+      source,
     );
     const contacts = snap.docs.map(
       (d) => ({ contactId: d.id, ...d.data() }) as PersonalContact,
@@ -122,6 +129,7 @@ export async function getContacts(userId: string): Promise<PersonalContact[]> {
       contacts
         .map((contact) => contact.linkedUserId)
         .filter((id): id is string => Boolean(id)),
+      source,
     );
 
     return contacts.map((contact) => withResolvedAvatar(contact, linkedAvatarMap));
@@ -138,18 +146,25 @@ export async function getContacts(userId: string): Promise<PersonalContact[]> {
 export async function getContact(
   userId: string,
   contactId: string,
+  source: ReadSource = "default",
 ): Promise<PersonalContact | null> {
   try {
-    const snap = await getDoc(
+    const snap = await readDoc(
       doc(db, `personalLedger/${userId}/contacts/${contactId}`),
+      source,
     );
     if (!snap.exists()) return null;
     const contact = { contactId: snap.id, ...snap.data() } as PersonalContact;
     if (!contact.linkedUserId) return contact;
 
-    const linkedAvatarMap = await loadLinkedUserAvatarMap([contact.linkedUserId]);
+    const linkedAvatarMap = await loadLinkedUserAvatarMap(
+      [contact.linkedUserId],
+      source,
+    );
     return withResolvedAvatar(contact, linkedAvatarMap);
   } catch (err) {
+    // 快取未命中屬正常情況，不記錄為錯誤
+    if (source === "cache") return null;
     logger.error("personal.getContact", "讀取聯絡人失敗", err);
     return null;
   }
@@ -174,7 +189,7 @@ export async function createContact(
     updatedAt: serverTimestamp(),
   };
 
-  await setDoc(ref, data);
+  await commitWrite(setDoc(ref, data));
   logger.info("personal.createContact", "建立聯絡人成功", {
     userId,
     contactId,
@@ -231,10 +246,10 @@ export async function updateContact(
   >,
 ): Promise<void> {
   try {
-    await updateDoc(doc(db, `personalLedger/${userId}/contacts/${contactId}`), {
+    await commitWrite(updateDoc(doc(db, `personalLedger/${userId}/contacts/${contactId}`), {
       ...data,
       updatedAt: serverTimestamp(),
-    });
+    }));
     logger.info("personal.updateContact", "更新聯絡人成功", {
       userId,
       contactId,
@@ -279,7 +294,7 @@ export async function syncPersonalContactNameByReference(
       updatedAt: serverTimestamp(),
     });
   }
-  await batch.commit();
+  await commitWrite(batch.commit());
 
   logger.info("personal.syncContactName", "同步個人聯絡人名稱成功", {
     userId,
@@ -302,7 +317,7 @@ export async function deleteContact(
     expensesSnap.docs.forEach((d) => batch.delete(d.ref));
     // Delete the contact itself
     batch.delete(doc(db, `personalLedger/${userId}/contacts/${contactId}`));
-    await batch.commit();
+    await commitWrite(batch.commit());
 
     logger.info("personal.deleteContact", "刪除聯絡人成功", {
       userId,
@@ -319,9 +334,10 @@ export async function deleteContact(
 export async function getPersonalExpenses(
   userId: string,
   contactId: string,
+  source: ReadSource = "default",
 ): Promise<PersonalExpense[]> {
   try {
-    const snap = await getDocs(
+    const snap = await readDocs(
       query(
         collection(
           db,
@@ -329,6 +345,7 @@ export async function getPersonalExpenses(
         ),
         orderBy("date", "desc"),
       ),
+      source,
     );
     return snap.docs.map(
       (d) => ({ expenseId: d.id, ...d.data() }) as PersonalExpense,
@@ -349,19 +366,19 @@ export async function addPersonalExpense(
       collection(db, `personalLedger/${userId}/contacts/${contactId}/expenses`),
     );
 
-    await setDoc(ref, {
+    await commitWrite(setDoc(ref, {
       ...data,
       expenseId: ref.id,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
-    });
+    }));
 
     // Bump interaction count
-    await updateDoc(doc(db, `personalLedger/${userId}/contacts/${contactId}`), {
+    await commitWrite(updateDoc(doc(db, `personalLedger/${userId}/contacts/${contactId}`), {
       interactionCount: increment(1),
       lastExpenseAt: data.date,
       updatedAt: serverTimestamp(),
-    });
+    }));
 
     logger.info("personal.addExpense", "個人帳務新增成功", {
       userId,
@@ -386,10 +403,10 @@ export async function updatePersonalExpense(
       db,
       `personalLedger/${userId}/contacts/${contactId}/expenses/${expenseId}`,
     );
-    await updateDoc(ref, {
+    await commitWrite(updateDoc(ref, {
       ...data,
       updatedAt: serverTimestamp(),
-    });
+    }));
     await syncContactLastExpenseAt(userId, contactId).catch((syncErr) => {
       logger.warn("personal.updateExpense.syncLastExpenseAt", "同步最近記帳時間失敗", {
         userId,
@@ -415,12 +432,12 @@ export async function deletePersonalExpense(
   expenseId: string,
 ): Promise<void> {
   try {
-    await deleteDoc(
+    await commitWrite(deleteDoc(
       doc(
         db,
         `personalLedger/${userId}/contacts/${contactId}/expenses/${expenseId}`,
       ),
-    );
+    ));
     await syncContactLastExpenseAt(userId, contactId).catch((syncErr) => {
       logger.warn("personal.deleteExpense.syncLastExpenseAt", "同步最近記帳時間失敗", {
         userId,
@@ -475,7 +492,7 @@ export async function settleAllWithContact(
     );
 
     // Add a settlement expense that zeroes out the balance
-    await setDoc(ref, {
+    await commitWrite(setDoc(ref, {
       expenseId: ref.id,
       title: "結清帳款",
       amount: Math.abs(netAmount),
@@ -488,7 +505,7 @@ export async function settleAllWithContact(
       isSettlement: true,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
-    });
+    }));
 
     logger.info("personal.settleAll", "個人帳款結清成功", {
       userId,

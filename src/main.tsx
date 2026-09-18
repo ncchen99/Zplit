@@ -19,7 +19,8 @@ window.addEventListener("vite:preloadError", (event) => {
   window.location.reload();
 });
 
-if ("serviceWorker" in navigator) {
+// 只在正式建置註冊：開發模式下快取模組會讓 HMR 拿到舊程式碼
+if (import.meta.env.PROD && "serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js").catch(() => {
       // Service worker registration failed — app still works normally

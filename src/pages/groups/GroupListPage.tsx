@@ -1,12 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import type { Group } from "@/store/groupStore";
-import { getUserGroups } from "@/services/groupService";
-import { getGroupExpenses } from "@/services/expenseService";
-import { computeBalances } from "@/lib/algorithm/settlement";
-import { logger } from "@/utils/logger";
+import { useCachedQuery } from "@/hooks/useCachedQuery";
+import { loadGroupsWithNet } from "@/lib/listQueries";
 import {
   Plus as PlusIcon,
   Search as MagnifyingGlassIcon,
@@ -18,43 +16,16 @@ export function GroupListPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [loading, setLoading] = useState(true);
+  const uid = user?.uid;
   const [search, setSearch] = useState("");
-  const [groupNetMap, setGroupNetMap] = useState<Record<string, number>>({});
 
-  useEffect(() => {
-    if (!user) return;
-    const fetchGroups = async () => {
-      try {
-        const myGroups = await getUserGroups(user.uid);
-        setGroups(myGroups);
-        const netEntries = await Promise.all(
-          myGroups.map(async (g) => {
-            const myMember = g.members?.find((m) => m.userId === user.uid);
-            if (!myMember) return [g.groupId, 0] as const;
-            try {
-              const exps = await getGroupExpenses(g.groupId);
-              const balances = computeBalances(exps);
-              const mine = balances.find(
-                (b) => b.memberId === myMember.memberId,
-              );
-              return [g.groupId, mine?.amount ?? 0] as const;
-            } catch (err) {
-              logger.error("groupList.net", "計算群組淨額失敗", err);
-              return [g.groupId, 0] as const;
-            }
-          }),
-        );
-        setGroupNetMap(Object.fromEntries(netEntries));
-      } catch (err) {
-        logger.error("groupList.fetch", "載入群組失敗", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchGroups();
-  }, [user]);
+  const { data, loading } = useCachedQuery(
+    uid ? `groups:${uid}` : null,
+    (source) => loadGroupsWithNet(uid!, source),
+    (d) => d.groups.length > 0,
+  );
+  const groups = data?.groups ?? [];
+  const groupNetMap = data?.netMap ?? {};
 
   const filtered = groups.filter((g) =>
     g.name.toLowerCase().includes(search.toLowerCase()),

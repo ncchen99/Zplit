@@ -35,8 +35,9 @@
       "turnstileUnsupported": "This browser does not support verification. Please sign in with Google."
     },
     "retry": "Retry",
-    "offline": "You are offline. Some features may not work.",
+    "offline": "You're offline. You can keep browsing and recording; changes sync when you're back online.",
     "online": "Back online",
+    "offlineBanner": "Offline · changes sync when you reconnect",
     "viewAll": "All",
     "search": "Search",
     "or": "or",

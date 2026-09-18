@@ -1,18 +1,13 @@
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
-import type { Group } from "@/store/groupStore";
-import { getUserGroups, backfillInviteCodes } from "@/services/groupService";
-import { getGroupExpenses } from "@/services/expenseService";
-import { computeBalances } from "@/lib/algorithm/settlement";
+import { useCachedQuery } from "@/hooks/useCachedQuery";
 import {
-  getContacts,
-  getPersonalExpenses,
-  computePersonalNetAmount,
-  type PersonalContact,
-} from "@/services/personalLedgerService";
-import { logger } from "@/utils/logger";
+  getTimestampMs,
+  loadContactsWithNet,
+  loadGroupsWithNet,
+} from "@/lib/listQueries";
 import {
   ChevronRight as ChevronRightIcon,
   FileText as DocumentTextIcon,
@@ -24,99 +19,38 @@ export function HomePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [personalContacts, setPersonalContacts] = useState<
-    (PersonalContact & { netAmount: number })[]
-  >([]);
-  const [unsettledPersonalCount, setUnsettledPersonalCount] = useState(0);
-  const [groupNetMap, setGroupNetMap] = useState<Record<string, number>>({});
+  const uid = user?.uid;
 
-  const getTimestampMs = (value: unknown): number => {
-    if (!value) return 0;
-    if (value instanceof Date) return value.getTime();
-    if (
-      typeof value === "object" &&
-      value !== null &&
-      "seconds" in value &&
-      typeof (value as { seconds?: unknown }).seconds === "number"
-    ) {
-      return (value as { seconds: number }).seconds * 1000;
-    }
-    return 0;
-  };
+  // 只計算首頁顯示的前 3 個群組淨額，避免過多讀取
+  const groupsQuery = useCachedQuery(
+    uid ? `home-groups:${uid}` : null,
+    (source) => loadGroupsWithNet(uid!, source, 3),
+    (d) => d.groups.length > 0,
+  );
+  // 與個人頁共用同一份快取
+  const personalQuery = useCachedQuery(
+    uid ? `personal:${uid}` : null,
+    (source) => loadContactsWithNet(uid!, source),
+  );
 
-  useEffect(() => {
-    if (!user) return;
-    const fetchGroups = async () => {
-      try {
-        const myGroups = await getUserGroups(user.uid);
-        const sortedGroups = [...myGroups].sort((a, b) => {
-          const bLast = getTimestampMs(b.lastExpenseAt ?? b.updatedAt);
-          const aLast = getTimestampMs(a.lastExpenseAt ?? a.updatedAt);
-          return bLast - aLast;
-        });
-        setGroups(sortedGroups);
-        backfillInviteCodes(myGroups).catch((err) => {
-          logger.error("home.backfill", "補建 inviteCode 失敗", err);
-        });
+  const loading = groupsQuery.loading;
+  const groups = groupsQuery.data?.groups ?? [];
+  const groupNetMap = groupsQuery.data?.netMap ?? {};
 
-        // 只計算首頁顯示的前 3 個群組，避免過多讀取
-        const visibleGroups = sortedGroups.slice(0, 3);
-        const netEntries = await Promise.all(
-          visibleGroups.map(async (g) => {
-            const myMember = g.members?.find((m) => m.userId === user.uid);
-            if (!myMember) return [g.groupId, 0] as const;
-            try {
-              const exps = await getGroupExpenses(g.groupId);
-              const balances = computeBalances(exps);
-              const mine = balances.find(
-                (b) => b.memberId === myMember.memberId,
-              );
-              return [g.groupId, mine?.amount ?? 0] as const;
-            } catch (err) {
-              logger.error("home.groupNet", "計算群組淨額失敗", err);
-              return [g.groupId, 0] as const;
-            }
-          }),
-        );
-        setGroupNetMap(Object.fromEntries(netEntries));
-      } catch (err) {
-        logger.error("home.fetchGroups", "載入群組失敗", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const fetchPersonal = async () => {
-      try {
-        const contacts = await getContacts(user.uid);
-        const allWithNet = await Promise.all(
-          contacts.map(async (c) => {
-            const expenses = await getPersonalExpenses(user.uid, c.contactId);
-            return { ...c, netAmount: computePersonalNetAmount(expenses) };
-          }),
-        );
-        const unsettled = allWithNet.filter((c) => c.netAmount !== 0);
-        setUnsettledPersonalCount(unsettled.length);
-        const withNet = unsettled
-          .filter((c) => {
-            const hasRecordTime = getTimestampMs(c.lastExpenseAt) > 0;
-            return hasRecordTime || c.interactionCount > 0;
-          })
-          .sort(
-            (a, b) =>
-              getTimestampMs(b.lastExpenseAt ?? b.updatedAt) -
-              getTimestampMs(a.lastExpenseAt ?? a.updatedAt),
-          )
-          .slice(0, 3);
-        setPersonalContacts(withNet);
-      } catch (err) {
-        logger.error("home.fetchPersonal", "載入個人記錄失敗", err);
-      }
-    };
-    Promise.all([fetchGroups(), fetchPersonal()]);
-  }, [user]);
+  const { personalContacts, unsettledPersonalCount } = useMemo(() => {
+    const unsettled = (personalQuery.data ?? []).filter((c) => c.netAmount !== 0);
+    const top = unsettled
+      .filter(
+        (c) => getTimestampMs(c.lastExpenseAt) > 0 || c.interactionCount > 0,
+      )
+      .sort(
+        (a, b) =>
+          getTimestampMs(b.lastExpenseAt ?? b.updatedAt) -
+          getTimestampMs(a.lastExpenseAt ?? a.updatedAt),
+      )
+      .slice(0, 3);
+    return { personalContacts: top, unsettledPersonalCount: unsettled.length };
+  }, [personalQuery.data]);
 
   const topGroups = groups.slice(0, 3);
 

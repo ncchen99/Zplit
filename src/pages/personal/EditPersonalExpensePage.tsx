@@ -16,6 +16,7 @@ import {
 } from "@/services/personalLedgerService";
 import { CalculatorInput } from "@/components/ui/CalculatorInput";
 import { logger } from "@/utils/logger";
+import { cacheThenServer } from "@/lib/firestoreRead";
 import {
   getTaipeiDateTimeLocalString,
   parseTaipeiDateTimeLocalString,
@@ -54,20 +55,29 @@ export function EditPersonalExpensePage() {
     if (!user || !contactId || !expenseId) return;
     setLoading(true);
     try {
-      let resolvedContact = storeContact;
-      let resolvedExpenses = storeExpenses;
-
-      if (!resolvedContact || resolvedContact.contactId !== contactId) {
-        resolvedContact = await getContact(user.uid, contactId);
-      }
-      if (!resolvedExpenses.length) {
-        resolvedExpenses = await getPersonalExpenses(user.uid, contactId);
-      }
-
-      if (resolvedContact) setContactName(resolvedContact.displayName);
-      const found =
-        resolvedExpenses.find((e) => e.expenseId === expenseId) ?? null;
-      setExpense(found);
+      // 優先使用 store，否則先讀本機快取再向伺服器更新（表單只以第一次結果初始化）
+      await cacheThenServer(
+        async (source) => {
+          const resolvedContact =
+            storeContact?.contactId === contactId
+              ? storeContact
+              : await getContact(user.uid, contactId, source);
+          const resolvedExpenses = storeExpenses.length
+            ? storeExpenses
+            : await getPersonalExpenses(user.uid, contactId, source);
+          return {
+            contact: resolvedContact,
+            expense:
+              resolvedExpenses.find((e) => e.expenseId === expenseId) ?? null,
+          };
+        },
+        (data) => {
+          if (data.contact) setContactName(data.contact.displayName);
+          setExpense(data.expense);
+          setLoading(false);
+        },
+        (data) => data.expense != null,
+      );
     } catch (err) {
       logger.error("editPersonalExpense.load", "Failed to load", err);
       showToast(t("common.error"), "error");

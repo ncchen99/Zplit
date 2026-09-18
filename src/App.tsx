@@ -1,7 +1,9 @@
 import { lazy, Suspense, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, clearLocalDataAndReload } from "@/lib/firebase";
+import { clearQueryMemoryCache } from "@/hooks/useCachedQuery";
 import { readCachedUser, useAuthStore } from "@/store/authStore";
 import { useUIStore } from "@/store/uiStore";
 import { getUser } from "@/services/userService";
@@ -10,8 +12,10 @@ import { logger } from "@/utils/logger";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
 import { ToastProvider } from "@/components/ui/ToastProvider";
+import { OfflineBanner } from "@/components/ui/OfflineBanner";
 import { AuthGuard } from "@/components/AuthGuard";
 import { MainLayout } from "@/components/MainLayout";
+import { PageSkeleton } from "@/components/ui/PageSkeleton";
 
 const LoginPage = lazy(() =>
   import("@/pages/auth/LoginPage").then((m) => ({ default: m.LoginPage })),
@@ -68,22 +72,23 @@ const EditProfilePage = lazy(() =>
   import("@/pages/settings/EditProfilePage").then((m) => ({ default: m.EditProfilePage })),
 );
 
-function PageFallback() {
-  return (
-    <div className="flex min-h-[100dvh] items-center justify-center md:min-h-[min(var(--app-frame-height),calc(100vh-2rem))]">
-      <span className="loading loading-spinner loading-lg text-primary" />
-    </div>
-  );
-}
-
 function AuthInitializer({ children }: { children: React.ReactNode }) {
   const setFirebaseUser = useAuthStore((s) => s.setFirebaseUser);
   const setUser = useAuthStore((s) => s.setUser);
   const setStatus = useAuthStore((s) => s.setStatus);
 
   useEffect(() => {
+    let prevUid: string | null = null;
     const unsub = onAuthStateChanged(auth, async (fbUser) => {
+      const signedOut = prevUid !== null && !fbUser;
+      prevUid = fbUser?.uid ?? null;
+
       if (!fbUser) {
+        if (signedOut) {
+          // 由登入狀態變為登出（登出、刪除帳號等）：清除本機快取
+          clearQueryMemoryCache();
+          void clearLocalDataAndReload();
+        }
         setStatus("guest");
         setFirebaseUser(null);
         setUser(null);
@@ -124,16 +129,17 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
 }
 
 function NetworkListener() {
+  const { t } = useTranslation();
   const showToast = useUIStore((s) => s.showToast);
 
   useEffect(() => {
     const onOffline = () => {
       logger.warn("network", "裝置離線");
-      showToast("目前離線，部分功能可能無法使用", "info");
+      showToast(t("common.offline"), "info");
     };
     const onOnline = () => {
       logger.info("network", "裝置恢復連線");
-      showToast("已恢復連線", "success");
+      showToast(t("common.online"), "success");
     };
 
     window.addEventListener("offline", onOffline);
@@ -142,7 +148,7 @@ function NetworkListener() {
       window.removeEventListener("offline", onOffline);
       window.removeEventListener("online", onOnline);
     };
-  }, [showToast]);
+  }, [showToast, t]);
 
   return null;
 }
@@ -208,8 +214,9 @@ export default function App() {
         <BrowserRouter>
           <AuthInitializer>
             <NetworkListener />
+            <OfflineBanner />
             <ToastProvider />
-            <Suspense fallback={<PageFallback />}>
+            <Suspense fallback={<PageSkeleton />}>
               <Routes>
                 {/* Public routes */}
                 <Route

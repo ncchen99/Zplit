@@ -7,6 +7,7 @@ import { useUIStore } from "@/store/uiStore";
 import { addExpense } from "@/services/expenseService";
 import { getGroupById } from "@/services/groupService";
 import { logger } from "@/utils/logger";
+import { cacheThenServer } from "@/lib/firestoreRead";
 import {
   getTaipeiDateTimeLocalString,
   parseTaipeiDateTimeLocalString,
@@ -58,11 +59,12 @@ export function AddExpensePage() {
   // 若 currentGroup 不在 store（例如直接導航到此頁），從 Firestore 載入
   useEffect(() => {
     if (!groupId || currentGroup?.groupId === groupId) return;
-    getGroupById(groupId)
-      .then((group) => {
+    cacheThenServer(
+      (source) => getGroupById(groupId, source),
+      (group) => {
         if (group) setCurrentGroup(group);
-      })
-      .catch((err) => logger.error("addExpense", "載入群組失敗", err));
+      },
+    ).catch((err) => logger.error("addExpense", "載入群組失敗", err));
   }, [currentGroup?.groupId, groupId, setCurrentGroup]);
 
   // 當成員列表第一次有資料時，初始化 paidBy（找到當前使用者的 memberId）和 selectedMembers

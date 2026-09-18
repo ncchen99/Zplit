@@ -12,6 +12,8 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { commitWrite } from "@/lib/firestoreWrite";
+import { readDoc, readDocs, type ReadSource } from "@/lib/firestoreRead";
 import { nanoid } from "nanoid";
 import type { Group, GroupMember, Settlement } from "@/store/groupStore";
 import {
@@ -80,8 +82,8 @@ export async function createGroup(
   };
 
   // 同時寫入群組文件和 inviteCodes 查詢文件（batch 不需要，因為 inviteCodes 是輔助索引）
-  await setDoc(ref, groupData);
-  await setDoc(doc(db, "inviteCodes", inviteCode), { groupId: ref.id });
+  await commitWrite(setDoc(ref, groupData));
+  await commitWrite(setDoc(doc(db, "inviteCodes", inviteCode), { groupId: ref.id }));
   logger.info("groupService.create", "群組建立成功", { groupId: ref.id, name });
 
   return {
@@ -90,8 +92,11 @@ export async function createGroup(
   } as unknown as Group;
 }
 
-export async function getGroupById(groupId: string): Promise<Group | null> {
-  const snap = await getDoc(doc(db, "groups", groupId));
+export async function getGroupById(
+  groupId: string,
+  source: ReadSource = "default",
+): Promise<Group | null> {
+  const snap = await readDoc(doc(db, "groups", groupId), source);
   if (!snap.exists()) return null;
   return { groupId: snap.id, ...snap.data() } as Group;
 }
@@ -107,12 +112,15 @@ export async function getGroupByInviteCode(
   return getGroupById(groupId);
 }
 
-export async function getUserGroups(userId: string): Promise<Group[]> {
+export async function getUserGroups(
+  userId: string,
+  source: ReadSource = "default",
+): Promise<Group[]> {
   const q = query(
     collection(db, "groups"),
     where(`memberUids.${userId}`, "==", true),
   );
-  const snap = await getDocs(q);
+  const snap = await readDocs(q, source);
   return snap.docs.map((d) => ({ ...d.data(), groupId: d.id }) as Group);
 }
 
@@ -126,7 +134,7 @@ export async function backfillInviteCodes(groups: Group[]): Promise<void> {
         const codeRef = doc(db, "inviteCodes", g.inviteCode);
         const codeSnap = await getDoc(codeRef);
         if (!codeSnap.exists()) {
-          await setDoc(codeRef, { groupId: g.groupId });
+          await commitWrite(setDoc(codeRef, { groupId: g.groupId }));
           logger.info("groupService.backfill", "補建 inviteCode", {
             groupId: g.groupId,
             inviteCode: g.inviteCode,
@@ -155,12 +163,12 @@ export async function addMemberToGroup(
     nextMemberUids[member.userId] = true;
   }
 
-  await updateDoc(ref, {
+  await commitWrite(updateDoc(ref, {
     members: nextMembers,
     memberNameMap: nextMemberNameMap,
     memberUids: nextMemberUids,
     updatedAt: serverTimestamp(),
-  });
+  }));
   logger.info("groupService.addMember", "成員加入群組", {
     groupId,
     memberId: member.memberId,
@@ -171,11 +179,11 @@ export async function updateGroup(
   groupId: string,
   data: { name: string; coverUrl?: string | null },
 ): Promise<void> {
-  await updateDoc(doc(db, "groups", groupId), {
+  await commitWrite(updateDoc(doc(db, "groups", groupId), {
     name: data.name,
     coverUrl: data.coverUrl ?? null,
     updatedAt: serverTimestamp(),
-  });
+  }));
   logger.info("groupService.update", "群組資料更新", {
     groupId,
     name: data.name,
@@ -190,10 +198,10 @@ export async function deleteGroup(groupId: string): Promise<void> {
 
   // 先清理 inviteCodes 索引，避免留下無效邀請碼
   if (group.inviteCode) {
-    await deleteDoc(doc(db, "inviteCodes", group.inviteCode));
+    await commitWrite(deleteDoc(doc(db, "inviteCodes", group.inviteCode)));
   }
 
-  await deleteDoc(doc(db, "groups", groupId));
+  await commitWrite(deleteDoc(doc(db, "groups", groupId)));
   logger.info("groupService.delete", "群組已刪除", { groupId });
 }
 
@@ -229,11 +237,11 @@ export async function addPlaceholderMember(
     [member.memberId]: member.displayName,
   };
 
-  await updateDoc(ref, {
+  await commitWrite(updateDoc(ref, {
     members: arrayUnion(member),
     memberNameMap: nextMemberNameMap,
     updatedAt: serverTimestamp(),
-  });
+  }));
 
   return member;
 }
@@ -263,13 +271,13 @@ export async function bindMemberToUser(
     [userId]: true as const,
   };
 
-  await updateDoc(doc(db, "groups", groupId), {
+  await commitWrite(updateDoc(doc(db, "groups", groupId), {
     members: updatedMembers,
     memberNameMap: nextMemberNameMap,
     // 同步更新 memberUids，讓 Security Rules 可以驗證此使用者的成員身份
     memberUids: nextMemberUids,
     updatedAt: serverTimestamp(),
-  });
+  }));
 
   logger.info("groupService.bindMember", "成員帳號綁定成功", {
     groupId,
@@ -306,14 +314,14 @@ export async function renameGroupMember(
     throw new ZplitError("GROUP_NOT_FOUND", "成員不存在");
   }
 
-  await updateDoc(doc(db, "groups", groupId), {
+  await commitWrite(updateDoc(doc(db, "groups", groupId), {
     members: updatedMembers,
     memberNameMap: {
       ...(group.memberNameMap ?? {}),
       [memberId]: normalizedName,
     },
     updatedAt: serverTimestamp(),
-  });
+  }));
 
   logger.info("groupService.renameMember", "成員名稱更新成功", {
     groupId,
@@ -382,11 +390,11 @@ export async function syncGroupMemberNameByReference(
         ...buildMemberNameMap(nextMembers),
       };
 
-      await updateDoc(doc(db, "groups", group.groupId), {
+      await commitWrite(updateDoc(doc(db, "groups", group.groupId), {
         members: nextMembers,
         memberNameMap: nextMemberNameMap,
         updatedAt: serverTimestamp(),
-      });
+      }));
       updatedGroupCount += 1;
     }),
   );
@@ -442,11 +450,11 @@ export async function syncGroupMemberProfileByUserId(
         ...buildMemberNameMap(nextMembers),
       };
 
-      await updateDoc(doc(db, "groups", group.groupId), {
+      await commitWrite(updateDoc(doc(db, "groups", group.groupId), {
         members: nextMembers,
         memberNameMap: nextMemberNameMap,
         updatedAt: serverTimestamp(),
-      });
+      }));
       updatedGroupCount += 1;
     }),
   );
@@ -511,7 +519,7 @@ export async function removeGroupMember(
     }
   }
 
-  await updateDoc(doc(db, "groups", groupId), updateData);
+  await commitWrite(updateDoc(doc(db, "groups", groupId), updateData));
 
   logger.info("groupService.removeMember", "成員移除成功", {
     groupId,
