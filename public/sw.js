@@ -1,4 +1,4 @@
-const CACHE_NAME = 'zplit-v2';
+const CACHE_NAME = 'zplit-v3';
 
 // App shell files to pre-cache
 const PRECACHE_URLS = ['/', '/index.html'];

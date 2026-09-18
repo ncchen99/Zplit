@@ -2,8 +2,8 @@ import { useEffect } from "react";
 import { useUIStore } from "@/store/uiStore";
 
 const THEME_COLORS = {
-  light: "#f9fef5", // lemonade base-100
-  dark: "#272f3d",  // dim base-100
+  light: "#f8fdef", // lemonade base-100
+  dark: "#2a303c", // dim base-100
 } as const;
 
 function updateThemeColorMeta(isDark: boolean) {

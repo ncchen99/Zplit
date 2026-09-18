@@ -11,10 +11,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Zplit" />
-  <meta name="theme-color" content="#f9fef5" media="(prefers-color-scheme: light)" />
-  <meta name="theme-color" content="#272f3d" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#f8fdef" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#2a303c" media="(prefers-color-scheme: dark)" />
+  <script>
+    // Apply the saved theme before first paint so the status bar matches from launch
+    (function () {
+      try {
+        var mode = localStorage.getItem("zplit-theme") || "system";
+        var isDark = mode === "dark" || (mode === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.setAttribute("data-theme", isDark ? "dim" : "lemonade");
+        document.querySelectorAll("meta[name='theme-color']").forEach(function (el) {
+          el.setAttribute("content", isDark ? "#2a303c" : "#f8fdef");
+        });
+      } catch (e) {}
+    })();
+  </script>
   <title>Zplit | 長期分帳與共同生活帳本</title>
   <meta name="description" content="Zplit 是為親近朋友打造的長期分帳空間，支援群組與一對一記帳、即時同步與清算，讓每次相聚都能無縫延續。" />
   <link rel="canonical" href="https://zplit.web.app/" />
