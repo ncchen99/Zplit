@@ -4,6 +4,21 @@ import "./lib/i18n";
 import "./index.css";
 import App from "./App";
 
+// After a deploy, an already-open tab still references the old hashed chunks,
+// which no longer exist. Reload once to pick up the new build instead of crashing.
+window.addEventListener("vite:preloadError", (event) => {
+  const RELOAD_KEY = "zplit.chunkReloadAt";
+  try {
+    const last = Number(sessionStorage.getItem(RELOAD_KEY) ?? 0);
+    if (Date.now() - last < 10_000) return; // avoid reload loops when truly offline
+    sessionStorage.setItem(RELOAD_KEY, String(Date.now()));
+  } catch {
+    // sessionStorage unavailable — still attempt a single reload
+  }
+  event.preventDefault();
+  window.location.reload();
+});
+
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js").catch(() => {

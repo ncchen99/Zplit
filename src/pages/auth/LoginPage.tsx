@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Turnstile } from "@marsidev/react-turnstile";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import {
   signInWithPopup,
   signInWithRedirect,
@@ -16,6 +15,11 @@ import {
   buildExternalBrowserUrl,
   detectInAppBrowser,
 } from "@/utils/browser";
+
+// 只有匿名登入需要人機驗證，按下按鈕才下載 Turnstile 元件與 Cloudflare 腳本
+const Turnstile = lazy(() =>
+  import("@marsidev/react-turnstile").then((m) => ({ default: m.Turnstile })),
+);
 
 // Popup 無法使用的環境（PWA 獨立視窗、App 內建瀏覽器、行動瀏覽器阻擋彈窗），
 // 改用 redirect 流程重試，否則使用者會完全無法用 Google 登入
@@ -243,35 +247,43 @@ export function LoginPage() {
             </>
           ) : (
             <div className="w-full overflow-hidden">
-              <Turnstile
-                className="w-full"
-                siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
-                onSuccess={async (token) => {
-                  setTurnstileToken(token);
-                  await handleAnonymousLogin(token);
-                }}
-                onError={(errorCode) => {
-                  logger.warn("auth.login", "Turnstile challenge 錯誤", {
-                    errorCode,
-                  });
-                  showToast(t("common.errorDetail.invalidTurnstile"), "error");
-                  // 還原按鈕，否則畫面只剩空白的驗證區塊、使用者無法再登入
-                  resetTurnstile();
-                }}
-                onExpire={() => {
-                  logger.warn("auth.login", "Turnstile token 過期");
-                  resetTurnstile();
-                }}
-                onUnsupported={() => {
-                  logger.error("auth.login", "瀏覽器不支援 Turnstile");
-                  showToast(
-                    t("common.errorDetail.turnstileUnsupported"),
-                    "error",
-                  );
-                  resetTurnstile();
-                }}
-                options={{ theme: "auto", size: "flexible" }}
-              />
+              <Suspense
+                fallback={
+                  <div className="flex h-[65px] items-center justify-center">
+                    <span className="loading loading-spinner loading-md text-primary" />
+                  </div>
+                }
+              >
+                <Turnstile
+                  className="w-full"
+                  siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+                  onSuccess={async (token) => {
+                    setTurnstileToken(token);
+                    await handleAnonymousLogin(token);
+                  }}
+                  onError={(errorCode) => {
+                    logger.warn("auth.login", "Turnstile challenge 錯誤", {
+                      errorCode,
+                    });
+                    showToast(t("common.errorDetail.invalidTurnstile"), "error");
+                    // 還原按鈕，否則畫面只剩空白的驗證區塊、使用者無法再登入
+                    resetTurnstile();
+                  }}
+                  onExpire={() => {
+                    logger.warn("auth.login", "Turnstile token 過期");
+                    resetTurnstile();
+                  }}
+                  onUnsupported={() => {
+                    logger.error("auth.login", "瀏覽器不支援 Turnstile");
+                    showToast(
+                      t("common.errorDetail.turnstileUnsupported"),
+                      "error",
+                    );
+                    resetTurnstile();
+                  }}
+                  options={{ theme: "auto", size: "flexible" }}
+                />
+              </Suspense>
             </div>
           )}
         </div>

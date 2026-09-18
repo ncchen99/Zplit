@@ -4,6 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://securetoken.googleapis.com" crossorigin />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -50,7 +52,12 @@
 </head>
 
 <body class="bg-base-200 text-base-content font-sans antialiased">
-  <div id="root"></div>
+  <div id="root">
+    <!-- Shown until React mounts, so the first load never looks blank -->
+    <div class="flex min-h-[100dvh] items-center justify-center md:min-h-[min(var(--app-frame-height),calc(100vh-2rem))]">
+      <span class="loading loading-spinner loading-lg text-primary"></span>
+    </div>
+  </div>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 

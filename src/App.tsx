@@ -1,8 +1,8 @@
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { useAuthStore } from "@/store/authStore";
+import { readCachedUser, useAuthStore } from "@/store/authStore";
 import { useUIStore } from "@/store/uiStore";
 import { getUser } from "@/services/userService";
 import { logger } from "@/utils/logger";
@@ -13,24 +13,68 @@ import { ToastProvider } from "@/components/ui/ToastProvider";
 import { AuthGuard } from "@/components/AuthGuard";
 import { MainLayout } from "@/components/MainLayout";
 
-import { LoginPage } from "@/pages/auth/LoginPage";
-import { OnboardingPage } from "@/pages/onboarding/OnboardingPage";
-import { HomePage } from "@/pages/main/HomePage";
-import { SettingsPage } from "@/pages/main/SettingsPage";
-import { PersonalPage } from "@/pages/main/PersonalPage";
-import { GroupListPage } from "@/pages/groups/GroupListPage";
-import { CreateGroupPage } from "@/pages/groups/CreateGroupPage";
-import { GroupDetailPage } from "@/pages/groups/GroupDetailPage";
-import { AddExpensePage } from "@/pages/groups/AddExpensePage";
-import { ExpenseDetailPage } from "@/pages/groups/ExpenseDetailPage";
-import { EditExpensePage } from "@/pages/groups/EditExpensePage";
-import { EditGroupPage } from "@/pages/groups/EditGroupPage";
-import { JoinPage } from "@/pages/join/JoinPage";
-import { PersonalContactDetailPage } from "@/pages/personal/PersonalContactDetailPage";
-import { AddPersonalExpensePage } from "@/pages/personal/AddPersonalExpensePage";
-import { PersonalExpenseDetailPage } from "@/pages/personal/PersonalExpenseDetailPage";
-import { EditPersonalExpensePage } from "@/pages/personal/EditPersonalExpensePage";
-import { EditProfilePage } from "@/pages/settings/EditProfilePage";
+const LoginPage = lazy(() =>
+  import("@/pages/auth/LoginPage").then((m) => ({ default: m.LoginPage })),
+);
+const OnboardingPage = lazy(() =>
+  import("@/pages/onboarding/OnboardingPage").then((m) => ({ default: m.OnboardingPage })),
+);
+const HomePage = lazy(() =>
+  import("@/pages/main/HomePage").then((m) => ({ default: m.HomePage })),
+);
+const SettingsPage = lazy(() =>
+  import("@/pages/main/SettingsPage").then((m) => ({ default: m.SettingsPage })),
+);
+const PersonalPage = lazy(() =>
+  import("@/pages/main/PersonalPage").then((m) => ({ default: m.PersonalPage })),
+);
+const GroupListPage = lazy(() =>
+  import("@/pages/groups/GroupListPage").then((m) => ({ default: m.GroupListPage })),
+);
+const CreateGroupPage = lazy(() =>
+  import("@/pages/groups/CreateGroupPage").then((m) => ({ default: m.CreateGroupPage })),
+);
+const GroupDetailPage = lazy(() =>
+  import("@/pages/groups/GroupDetailPage").then((m) => ({ default: m.GroupDetailPage })),
+);
+const AddExpensePage = lazy(() =>
+  import("@/pages/groups/AddExpensePage").then((m) => ({ default: m.AddExpensePage })),
+);
+const ExpenseDetailPage = lazy(() =>
+  import("@/pages/groups/ExpenseDetailPage").then((m) => ({ default: m.ExpenseDetailPage })),
+);
+const EditExpensePage = lazy(() =>
+  import("@/pages/groups/EditExpensePage").then((m) => ({ default: m.EditExpensePage })),
+);
+const EditGroupPage = lazy(() =>
+  import("@/pages/groups/EditGroupPage").then((m) => ({ default: m.EditGroupPage })),
+);
+const JoinPage = lazy(() =>
+  import("@/pages/join/JoinPage").then((m) => ({ default: m.JoinPage })),
+);
+const PersonalContactDetailPage = lazy(() =>
+  import("@/pages/personal/PersonalContactDetailPage").then((m) => ({ default: m.PersonalContactDetailPage })),
+);
+const AddPersonalExpensePage = lazy(() =>
+  import("@/pages/personal/AddPersonalExpensePage").then((m) => ({ default: m.AddPersonalExpensePage })),
+);
+const PersonalExpenseDetailPage = lazy(() =>
+  import("@/pages/personal/PersonalExpenseDetailPage").then((m) => ({ default: m.PersonalExpenseDetailPage })),
+);
+const EditPersonalExpensePage = lazy(() =>
+  import("@/pages/personal/EditPersonalExpensePage").then((m) => ({ default: m.EditPersonalExpensePage })),
+);
+const EditProfilePage = lazy(() =>
+  import("@/pages/settings/EditProfilePage").then((m) => ({ default: m.EditProfilePage })),
+);
+
+function PageFallback() {
+  return (
+    <div className="flex min-h-[100dvh] items-center justify-center md:min-h-[min(var(--app-frame-height),calc(100vh-2rem))]">
+      <span className="loading loading-spinner loading-lg text-primary" />
+    </div>
+  );
+}
 
 function AuthInitializer({ children }: { children: React.ReactNode }) {
   const setFirebaseUser = useAuthStore((s) => s.setFirebaseUser);
@@ -47,6 +91,17 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
       }
 
       setFirebaseUser(fbUser);
+
+      // Returning user: render immediately from the cached profile and
+      // refresh it in the background instead of blocking on Firestore.
+      const cached = readCachedUser(fbUser.uid);
+      if (cached) {
+        setUser(cached);
+        setStatus("ready");
+        const fresh = await getUser(fbUser.uid);
+        if (fresh?.displayName) setUser(fresh);
+        return;
+      }
 
       try {
         const userDoc = await getUser(fbUser.uid);
@@ -154,151 +209,153 @@ export default function App() {
           <AuthInitializer>
             <NetworkListener />
             <ToastProvider />
-            <Routes>
-              {/* Public routes */}
-              <Route
-                path="/login"
-                element={
-                  <AuthGuard>
-                    <LoginPage />
-                  </AuthGuard>
-                }
-              />
-              <Route
-                path="/join/:code"
-                element={
-                  <AuthGuard>
-                    <JoinPage />
-                  </AuthGuard>
-                }
-              />
+            <Suspense fallback={<PageFallback />}>
+              <Routes>
+                {/* Public routes */}
+                <Route
+                  path="/login"
+                  element={
+                    <AuthGuard>
+                      <LoginPage />
+                    </AuthGuard>
+                  }
+                />
+                <Route
+                  path="/join/:code"
+                  element={
+                    <AuthGuard>
+                      <JoinPage />
+                    </AuthGuard>
+                  }
+                />
 
-              {/* Onboarding */}
-              <Route
-                path="/onboarding"
-                element={
-                  <AuthGuard>
-                    <OnboardingPage />
-                  </AuthGuard>
-                }
-              />
+                {/* Onboarding */}
+                <Route
+                  path="/onboarding"
+                  element={
+                    <AuthGuard>
+                      <OnboardingPage />
+                    </AuthGuard>
+                  }
+                />
 
-              {/* Protected routes with bottom nav */}
-              <Route
-                element={
-                  <AuthGuard>
-                    <MainLayout />
-                  </AuthGuard>
-                }
-              >
-                <Route path="/home" element={<HomePage />} />
-                <Route path="/groups" element={<GroupListPage />} />
-                <Route path="/personal" element={<PersonalPage />} />
-                <Route path="/settings" element={<SettingsPage />} />
-              </Route>
+                {/* Protected routes with bottom nav */}
+                <Route
+                  element={
+                    <AuthGuard>
+                      <MainLayout />
+                    </AuthGuard>
+                  }
+                >
+                  <Route path="/home" element={<HomePage />} />
+                  <Route path="/groups" element={<GroupListPage />} />
+                  <Route path="/personal" element={<PersonalPage />} />
+                  <Route path="/settings" element={<SettingsPage />} />
+                </Route>
 
-              {/* Protected routes without bottom nav */}
-              <Route
-                path="/groups/new"
-                element={
-                  <AuthGuard>
-                    <CreateGroupPage />
-                  </AuthGuard>
-                }
-              />
-              <Route
-                path="/groups/:groupId"
-                element={
-                  <AuthGuard>
-                    <GroupDetailPage />
-                  </AuthGuard>
-                }
-              />
-              <Route
-                path="/groups/:groupId/expense/new"
-                element={
-                  <AuthGuard>
-                    <AddExpensePage />
-                  </AuthGuard>
-                }
-              />
-              <Route
-                path="/groups/:groupId/expenses/:expenseId"
-                element={
-                  <AuthGuard>
-                    <ExpenseDetailPage />
-                  </AuthGuard>
-                }
-              />
-              <Route
-                path="/groups/:groupId/expense/:expenseId/edit"
-                element={
-                  <AuthGuard>
-                    <EditExpensePage />
-                  </AuthGuard>
-                }
-              />
-              <Route
-                path="/groups/:groupId/edit"
-                element={
-                  <AuthGuard>
-                    <EditGroupPage />
-                  </AuthGuard>
-                }
-              />
-              <Route
-                path="/personal/expense/new"
-                element={
-                  <AuthGuard>
-                    <AddPersonalExpensePage />
-                  </AuthGuard>
-                }
-              />
-              <Route
-                path="/personal/:contactId"
-                element={
-                  <AuthGuard>
-                    <PersonalContactDetailPage />
-                  </AuthGuard>
-                }
-              />
-              <Route
-                path="/personal/:contactId/expense/new"
-                element={
-                  <AuthGuard>
-                    <AddPersonalExpensePage />
-                  </AuthGuard>
-                }
-              />
-              <Route
-                path="/personal/:contactId/expenses/:expenseId"
-                element={
-                  <AuthGuard>
-                    <PersonalExpenseDetailPage />
-                  </AuthGuard>
-                }
-              />
-              <Route
-                path="/personal/:contactId/expenses/:expenseId/edit"
-                element={
-                  <AuthGuard>
-                    <EditPersonalExpensePage />
-                  </AuthGuard>
-                }
-              />
-              <Route
-                path="/settings/profile"
-                element={
-                  <AuthGuard>
-                    <EditProfilePage />
-                  </AuthGuard>
-                }
-              />
+                {/* Protected routes without bottom nav */}
+                <Route
+                  path="/groups/new"
+                  element={
+                    <AuthGuard>
+                      <CreateGroupPage />
+                    </AuthGuard>
+                  }
+                />
+                <Route
+                  path="/groups/:groupId"
+                  element={
+                    <AuthGuard>
+                      <GroupDetailPage />
+                    </AuthGuard>
+                  }
+                />
+                <Route
+                  path="/groups/:groupId/expense/new"
+                  element={
+                    <AuthGuard>
+                      <AddExpensePage />
+                    </AuthGuard>
+                  }
+                />
+                <Route
+                  path="/groups/:groupId/expenses/:expenseId"
+                  element={
+                    <AuthGuard>
+                      <ExpenseDetailPage />
+                    </AuthGuard>
+                  }
+                />
+                <Route
+                  path="/groups/:groupId/expense/:expenseId/edit"
+                  element={
+                    <AuthGuard>
+                      <EditExpensePage />
+                    </AuthGuard>
+                  }
+                />
+                <Route
+                  path="/groups/:groupId/edit"
+                  element={
+                    <AuthGuard>
+                      <EditGroupPage />
+                    </AuthGuard>
+                  }
+                />
+                <Route
+                  path="/personal/expense/new"
+                  element={
+                    <AuthGuard>
+                      <AddPersonalExpensePage />
+                    </AuthGuard>
+                  }
+                />
+                <Route
+                  path="/personal/:contactId"
+                  element={
+                    <AuthGuard>
+                      <PersonalContactDetailPage />
+                    </AuthGuard>
+                  }
+                />
+                <Route
+                  path="/personal/:contactId/expense/new"
+                  element={
+                    <AuthGuard>
+                      <AddPersonalExpensePage />
+                    </AuthGuard>
+                  }
+                />
+                <Route
+                  path="/personal/:contactId/expenses/:expenseId"
+                  element={
+                    <AuthGuard>
+                      <PersonalExpenseDetailPage />
+                    </AuthGuard>
+                  }
+                />
+                <Route
+                  path="/personal/:contactId/expenses/:expenseId/edit"
+                  element={
+                    <AuthGuard>
+                      <EditPersonalExpensePage />
+                    </AuthGuard>
+                  }
+                />
+                <Route
+                  path="/settings/profile"
+                  element={
+                    <AuthGuard>
+                      <EditProfilePage />
+                    </AuthGuard>
+                  }
+                />
 
-              {/* Fallback */}
-              <Route path="/" element={<Navigate to="/home" replace />} />
-              <Route path="*" element={<Navigate to="/home" replace />} />
-            </Routes>
+                {/* Fallback */}
+                <Route path="/" element={<Navigate to="/home" replace />} />
+                <Route path="*" element={<Navigate to="/home" replace />} />
+              </Routes>
+            </Suspense>
           </AuthInitializer>
         </BrowserRouter>
       </ThemeProvider>
