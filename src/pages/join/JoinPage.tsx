@@ -11,6 +11,7 @@ import {
 import type { Group, GroupMember } from "@/store/groupStore";
 import { logger } from "@/utils/logger";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { JoinSkeleton } from "@/components/ui/PageSkeleton";
 import { ScrollArea } from "@/components/ui/ScrollArea";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import {
@@ -88,31 +89,10 @@ export function JoinPage() {
   };
 
   // ── Loading ─────────────────────────────────────────────
+  // 與 AuthGuard / Suspense / index.html 的骨架共用同一份版面，
+  // 從點開邀請連結到資料到齊都是同一個畫面，不會換骨架
   if (loading) {
-    return (
-      <div className="flex h-full min-h-[100dvh] flex-col overflow-hidden md:min-h-[inherit]">
-        {/* Header placeholder */}
-        <div className="min-h-[3.5rem] shrink-0" />
-
-        <div className="flex-1 px-5">
-          <div className="mx-auto flex min-h-full w-full max-w-sm flex-col pb-10">
-            <div className="skeleton mx-auto mb-4 h-4 w-32 rounded-full" />
-
-            {/* Group info card skeleton */}
-            <div className="mb-6 flex flex-col items-center gap-2 rounded-2xl border border-base-300 bg-base-100 px-6 py-6 text-center">
-              <div className="skeleton h-16 w-16 rounded-full" />
-              <div className="skeleton mt-1 h-7 w-48 rounded-lg" />
-              <div className="skeleton h-4 w-24 rounded-md" />
-            </div>
-
-            <div className="flex-1" />
-
-            {/* Action button skeleton */}
-            <div className="skeleton h-12 w-full rounded-xl" />
-          </div>
-        </div>
-      </div>
-    );
+    return <JoinSkeleton />;
   }
 
   // ── Invalid link ─────────────────────────────────────────

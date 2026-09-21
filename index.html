@@ -82,7 +82,8 @@
 
 <body class="bg-base-200 text-base-content font-sans antialiased">
   <div id="root">
-    <!-- 首次載入骨架（JS 執行前顯示）：與 src/components/ui/PageSkeleton.tsx 的 Home 骨架完全一致，修改時請同步 -->
+    <!-- 首次載入骨架（JS 執行前顯示）：與 src/components/ui/PageSkeleton.tsx 的骨架完全一致，修改時請同步。
+         預設是 Home 骨架，邀請連結（/join/<code>）由下面的 script 換成 Join 骨架 -->
     <div class="relative flex h-full min-h-[inherit] flex-col overflow-hidden" aria-busy="true">
       <main class="flex-1 overflow-y-auto pb-16">
         <div class="px-4 pt-4 pb-4">
@@ -119,6 +120,40 @@
       </div>
     </div>
   </div>
+
+  <!-- 邀請連結的骨架，與 PageSkeleton.tsx 的 JoinSkeleton 一致 -->
+  <template id="skeleton-join">
+    <div class="flex h-full min-h-[100dvh] flex-col overflow-hidden md:min-h-[inherit]" aria-busy="true">
+      <div class="min-h-[3.5rem] shrink-0"></div>
+      <div class="flex-1 px-5">
+        <div class="mx-auto flex min-h-full w-full max-w-sm flex-col pb-10">
+          <div class="skeleton mx-auto mb-4 h-4 w-32 rounded-full"></div>
+          <div class="mb-6 flex flex-col items-center gap-2 rounded-2xl border border-base-300 bg-base-100 px-6 py-6 text-center">
+            <div class="skeleton h-16 w-16 rounded-full"></div>
+            <div class="skeleton mt-1 h-7 w-48 rounded-lg"></div>
+            <div class="skeleton h-4 w-24 rounded-md"></div>
+          </div>
+          <div class="flex-1"></div>
+          <div class="skeleton h-12 w-full rounded-xl"></div>
+        </div>
+      </div>
+    </div>
+  </template>
+  <script>
+    // 點邀請連結進來的人是要加入群組的，首次載入就直接顯示加入群組的骨架，
+    // 不要先閃一次首頁骨架（同步執行，會在第一次繪製前換好）
+    (function () {
+      try {
+        if (location.pathname.indexOf("/join/") !== 0) return;
+        var root = document.getElementById("root");
+        var tpl = document.getElementById("skeleton-join");
+        if (!root || !tpl) return;
+        root.innerHTML = "";
+        root.appendChild(tpl.content.cloneNode(true));
+      } catch (e) {}
+    })();
+  </script>
+
   <script type="module" src="/src/main.tsx"></script>
 </body>
 

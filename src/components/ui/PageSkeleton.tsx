@@ -1,18 +1,21 @@
 import { useLocation } from "react-router-dom";
 
-// ⚠️ index.html 內有一份靜態版的 Home 骨架（首次載入、JS 尚未執行時顯示），
-//    修改 HomeSkeleton / NavSkeleton 版面時請同步更新，兩者需完全一致才不會跳動。
+// ⚠️ index.html 內有靜態版的 Home 與 Join 骨架（首次載入、JS 尚未執行時顯示），
+//    修改 HomeSkeleton / NavSkeleton / JoinSkeleton 版面時請同步更新，
+//    兩者需完全一致才不會跳動。
 
 const HOME_PATHS = ["/", "/home"];
 const TAB_PATHS = [...HOME_PATHS, "/groups", "/personal", "/settings"];
+const JOIN_PATH_PREFIX = "/join/";
 
-type Variant = "home" | "list" | "detail";
+type Variant = "home" | "list" | "detail" | "join";
 
 interface PageSkeletonProps {
   /**
    * - `home`：首頁（品牌標頭 + 歡迎列 + 區塊卡片）
    * - `list`：其他底部導覽列分頁（標題 + 搜尋列 + 清單）
    * - `detail`：全螢幕子頁面（返回列 + 摘要卡 + 清單）
+   * - `join`：邀請連結落地頁（群組資訊卡 + 單一動作按鈕）
    * 未指定時依目前路由自動判斷。
    */
   variant?: Variant;
@@ -92,6 +95,40 @@ function ListSkeleton({ rows }: { rows: number }) {
   );
 }
 
+/**
+ * 邀請連結（/join/<code>）的骨架，與 JoinPage 的載入版面一致：
+ * 走這條連結的人是來加入群組的，不該先閃一次首頁骨架。
+ */
+export function JoinSkeleton() {
+  return (
+    <div
+      className="flex h-full min-h-[100dvh] flex-col overflow-hidden md:min-h-[inherit]"
+      aria-busy="true"
+    >
+      {/* Header placeholder */}
+      <div className="min-h-[3.5rem] shrink-0" />
+
+      <div className="flex-1 px-5">
+        <div className="mx-auto flex min-h-full w-full max-w-sm flex-col pb-10">
+          <div className="skeleton mx-auto mb-4 h-4 w-32 rounded-full" />
+
+          {/* Group info card skeleton */}
+          <div className="mb-6 flex flex-col items-center gap-2 rounded-2xl border border-base-300 bg-base-100 px-6 py-6 text-center">
+            <div className="skeleton h-16 w-16 rounded-full" />
+            <div className="skeleton mt-1 h-7 w-48 rounded-lg" />
+            <div className="skeleton h-4 w-24 rounded-md" />
+          </div>
+
+          <div className="flex-1" />
+
+          {/* Action button skeleton */}
+          <div className="skeleton h-12 w-full rounded-xl" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** 與 BottomNav 相同尺寸的導覽列骨架 */
 function NavSkeleton() {
   return (
@@ -111,11 +148,17 @@ export function PageSkeleton({ variant, withNav = true, rows = 4 }: PageSkeleton
   const { pathname } = useLocation();
   const resolved: Variant =
     variant ??
-    (HOME_PATHS.includes(pathname)
-      ? "home"
-      : TAB_PATHS.includes(pathname)
-        ? "list"
-        : "detail");
+    (pathname.startsWith(JOIN_PATH_PREFIX)
+      ? "join"
+      : HOME_PATHS.includes(pathname)
+        ? "home"
+        : TAB_PATHS.includes(pathname)
+          ? "list"
+          : "detail");
+
+  if (resolved === "join") {
+    return <JoinSkeleton />;
+  }
 
   if (resolved === "detail") {
     return (
