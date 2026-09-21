@@ -158,7 +158,9 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
                     return `${month}/${day} ${hours}:${minutes}`;
                   })()
                 : "";
+              // 與帳務明細一致：分到 0 元的成員沒有一起分帳，不列入
               const splitMembers = expense.splits
+                .filter((s) => s.amount > 0)
                 .map((s) => memberFullMap.get(s.memberId))
                 .filter(Boolean) as GroupMember[];
 

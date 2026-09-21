@@ -183,6 +183,12 @@ export function EditExpensePage() {
     }
   }, [amountNum, selectedMembers, splitMode, customAmounts, customPercents]);
 
+  // 與新增頁一致：分到 0 元的成員代表沒有一起分帳，不寫進帳務
+  const splitsToSave = useMemo(
+    () => splits.filter((s) => s.amount > 0),
+    [splits],
+  );
+
   const splitTotal = splits.reduce((sum, s) => sum + s.amount, 0);
   const percentTotal = useMemo(() => {
     if (splitMode !== "percent") return 0;
@@ -195,7 +201,7 @@ export function EditExpensePage() {
   const isValid =
     title.trim() &&
     amountNum > 0 &&
-    splits.length > 0 &&
+    splitsToSave.length > 0 &&
     splitTotal === amountNum;
 
   const toggleMember = (memberId: string) => {
@@ -236,7 +242,7 @@ export function EditExpensePage() {
           amount: amountNum,
           paidBy,
           splitMode,
-          splits,
+          splits: splitsToSave,
           description: description.trim() || null,
           imageUrl,
           date: parseTaipeiDateTimeLocalString(expenseDate),

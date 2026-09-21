@@ -109,6 +109,13 @@ export function AddExpensePage() {
     }
   }, [amountNum, selectedMembers, splitMode, customAmounts, customPercents]);
 
+  // 按金額／比例（甚至金額小於人數的平均）都可能讓人分到 0 元，
+  // 那代表這個人沒有一起分帳，不該寫進帳務裡
+  const splitsToSave = useMemo(
+    () => splits.filter((s) => s.amount > 0),
+    [splits],
+  );
+
   const splitTotal = splits.reduce((sum, s) => sum + s.amount, 0);
   const percentTotal = useMemo(() => {
     if (splitMode !== "percent") return 0;
@@ -122,7 +129,7 @@ export function AddExpensePage() {
     title.trim() &&
     amountNum > 0 &&
     paidBy &&
-    splits.length > 0 &&
+    splitsToSave.length > 0 &&
     splitTotal === amountNum;
 
   const toggleMember = (memberId: string) => {
@@ -163,7 +170,7 @@ export function AddExpensePage() {
         amount: amountNum,
         paidBy,
         splitMode,
-        splits,
+        splits: splitsToSave,
         description: description.trim() || null,
         imageUrl,
         date: parseTaipeiDateTimeLocalString(expenseDate),

@@ -80,6 +80,13 @@ export function ExpenseDetailPage() {
     return map;
   }, [currentGroup]);
 
+  // 舊資料（按金額／比例時把所有成員都寫進去）可能留有 0 元的分帳，
+  // 沒有一起分帳的人不該出現在明細裡
+  const visibleSplits = useMemo(
+    () => expense?.splits?.filter((s) => s.amount > 0) ?? [],
+    [expense],
+  );
+
   const memberAvatarMap = useMemo(() => {
     const map = new Map<string, string | null>();
     currentGroup?.members?.forEach((m) => map.set(m.memberId, m.avatarUrl));
@@ -219,7 +226,7 @@ export function ExpenseDetailPage() {
             {t("expense.splitWith")}
           </h3>
           <div className="flex flex-col">
-            {expense.splits.map((split) => {
+            {visibleSplits.map((split) => {
               const name =
                 memberMap.get(split.memberId) ?? t("group.members.unknownMember");
               const avatar = memberAvatarMap.get(split.memberId) ?? null;
