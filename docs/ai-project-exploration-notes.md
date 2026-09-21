@@ -179,7 +179,7 @@ interface GroupStore {
 
 **Layout（全站共用模式）**：有清單的頁面都是「固定標頭 + 內層捲動」——外層 `flex h-full flex-col overflow-hidden`，清單上方的東西（標題、搜尋列、統計區塊）全放進 `shrink-0` 的固定區，只有清單包在 `src/components/ui/ScrollArea.tsx` 裡捲動。`ScrollArea` 負責捲動、`resetKey` 換頁捲回頂端，並在交界處畫一層捲動後才淡入的漸層（同色扁平化時的分層提示）。`MainLayout` 的 `<main>` 因此不再捲動，底部留白改由各頁 ScrollArea 的 `pb-*` 負責。採用此模式的頁面：HomePage、GroupListPage、PersonalPage、SettingsPage、PersonalContactDetailPage、GroupDetailPage。放在固定區塊裡的 `PageHeader` 要傳 `sticky={false}`（它就不會自己畫漸層）。`GroupDetailPage` 的 header 與 tabs 都固定，內容區改用 `src/components/ui/SwipeViews.tsx`。ActionSheet 與 ConfirmModal 以 `createPortal` 掛在 body。
 
-**Toast**：`toast-soft`（`src/index.css`）寬度隨字數自適應、圓角膠囊、邊框很淡但帶一圈微光；色調由 `--toast-tone` / `--toast-ink` 決定，型別有 `info`（灰）／`success`（綠，用 primary）／`warning`（黃）／`error`（紅），class 直接由 `toast-soft-${type}` 組出來。
+**Toast**：`toast-soft`（`src/index.css`）寬度隨字數自適應、圓角膠囊、沒有邊框，只靠一圈均勻的光暈（單層 `0 0 20px 2px`，不帶位移，維持扁平不立體）浮出來；文字用 `color-mix(色調 50%, base-content)`，深淺色主題的對比都在 4.7 以上；色調由 `--toast-tone` / `--toast-ink` 決定，型別有 `info`（灰）／`success`（綠，用 primary）／`warning`（黃）／`error`（紅），class 直接由 `toast-soft-${type}` 組出來。
 
 **左右滑動換頁（`src/components/ui/SwipeViews.tsx`）**：受控元件（`index` / `count` / `onIndexChange` / `renderPage`），拖曳時頁面即時跟著手指走，放開後依位移（>25% 寬）或甩動速度決定換頁或彈回。
 - 容器是 `touch-action: pan-y`，垂直捲動交給瀏覽器，水平手勢自己處理（React 的 onTouchMove 是 passive，不能 preventDefault）。
