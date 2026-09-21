@@ -154,7 +154,10 @@ service cloud.firestore {
 
       // ── expenses 子集合 ─────────────────────────────────
       match /expenses/{expenseId} {
-        allow read: if isGroupMember(groupId);
+        // 邀請預覽：拿到邀請連結的人（含未登入者）可唯讀瀏覽帳務紀錄，
+        // 與上方 groups 文件的公開 get 採同一個前提——知道 groupId 即視為持有邀請。
+        // 寫入仍僅限群組成員。
+        allow read: if true;
         allow create: if isGroupMember(groupId)
           && request.resource.data.createdBy == request.auth.uid
           && request.resource.data.expenseId == expenseId
@@ -179,7 +182,8 @@ service cloud.firestore {
       // ── settlements 子集合 ───────────────────────────────
       match /settlements/{settlementId} {
         // 舊版資料：新架構改以「結算帳務」記錄在 expenses，App 只會讀取與清除舊記錄
-        allow read: if isGroupMember(groupId);
+        // 與 expenses 相同，開放邀請預覽唯讀
+        allow read: if true;
         allow create, update: if false;
         allow delete: if isGroupMember(groupId);
       }

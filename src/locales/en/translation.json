@@ -205,6 +205,10 @@
         "updated": "updated \"{{title}} NT${{amount}}\"",
         "deleted": "deleted \"{{title}} NT${{amount}}\""
       }
+    },
+    "preview": {
+      "banner": "Preview only · sign in to add or edit",
+      "joinToEdit": "Sign in to add"
     }
   },
   "expense": {
@@ -299,7 +303,9 @@
     "goToGroup": "Go to Group",
     "joined": "Successfully joined!",
     "invalidLink": "This invite link is invalid or the group doesn't exist",
-    "backToHome": "Back to Home"
+    "backToHome": "Back to Home",
+    "previewGroup": "Browse the records first",
+    "previewHint": "You can browse every expense in preview mode — sign in when you want to add or edit"
   },
   "settings": {
     "title": "Settings",

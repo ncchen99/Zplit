@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   collection,
@@ -10,6 +10,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useGroupStore, type Expense, type Group } from "@/store/groupStore";
+import { useAuthStore } from "@/store/authStore";
 import { PageHeader, HeaderIconButton } from "@/components/ui/PageHeader";
 import { Pencil as PencilIcon } from "lucide-react";
 import { UserAvatar } from "@/components/ui/UserAvatar";
@@ -21,6 +22,9 @@ export function ExpenseDetailPage() {
     expenseId: string;
   }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const inviteCode = searchParams.get("invite");
+  const user = useAuthStore((s) => s.user);
 
   const storeGroup = useGroupStore((s) => s.currentGroup);
   const storeExpenses = useGroupStore((s) => s.expenses);
@@ -80,13 +84,19 @@ export function ExpenseDetailPage() {
     return map;
   }, [currentGroup]);
 
+  // 邀請預覽（非成員）只能看，不提供編輯入口；返回時要帶回邀請碼
+  const canEdit = !!user && currentGroup?.memberUids?.[user.uid] === true;
+  const backTo = `/groups/${groupId}${
+    !canEdit && inviteCode ? `?invite=${inviteCode}` : ""
+  }`;
+
   // Always show header
   const header = (
     <PageHeader
       title={t("expense.detail.title")}
-      onBack={() => navigate(`/groups/${groupId}`)}
+      onBack={() => navigate(backTo)}
       rightAction={
-        expense ? (
+        expense && canEdit ? (
           <HeaderIconButton
             onClick={() =>
               navigate(`/groups/${groupId}/expense/${expenseId}/edit`)

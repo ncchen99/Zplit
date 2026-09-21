@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import { useGroupAccess } from "../groupAccess";
 
 export function SettleTab() {
   const { t } = useTranslation();
@@ -24,6 +25,7 @@ export function SettleTab() {
   const currentGroup = useGroupStore((s) => s.currentGroup);
   const user = useAuthStore((s) => s.user);
   const showToast = useUIStore((s) => s.showToast);
+  const { canEdit } = useGroupAccess();
   const [showMarkAllConfirm, setShowMarkAllConfirm] = useState(false);
   const [pendingDebt, setPendingDebt] = useState<SettlementResult | null>(null);
 
@@ -114,12 +116,14 @@ export function SettleTab() {
         <span className="text-sm font-semibold text-base-content/60">
           {t("group.settle.pendingCount", { count: remainingDebts.length })}
         </span>
-        <button
-          className="btn btn-ghost btn-xs text-primary hover:bg-primary/10 px-2"
-          onClick={() => setShowMarkAllConfirm(true)}
-        >
-          {t("group.settle.markAllDone")}
-        </button>
+        {canEdit && (
+          <button
+            className="btn btn-ghost btn-xs text-primary hover:bg-primary/10 px-2"
+            onClick={() => setShowMarkAllConfirm(true)}
+          >
+            {t("group.settle.markAllDone")}
+          </button>
+        )}
       </div>
 
       {/* 全部結清確認 Modal */}
@@ -160,8 +164,9 @@ export function SettleTab() {
         onCancel={() => setPendingDebt(null)}
       />
 
-      {/* 待結清列表 */}
-      <div className="space-y-3">
+      {/* 待結清列表：間距全部交給每一列的 py-3，
+          不要再加 space-y，否則分隔線上下的留白會不對稱 */}
+      <div className="flex flex-col">
         {remainingDebts.map((debt, i) => (
           <div
             key={i}
@@ -191,15 +196,17 @@ export function SettleTab() {
               </p>
             </div>
 
-            <div className="flex-shrink-0">
-              <button
-                className="btn-theme-green btn-sm btn-circle"
-                onClick={() => setPendingDebt(debt)}
-                title={t("group.settle.markDone")}
-              >
-                <CheckIcon className="h-5 w-5" />
-              </button>
-            </div>
+            {canEdit && (
+              <div className="flex-shrink-0">
+                <button
+                  className="btn-theme-green btn-sm btn-circle"
+                  onClick={() => setPendingDebt(debt)}
+                  title={t("group.settle.markDone")}
+                >
+                  <CheckIcon className="h-5 w-5" />
+                </button>
+              </div>
+            )}
           </div>
         ))}
       </div>

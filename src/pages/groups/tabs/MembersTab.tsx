@@ -20,6 +20,7 @@ import { ActionSheet } from "@/components/ui/ActionSheet";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { removeGroupMember, renameGroupMember } from "@/services/groupService";
 import { ZplitError } from "@/utils/errors";
+import { useGroupAccess } from "../groupAccess";
 
 interface ActivityItem {
   id: string;
@@ -50,6 +51,7 @@ export function MembersTab() {
   const settlements = useGroupStore((s) => s.settlements);
   const user = useAuthStore((s) => s.user);
   const showToast = useUIStore((s) => s.showToast);
+  const { canEdit } = useGroupAccess();
 
   const [newName, setNewName] = useState("");
   const [adding, setAdding] = useState(false);
@@ -69,7 +71,8 @@ export function MembersTab() {
   const [actionLoading, setActionLoading] = useState(false);
 
   const loadMemberSuggestions = useCallback(async () => {
-    if (!user) return;
+    // 預覽模式（未加入群組）沒有新增成員的入口，也讀不到個人資料
+    if (!user || !canEdit) return;
     setLoadingSuggestions(true);
     try {
       const [contactList, groups] = await Promise.all([
@@ -101,10 +104,11 @@ export function MembersTab() {
     } finally {
       setLoadingSuggestions(false);
     }
-  }, [user]);
+  }, [canEdit, user]);
 
   useEffect(() => {
-    if (!currentGroup?.groupId) {
+    // activity 子集合僅群組成員可讀，預覽模式不訂閱
+    if (!currentGroup?.groupId || !canEdit) {
       setGroupActivities([]);
       return;
     }
@@ -124,7 +128,7 @@ export function MembersTab() {
     });
 
     return () => unsub();
-  }, [currentGroup?.groupId]);
+  }, [canEdit, currentGroup?.groupId]);
 
   useEffect(() => {
     loadMemberSuggestions();
@@ -423,217 +427,223 @@ export function MembersTab() {
                   )}
                 </div>
               </div>
-              <button
-                type="button"
-                className="btn btn-ghost btn-sm btn-circle text-base-content/55"
-                aria-label={t("group.detail.more")}
-                onClick={() => openMemberActions(m)}
-              >
-                <EllipsisVerticalIcon className="h-4 w-4" />
-              </button>
+              {canEdit && (
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm btn-circle text-base-content/55"
+                  aria-label={t("group.detail.more")}
+                  onClick={() => openMemberActions(m)}
+                >
+                  <EllipsisVerticalIcon className="h-4 w-4" />
+                </button>
+              )}
             </div>
           );
         })}
       </div>
 
-      {/* Add Member */}
-      <div className="mt-4">
-        <div className="relative">
-          <input
-            type="text"
-            className="input w-full"
-            placeholder={t("group.members.memberNamePlaceholder")}
-            value={newName}
-            onChange={(e) => {
-              setNewName(e.target.value);
-              setShowSuggestionDropdown(true);
-            }}
-            onFocus={() => setShowSuggestionDropdown(true)}
-            onClick={() => setShowSuggestionDropdown(true)}
-            onBlur={() => setTimeout(() => setShowSuggestionDropdown(false), 150)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-              }
-            }}
-            maxLength={30}
-          />
+      {/* Add Member：僅群組成員可新增 */}
+      {canEdit && (
+        <div className="mt-4">
+          <div className="relative">
+            <input
+              type="text"
+              className="input w-full"
+              placeholder={t("group.members.memberNamePlaceholder")}
+              value={newName}
+              onChange={(e) => {
+                setNewName(e.target.value);
+                setShowSuggestionDropdown(true);
+              }}
+              onFocus={() => setShowSuggestionDropdown(true)}
+              onClick={() => setShowSuggestionDropdown(true)}
+              onBlur={() => setTimeout(() => setShowSuggestionDropdown(false), 150)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                }
+              }}
+              maxLength={30}
+            />
 
-          {(loadingSuggestions || adding) && (
-            <span className="loading loading-spinner loading-xs absolute right-3 top-1/2 -translate-y-1/2" />
-          )}
+            {(loadingSuggestions || adding) && (
+              <span className="loading loading-spinner loading-xs absolute right-3 top-1/2 -translate-y-1/2" />
+            )}
 
-          {showSuggestionDropdown && filteredSuggestions.length > 0 && (
-            <div className="absolute top-full left-0 right-0 z-50 mt-1 rounded-xl bg-base-100 shadow-lg border border-base-200 overflow-hidden">
-              {filteredSuggestions.slice(0, 6).map((suggestion) => (
-                <button
-                  key={suggestion.key}
-                  type="button"
-                  className="flex w-full items-center gap-2 rounded-none px-4 py-3 text-left transition-colors hover:bg-base-200 active:bg-base-300"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    void handleSelectSuggestion(suggestion);
-                  }}
-                >
-                  <UserAvatar
-                    src={suggestion.avatarUrl}
-                    name={suggestion.displayName}
-                    size="w-7"
-                    textSize="text-[10px]"
-                  />
-                  <span className="text-sm font-medium truncate">
-                    {suggestion.displayName}
-                  </span>
-                </button>
-              ))}
-            </div>
+            {showSuggestionDropdown && filteredSuggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 z-50 mt-1 rounded-xl bg-base-100 shadow-lg border border-base-200 overflow-hidden">
+                {filteredSuggestions.slice(0, 6).map((suggestion) => (
+                  <button
+                    key={suggestion.key}
+                    type="button"
+                    className="flex w-full items-center gap-2 rounded-none px-4 py-3 text-left transition-colors hover:bg-base-200 active:bg-base-300"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      void handleSelectSuggestion(suggestion);
+                    }}
+                  >
+                    <UserAvatar
+                      src={suggestion.avatarUrl}
+                      name={suggestion.displayName}
+                      size="w-7"
+                      textSize="text-[10px]"
+                    />
+                    <span className="text-sm font-medium truncate">
+                      {suggestion.displayName}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {canAddTypedName && (
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm mt-2 text-primary w-full justify-start"
+              onClick={() => {
+                void handleAddMember();
+              }}
+              disabled={adding}
+            >
+              {adding ? (
+                <span className="loading loading-spinner loading-xs" />
+              ) : (
+                <>
+                  <PlusIcon className="h-4 w-4" />
+                  {t("group.members.addMember")}
+                </>
+              )}
+            </button>
           )}
         </div>
+      )}
 
-        {canAddTypedName && (
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm mt-2 text-primary w-full justify-start"
-            onClick={() => {
-              void handleAddMember();
-            }}
-            disabled={adding}
-          >
-            {adding ? (
-              <span className="loading loading-spinner loading-xs" />
-            ) : (
-              <>
-                <PlusIcon className="h-4 w-4" />
-                {t("group.members.addMember")}
-              </>
-            )}
-          </button>
-        )}
-      </div>
+      {/* Recent Activity：activity 子集合僅成員可讀 */}
+      {canEdit && (
+        <div className="mt-6">
+          <h3 className="font-semibold text-sm text-base-content/60 uppercase tracking-wider">
+            {t("group.members.activity")}
+          </h3>
+          {activityLog.length === 0 ? (
+            <p className="mt-2 text-sm text-base-content/40">No activity yet</p>
+          ) : (
+            <ul className="timeline timeline-snap-icon timeline-vertical timeline-compact mt-3">
+              {activityLog.map((log, i) => {
+                const actorName =
+                  (log.memberId ? memberMap.get(log.memberId) : undefined) ??
+                  (log.actorUid ? userMap.get(log.actorUid) : undefined) ??
+                  t("group.members.unknownMember");
+                const time = log.timestamp?.seconds
+                  ? new Date(log.timestamp.seconds * 1000).toLocaleString(
+                      "zh-TW",
+                      {
+                        month: "2-digit",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: false,
+                      },
+                    )
+                  : "";
+                const isLast = i === activityLog.length - 1;
 
-      {/* Recent Activity */}
-      <div className="mt-6">
-        <h3 className="font-semibold text-sm text-base-content/60 uppercase tracking-wider">
-          {t("group.members.activity")}
-        </h3>
-        {activityLog.length === 0 ? (
-          <p className="mt-2 text-sm text-base-content/40">No activity yet</p>
-        ) : (
-          <ul className="timeline timeline-snap-icon timeline-vertical timeline-compact mt-3">
-            {activityLog.map((log, i) => {
-              const actorName =
-                (log.memberId ? memberMap.get(log.memberId) : undefined) ??
-                (log.actorUid ? userMap.get(log.actorUid) : undefined) ??
-                t("group.members.unknownMember");
-              const time = log.timestamp?.seconds
-                ? new Date(log.timestamp.seconds * 1000).toLocaleString(
-                    "zh-TW",
-                    {
-                      month: "2-digit",
-                      day: "2-digit",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: false,
-                    },
-                  )
-                : "";
-              const isLast = i === activityLog.length - 1;
+                type IconVariant = "plus" | "minus" | "slash";
+                let iconVariant: IconVariant;
+                let iconColorClass: string;
+                let iconBgClass: string;
+                if (log.action === "updated") {
+                  iconVariant = "slash";
+                  iconColorClass = "text-warning";
+                  iconBgClass = "bg-warning/20";
+                } else if (log.action === "deleted") {
+                  iconVariant = "minus";
+                  iconColorClass = "text-error";
+                  iconBgClass = "bg-error/20";
+                } else {
+                  iconVariant = "plus";
+                  iconColorClass = "text-success";
+                  iconBgClass = "bg-success/20";
+                }
 
-              type IconVariant = "plus" | "minus" | "slash";
-              let iconVariant: IconVariant;
-              let iconColorClass: string;
-              let iconBgClass: string;
-              if (log.action === "updated") {
-                iconVariant = "slash";
-                iconColorClass = "text-warning";
-                iconBgClass = "bg-warning/20";
-              } else if (log.action === "deleted") {
-                iconVariant = "minus";
-                iconColorClass = "text-error";
-                iconBgClass = "bg-error/20";
-              } else {
-                iconVariant = "plus";
-                iconColorClass = "text-success";
-                iconBgClass = "bg-success/20";
-              }
-
-              return (
-                <li key={log.id || i}>
-                  {i !== 0 && <hr />}
-                  <div className="timeline-middle">
-                    <div className={`rounded-full p-1 ${iconBgClass}`}>
-                      {iconVariant === "slash" ? (
-                        <svg
-                          viewBox="0 0 14 14"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          className={`h-3.5 w-3.5 ${iconColorClass}`}
-                        >
-                          <line x1="10" y1="2" x2="4" y2="12" />
-                        </svg>
-                      ) : iconVariant === "minus" ? (
-                        <svg
-                          viewBox="0 0 14 14"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          className={`h-3.5 w-3.5 ${iconColorClass}`}
-                        >
-                          <line x1="2" y1="7" x2="12" y2="7" />
-                        </svg>
+                return (
+                  <li key={log.id || i}>
+                    {i !== 0 && <hr />}
+                    <div className="timeline-middle">
+                      <div className={`rounded-full p-1 ${iconBgClass}`}>
+                        {iconVariant === "slash" ? (
+                          <svg
+                            viewBox="0 0 14 14"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            className={`h-3.5 w-3.5 ${iconColorClass}`}
+                          >
+                            <line x1="10" y1="2" x2="4" y2="12" />
+                          </svg>
+                        ) : iconVariant === "minus" ? (
+                          <svg
+                            viewBox="0 0 14 14"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            className={`h-3.5 w-3.5 ${iconColorClass}`}
+                          >
+                            <line x1="2" y1="7" x2="12" y2="7" />
+                          </svg>
+                        ) : (
+                          <svg
+                            viewBox="0 0 14 14"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            className={`h-3.5 w-3.5 ${iconColorClass}`}
+                          >
+                            <line x1="7" y1="2" x2="7" y2="12" />
+                            <line x1="2" y1="7" x2="12" y2="7" />
+                          </svg>
+                        )}
+                      </div>
+                    </div>
+                    <div className="timeline-end mb-4 ps-2 pt-1.5 text-xs text-base-content/70">
+                      {log.isSettlement ? (
+                        <>
+                          <span className="font-semibold text-base-content">
+                            {(log.settlementFrom
+                              ? memberMap.get(log.settlementFrom)
+                              : undefined) ?? t("group.members.unknownMember")}
+                          </span>{" "}
+                          支付給{" "}
+                          <span className="font-semibold text-base-content">
+                            {(log.settlementTo
+                              ? memberMap.get(log.settlementTo)
+                              : undefined) ?? t("group.members.unknownMember")}
+                          </span>{" "}
+                          NT${log.amount ?? 0}
+                        </>
                       ) : (
-                        <svg
-                          viewBox="0 0 14 14"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          className={`h-3.5 w-3.5 ${iconColorClass}`}
-                        >
-                          <line x1="7" y1="2" x2="7" y2="12" />
-                          <line x1="2" y1="7" x2="12" y2="7" />
-                        </svg>
+                        <>
+                          <span className="font-semibold text-base-content">
+                            {actorName}
+                          </span>{" "}
+                          {formatActivityText(log)}
+                        </>
+                      )}
+                      {time && (
+                        <div className="text-base-content/30 mt-0.5">{time}</div>
                       )}
                     </div>
-                  </div>
-                  <div className="timeline-end mb-4 ps-2 pt-1.5 text-xs text-base-content/70">
-                    {log.isSettlement ? (
-                      <>
-                        <span className="font-semibold text-base-content">
-                          {(log.settlementFrom
-                            ? memberMap.get(log.settlementFrom)
-                            : undefined) ?? t("group.members.unknownMember")}
-                        </span>{" "}
-                        支付給{" "}
-                        <span className="font-semibold text-base-content">
-                          {(log.settlementTo
-                            ? memberMap.get(log.settlementTo)
-                            : undefined) ?? t("group.members.unknownMember")}
-                        </span>{" "}
-                        NT${log.amount ?? 0}
-                      </>
-                    ) : (
-                      <>
-                        <span className="font-semibold text-base-content">
-                          {actorName}
-                        </span>{" "}
-                        {formatActivityText(log)}
-                      </>
-                    )}
-                    {time && (
-                      <div className="text-base-content/30 mt-0.5">{time}</div>
-                    )}
-                  </div>
-                  {!isLast && <hr />}
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
+                    {!isLast && <hr />}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      )}
 
       <ActionSheet
         open={showMemberActionSheet}

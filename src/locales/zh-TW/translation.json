@@ -205,6 +205,10 @@
         "updated": "修改「{{title}} NT${{amount}}」",
         "deleted": "刪除「{{title}} NT${{amount}}」"
       }
+    },
+    "preview": {
+      "banner": "預覽模式 · 登入後才能新增或編輯",
+      "joinToEdit": "登入以新增"
     }
   },
   "expense": {
@@ -299,7 +303,9 @@
     "goToGroup": "前往群組",
     "joined": "已成功加入群組！",
     "invalidLink": "此邀請連結已失效或群組不存在",
-    "backToHome": "返回首頁"
+    "backToHome": "返回首頁",
+    "previewGroup": "直接進去看紀錄",
+    "previewHint": "預覽模式可以瀏覽所有帳務，要新增或編輯時再登入即可"
   },
   "settings": {
     "title": "設定",

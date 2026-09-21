@@ -177,6 +177,14 @@ interface GroupStore {
 
 **Key Point**: No manual caching strategy - Firebase listeners maintain real-time sync. Store is cleared when leaving group detail page.
 
+**Layout**: `GroupDetailPage` 外層 `h-full overflow-hidden`，header 與 tabs 固定不捲動，只有下方 `flex-1 overflow-y-auto` 的內容區會捲。內容區有 touchstart/touchend 手勢，可左右滑動切換 tab（`tab-panel-in-left/right` 進場動畫定義在 `src/index.css`）。
+
+**邀請預覽（唯讀）**：`/groups/:groupId?invite=<邀請碼>` 讓非成員（含未登入）唯讀瀏覽群組。
+- `AuthGuard` 只在網址帶 `invite` 且路徑符合 `/groups/:id` 或 `/groups/:id/expenses/:eid` 時放行。
+- `GroupDetailPage` 比對 `group.inviteCode`，不符就導走；成員判定用 `memberUids[uid]`。
+- 權限透過 `src/pages/groups/groupAccess.ts` 的 `GroupAccessProvider` / `useGroupAccess()` 傳給各 tab：`canEdit` 為 false 時隱藏所有新增／編輯入口，設定分頁整個不顯示，`requireAuth()` 會導到登入／註冊，完成後回 `/join/<code>` 綁定成員。
+- Firestore Rules：`groups/{id}/expenses` 與 `settlements` 的 read 已開放（知道 groupId 即視為持有邀請），`activity` 仍僅成員可讀，因此預覽模式不訂閱 activity。
+
 ---
 
 ### 5. "EQUAL SPLIT" (平均分帳) UI LAYOUT

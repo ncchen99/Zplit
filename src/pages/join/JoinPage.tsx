@@ -18,6 +18,7 @@ import {
   Link2,
   AlertCircle,
   ChevronRight,
+  Eye,
 } from "lucide-react";
 
 type Step = "info" | "select";
@@ -42,6 +43,12 @@ export function JoinPage() {
       .catch((err) => logger.error("join.load", "載入群組失敗", err))
       .finally(() => setLoading(false));
   }, [code]);
+
+  /** 先以唯讀方式進群組看紀錄，要新增／編輯時才會被要求登入 */
+  const goToPreview = () => {
+    if (!group) return;
+    navigate(`/groups/${group.groupId}?invite=${code}`);
+  };
 
   const isAlreadyMember =
     user != null &&
@@ -220,15 +227,14 @@ export function JoinPage() {
                   </button>
                 </div>
               ) : needsAuth ? (
-                /* 需要登入或完成註冊 */
+                /* 未登入：先直接進群組看紀錄，要動資料時再登入 */
                 <div className="flex flex-col gap-3">
-                  <p className="text-sm text-base-content/50 text-center">
-                    {status === "onboarding"
-                      ? t("auth.onboarding.title")
-                      : t("join.loginFirst")}
-                  </p>
+                  <button className="btn-theme-green btn-block" onClick={goToPreview}>
+                    <Eye className="h-5 w-5" />
+                    {t("join.previewGroup")}
+                  </button>
                   <button
-                    className="btn-theme-green btn-block"
+                    className="btn-muted btn-block"
                     onClick={() =>
                       navigate(status === "onboarding" ? "/onboarding" : "/login", {
                         state: { redirectTo: `/join/${code}` },
@@ -244,15 +250,24 @@ export function JoinPage() {
                       ? t("auth.onboarding.title")
                       : t("join.loginButton")}
                   </button>
+                  <p className="text-xs text-base-content/40 text-center">
+                    {t("join.previewHint")}
+                  </p>
                 </div>
               ) : (
-                /* 已登入，可加入 */
-                <button
-                  className="btn-theme-green btn-block"
-                  onClick={() => setStep("select")}
-                >
-                  {t("join.title")}
-                </button>
+                /* 已登入，可加入；也可以先唯讀看看 */
+                <div className="flex flex-col gap-3">
+                  <button
+                    className="btn-theme-green btn-block"
+                    onClick={() => setStep("select")}
+                  >
+                    {t("join.title")}
+                  </button>
+                  <button className="btn-muted btn-block" onClick={goToPreview}>
+                    <Eye className="h-5 w-5" />
+                    {t("join.previewGroup")}
+                  </button>
+                </div>
               )}
             </div>
           )}

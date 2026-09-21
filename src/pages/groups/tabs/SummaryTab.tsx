@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useGroupStore } from "@/store/groupStore";
 import {
   computeBalances,
@@ -15,6 +15,7 @@ import { AvatarGroup } from "@/components/ui/AvatarGroup";
 import { DebtTreemap, type DebtEntry } from "@/components/ui/DebtTreemap";
 import type { GroupMember } from "@/store/groupStore";
 import { ActionSheet } from "@/components/ui/ActionSheet";
+import { useGroupAccess } from "../groupAccess";
 
 interface SummaryTabProps {
   onNavigateSettle?: () => void;
@@ -28,6 +29,9 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
   const [showSortMenu, setShowSortMenu] = useState(false);
   const expenses = useGroupStore((s) => s.expenses);
   const currentGroup = useGroupStore((s) => s.currentGroup);
+  const { canEdit } = useGroupAccess();
+  const [searchParams] = useSearchParams();
+  const inviteCode = searchParams.get("invite");
 
   const memberMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -163,7 +167,11 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
                   key={expense.expenseId}
                   className="flex items-center gap-3 py-3 border-b border-base-200 last:border-b-0 text-left active:bg-base-200 transition-colors w-full"
                   onClick={() =>
-                    navigate(`/groups/${groupId}/expenses/${expense.expenseId}`)
+                    navigate(
+                      // 預覽模式帶著邀請碼進帳務明細，否則會被導去登入頁
+                      `/groups/${groupId}/expenses/${expense.expenseId}` +
+                        (canEdit || !inviteCode ? "" : `?invite=${inviteCode}`),
+                    )
                   }
                 >
                   <UserAvatar src={payerAvatar} name={payer} />
