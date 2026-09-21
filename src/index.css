@@ -274,44 +274,39 @@
     @apply h-auto min-h-10 py-1.5 whitespace-normal leading-tight;
   }
 
-  /* 吐司：寬度隨字數自適應、膠囊圓角。沒有邊框，靠一圈均勻的光暈浮出來
-     （單層、不帶位移，避免變成往下打的立體陰影）。
-     文字顏色把色調往 base-content 拉，深淺色主題都維持足夠對比。 */
+  /* 吐司：寬度隨字數自適應、膠囊圓角、沒有邊框。
+     底色是淺色的主題色、文字是同色系的深色——兩個主題都一樣，
+     深色介面上才不會和底下的內容糊在一起（toast 本來就該跳出來）。
+     只留一點點光暈，維持扁平不立體。 */
   .toast-soft {
     @apply w-auto max-w-full cursor-pointer rounded-full px-4 py-2.5 text-center text-sm font-medium;
     color: var(--toast-ink);
-    background-color: color-mix(in oklab,
-        var(--toast-tone) 20%,
-        var(--color-base-100));
-    box-shadow: 0 0 20px 2px color-mix(in oklab,
-        var(--toast-tone) 30%,
-        transparent);
+    background-color: var(--toast-fill);
+    box-shadow: 0 0 12px color-mix(in oklab, var(--toast-tone) 30%, transparent);
   }
 
   .toast-soft-success {
     --toast-tone: var(--color-primary);
-    --toast-ink: color-mix(in oklab,
-        var(--color-primary) 50%,
-        var(--color-base-content));
+    --toast-fill: color-mix(in oklab, var(--color-primary) 36%, white);
+    --toast-ink: color-mix(in oklab, var(--color-primary) 45%, black);
   }
 
   .toast-soft-warning {
     --toast-tone: var(--color-warning);
-    --toast-ink: color-mix(in oklab,
-        var(--color-warning) 50%,
-        var(--color-base-content));
+    --toast-fill: color-mix(in oklab, var(--color-warning) 44%, white);
+    --toast-ink: color-mix(in oklab, var(--color-warning) 45%, black);
   }
 
   .toast-soft-error {
     --toast-tone: var(--color-error);
-    --toast-ink: color-mix(in oklab,
-        var(--color-error) 50%,
-        var(--color-base-content));
+    --toast-fill: color-mix(in oklab, var(--color-error) 34%, white);
+    --toast-ink: color-mix(in oklab, var(--color-error) 45%, black);
   }
 
   .toast-soft-info {
     --toast-tone: var(--color-base-content);
-    --toast-ink: var(--color-base-content);
+    --toast-fill: color-mix(in oklab, var(--color-base-content) 22%, white);
+    --toast-ink: color-mix(in oklab, var(--color-base-content) 35%, black);
   }
 }
 
