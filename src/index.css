@@ -80,12 +80,23 @@
 }
 
 @layer components {
+  /* 底部導覽列。
+     手機：沿用 daisyUI 的 position: fixed，直接黏在視窗底部。改成 absolute
+     會讓它依賴 MainLayout 的盒子高度——只要容器因為 dvh 變動、鍵盤彈出或
+     內容溢位而比可視範圍高，導覽列就會被推到畫面外（外層又是 overflow:hidden，
+     連捲都捲不到），這正是導覽列「有時候會不見」的原因。
+     桌機：手機框是置中的方框，才需要改用 absolute 貼齊框底。
+     z-index 也要 !important，否則會被 daisyUI .dock 的 z-index: 1 蓋掉。 */
   .dock-in-frame {
-    position: absolute !important;
+    position: fixed !important;
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 40;
+    z-index: 40 !important;
+
+    @media (min-width: 768px) {
+      position: absolute !important;
+    }
   }
 
   .fab-in-frame {

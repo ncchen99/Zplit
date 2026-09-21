@@ -277,9 +277,8 @@ export function PersonalContactDetailPage() {
         }
       />
 
-      <ScrollArea className="pb-28">
-      {/* Net Amount Card */}
-      <div className="px-4 mt-4">
+      {/* 統計固定置頂，只有下方往來記錄捲動 */}
+      <div className="shrink-0 px-4 mt-4">
         <div className="stats stats-horizontal w-full flex border border-base-300 bg-base-100">
           <div className="stat flex-1 py-3 px-4 min-w-0">
             <div className="stat-title text-success">
@@ -307,8 +306,9 @@ export function PersonalContactDetailPage() {
         </div>
       </div>
 
+      <ScrollArea className="px-4 pb-28">
       {/* Lending History */}
-      <div className="px-4 mt-6 flex-1">
+      <div className="mt-6">
         <h2 className="text-sm font-semibold text-base-content/60 uppercase tracking-wider">
           {t("personal.lendingHistory")}
         </h2>

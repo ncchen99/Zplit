@@ -179,6 +179,8 @@ interface GroupStore {
 
 **Layout（全站共用模式）**：有清單的頁面都是「固定標頭 + 內層捲動」——外層 `flex h-full flex-col overflow-hidden`，清單上方的東西（標題、搜尋列、統計區塊）全放進 `shrink-0` 的固定區，只有清單包在 `src/components/ui/ScrollArea.tsx` 裡捲動。`ScrollArea` 負責捲動、`resetKey` 換頁捲回頂端，並在交界處畫一層捲動後才淡入的漸層（同色扁平化時的分層提示）。`MainLayout` 的 `<main>` 因此不再捲動，底部留白改由各頁 ScrollArea 的 `pb-*` 負責。採用此模式的頁面：HomePage、GroupListPage、PersonalPage、SettingsPage、PersonalContactDetailPage、GroupDetailPage。放在固定區塊裡的 `PageHeader` 要傳 `sticky={false}`（它就不會自己畫漸層）。`GroupDetailPage` 的 header 與 tabs 都固定，內容區有 touchstart/touchend 手勢可左右滑動切換 tab（`tab-panel-in-left/right` 動畫定義在 `src/index.css`，動畫結束會移除 class，避免殘留的 transform 讓 `position:fixed` 的 modal 錯位）。ActionSheet 與 ConfirmModal 以 `createPortal` 掛在 body。
 
+**底部導覽列**：`.dock-in-frame`（`src/index.css`）在手機維持 `position: fixed`，只有 md+ 的手機框才改 `absolute`。改成 absolute 會讓它依賴 MainLayout 的盒子高度，容器一旦比可視範圍高（Android Chrome 網址列收合造成 dvh 變動、鍵盤彈出、內容溢位），導覽列就會被推出畫面外且捲不到（外層 `overflow:hidden`）。z-index 需要 `!important` 才不會被 daisyUI `.dock` 的 `z-index: 1` 蓋掉。
+
 **邀請預覽（唯讀）**：`/groups/:groupId?invite=<邀請碼>` 讓非成員（含未登入）唯讀瀏覽群組。
 - `AuthGuard` 只在網址帶 `invite` 且路徑符合 `/groups/:id` 或 `/groups/:id/expenses/:eid` 時放行。
 - `GroupDetailPage` 比對 `group.inviteCode`，不符就導走；成員判定用 `memberUids[uid]`。
