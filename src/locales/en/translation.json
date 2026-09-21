@@ -207,8 +207,9 @@
       }
     },
     "preview": {
-      "banner": "Preview only · sign in to add or edit",
-      "joinToEdit": "Sign in to add"
+      "badge": "Preview",
+      "joinToEdit": "Sign in to add",
+      "editHint": "Preview only · sign in to edit"
     }
   },
   "expense": {

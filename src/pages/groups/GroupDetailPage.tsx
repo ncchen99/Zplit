@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useParams, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -25,6 +25,7 @@ import { SettingsTab } from "./tabs/SettingsTab";
 import { GroupAccessProvider } from "./groupAccess";
 import { PageHeader, HeaderIconButton } from "@/components/ui/PageHeader";
 import { ScrollArea } from "@/components/ui/ScrollArea";
+import { SwipeViews } from "@/components/ui/SwipeViews";
 import { buildExternalBrowserUrl } from "@/utils/browser";
 import { Plus as PlusIcon, Share2 as ShareIcon } from "lucide-react";
 
@@ -34,10 +35,6 @@ type GroupDetailLocationState = { from?: string };
 const VALID_TABS: TabKey[] = ["summary", "settle", "members", "settings"];
 // 預覽模式沒有編輯權限，群組設定分頁整個隱藏
 const PREVIEW_TABS: TabKey[] = ["summary", "settle", "members"];
-
-/** 判定為換頁的最小水平位移，並要求水平分量明顯大於垂直，避免誤判成捲動 */
-const SWIPE_MIN_DISTANCE = 60;
-const SWIPE_DIRECTION_RATIO = 1.5;
 
 export function GroupDetailPage() {
   const { t } = useTranslation();
@@ -95,51 +92,12 @@ export function GroupDetailPage() {
   const activeIndex = tabs.findIndex((tab) => tab.key === activeTab);
 
   const setActiveTab = (tab: TabKey) => {
-    // 直接改寫既有查詢字串，才不會把預覽用的 invite 參數弄丟
+    // 直接改寫既有查詢字串，才不會把預覽用的 invite 參數弄丟。
+    // 用 replace：切換分頁不該留下歷史紀錄，手機的返回鍵要回到上一頁（群組列表／首頁），
+    // 而不是在分頁之間倒退。
     const next = new URLSearchParams(searchParams);
     next.set("tab", tab);
-    setSearchParams(next, { replace: false });
-  };
-
-  // 切換分頁時的進場方向（往後 = 從右邊滑進來）。
-  // 在 render 期間比對上一個 index，動畫才會和新的分頁內容同一幀出現。
-  const [prevIndex, setPrevIndex] = useState(activeIndex);
-  const [slideDirection, setSlideDirection] = useState<"left" | "right">(
-    "right",
-  );
-  // 動畫進行中才掛 class：animation-fill-mode 會把 transform 留在元素上，
-  // 而帶 transform 的祖先會變成 position:fixed 的包含區塊，
-  // 讓分頁裡的 modal / ActionSheet 錯位。動畫結束就把 class 拿掉。
-  const [panelAnimating, setPanelAnimating] = useState(false);
-  if (prevIndex !== activeIndex) {
-    setSlideDirection(activeIndex > prevIndex ? "right" : "left");
-    setPrevIndex(activeIndex);
-    setPanelAnimating(true);
-  }
-
-  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length !== 1) {
-      touchStartRef.current = null;
-      return;
-    }
-    touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    const start = touchStartRef.current;
-    touchStartRef.current = null;
-    if (!start) return;
-
-    const dx = e.changedTouches[0].clientX - start.x;
-    const dy = e.changedTouches[0].clientY - start.y;
-    if (Math.abs(dx) < SWIPE_MIN_DISTANCE) return;
-    if (Math.abs(dx) < Math.abs(dy) * SWIPE_DIRECTION_RATIO) return;
-
-    const nextIndex = dx < 0 ? activeIndex + 1 : activeIndex - 1;
-    if (nextIndex < 0 || nextIndex >= tabs.length) return;
-    setActiveTab(tabs[nextIndex].key);
+    setSearchParams(next, { replace: true });
   };
 
   useEffect(() => {
@@ -251,6 +209,19 @@ export function GroupDetailPage() {
     }
   };
 
+  const renderTab = (key: TabKey) => {
+    switch (key) {
+      case "summary":
+        return <SummaryTab onNavigateSettle={() => setActiveTab("settle")} />;
+      case "settle":
+        return <SettleTab />;
+      case "members":
+        return <MembersTab />;
+      case "settings":
+        return <SettingsTab />;
+    }
+  };
+
   if (!group) {
     return (
       <div className="relative flex h-full min-h-[inherit] flex-col overflow-hidden">
@@ -314,10 +285,18 @@ export function GroupDetailPage() {
               <span className="max-w-full truncate text-base font-bold leading-tight">
                 {group.name}
               </span>
-              <span className="mt-0.5 text-[11px] font-medium leading-none text-base-content/60">
-                {t("common.members_count", {
-                  count: group.members?.length ?? 0,
-                })}
+              <span className="mt-1 inline-flex items-center gap-1.5 text-[11px] font-medium leading-none text-base-content/60">
+                <span>
+                  {t("common.members_count", {
+                    count: group.members?.length ?? 0,
+                  })}
+                </span>
+                {/* 預覽模式的提示併進副標題，不另外佔一條橫幅；扁平化：只有底色與同色邊框，不加陰影 */}
+                {!canEdit && (
+                  <span className="rounded-md border border-warning/30 bg-warning/10 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-warning">
+                    {t("group.preview.badge")}
+                  </span>
+                )}
               </span>
             </span>
           }
@@ -343,38 +322,17 @@ export function GroupDetailPage() {
           ))}
         </div>
 
-        {!canEdit && (
-          <p className="shrink-0 bg-base-200/60 px-4 py-2 text-center text-xs text-base-content/60">
-            {t("group.preview.banner")}
-          </p>
-        )}
-
-        {/* Tab Content：左右滑動切換分頁；resetKey 讓換頁後回到頂端 */}
-        <ScrollArea
-          className="px-4 pt-4 pb-24"
-          resetKey={activeTab}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-        >
-          <div
-            key={activeTab}
-            className={
-              panelAnimating
-                ? slideDirection === "right"
-                  ? "tab-panel-in-right"
-                  : "tab-panel-in-left"
-                : undefined
-            }
-            onAnimationEnd={() => setPanelAnimating(false)}
-          >
-            {activeTab === "summary" && (
-              <SummaryTab onNavigateSettle={() => setActiveTab("settle")} />
-            )}
-            {activeTab === "settle" && <SettleTab />}
-            {activeTab === "members" && <MembersTab />}
-            {activeTab === "settings" && <SettingsTab />}
-          </div>
-        </ScrollArea>
+        {/* Tab Content：左右拖曳時分頁即時跟著手指移動，每頁各自捲動 */}
+        <SwipeViews
+          index={activeIndex}
+          count={tabs.length}
+          onIndexChange={(next) => setActiveTab(tabs[next].key)}
+          renderPage={(i) => (
+            <ScrollArea className="px-4 pt-4 pb-24">
+              {renderTab(tabs[i].key)}
+            </ScrollArea>
+          )}
+        />
 
         {/* FAB - Add Expense */}
         <div className="fab-in-frame">

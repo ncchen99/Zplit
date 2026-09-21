@@ -7,11 +7,12 @@ export function ToastProvider() {
   if (toasts.length === 0) return null;
 
   return (
-    <div className={`fixed right-4 top-2 z-50 flex flex-col gap-2`}>
+    // 手機優先：toast 出現在畫面正下方（導覽列／FAB 上方），由下往上滑入
+    <div className="toast-in-frame flex flex-col items-center gap-2">
       {toasts.map((t) => (
         <div
           key={t.id}
-          className={`toast-soft max-w-xs ${
+          className={`toast-soft ${
             t.type === "success"
               ? "toast-soft-success"
               : t.type === "error"

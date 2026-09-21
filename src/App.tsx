@@ -23,18 +23,6 @@ const LoginPage = lazy(() =>
 const OnboardingPage = lazy(() =>
   import("@/pages/onboarding/OnboardingPage").then((m) => ({ default: m.OnboardingPage })),
 );
-const HomePage = lazy(() =>
-  import("@/pages/main/HomePage").then((m) => ({ default: m.HomePage })),
-);
-const SettingsPage = lazy(() =>
-  import("@/pages/main/SettingsPage").then((m) => ({ default: m.SettingsPage })),
-);
-const PersonalPage = lazy(() =>
-  import("@/pages/main/PersonalPage").then((m) => ({ default: m.PersonalPage })),
-);
-const GroupListPage = lazy(() =>
-  import("@/pages/groups/GroupListPage").then((m) => ({ default: m.GroupListPage })),
-);
 const CreateGroupPage = lazy(() =>
   import("@/pages/groups/CreateGroupPage").then((m) => ({ default: m.CreateGroupPage })),
 );
@@ -247,6 +235,8 @@ export default function App() {
                 />
 
                 {/* Protected routes with bottom nav */}
+                {/* MainLayout 自己渲染這四頁（可左右滑動切換），
+                    子路由只負責決定目前是哪一頁，因此不帶 element */}
                 <Route
                   element={
                     <AuthGuard>
@@ -254,10 +244,10 @@ export default function App() {
                     </AuthGuard>
                   }
                 >
-                  <Route path="/home" element={<HomePage />} />
-                  <Route path="/groups" element={<GroupListPage />} />
-                  <Route path="/personal" element={<PersonalPage />} />
-                  <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="/home" />
+                  <Route path="/groups" />
+                  <Route path="/personal" />
+                  <Route path="/settings" />
                 </Route>
 
                 {/* Protected routes without bottom nav */}

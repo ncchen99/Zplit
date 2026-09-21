@@ -207,8 +207,9 @@
       }
     },
     "preview": {
-      "banner": "預覽模式 · 登入後才能新增或編輯",
-      "joinToEdit": "登入以新增"
+      "badge": "預覽中",
+      "joinToEdit": "登入以新增",
+      "editHint": "預覽模式 · 登入後才能編輯"
     }
   },
   "expense": {

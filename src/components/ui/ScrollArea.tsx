@@ -1,11 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type ReactNode,
-  type TouchEventHandler,
-} from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 interface ScrollAreaProps {
   children: ReactNode;
@@ -13,8 +6,6 @@ interface ScrollAreaProps {
   className?: string;
   /** 這個值改變時捲回頂端（例如切換分頁） */
   resetKey?: string;
-  onTouchStart?: TouchEventHandler<HTMLDivElement>;
-  onTouchEnd?: TouchEventHandler<HTMLDivElement>;
 }
 
 /**
@@ -27,8 +18,6 @@ export function ScrollArea({
   children,
   className = "",
   resetKey,
-  onTouchStart,
-  onTouchEnd,
 }: ScrollAreaProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -49,8 +38,6 @@ export function ScrollArea({
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        onTouchStart={onTouchStart}
-        onTouchEnd={onTouchEnd}
         className={`h-full overflow-y-auto overscroll-contain ${className}`}
       >
         {children}

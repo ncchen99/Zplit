@@ -177,7 +177,14 @@ interface GroupStore {
 
 **Key Point**: No manual caching strategy - Firebase listeners maintain real-time sync. Store is cleared when leaving group detail page.
 
-**Layout（全站共用模式）**：有清單的頁面都是「固定標頭 + 內層捲動」——外層 `flex h-full flex-col overflow-hidden`，清單上方的東西（標題、搜尋列、統計區塊）全放進 `shrink-0` 的固定區，只有清單包在 `src/components/ui/ScrollArea.tsx` 裡捲動。`ScrollArea` 負責捲動、`resetKey` 換頁捲回頂端，並在交界處畫一層捲動後才淡入的漸層（同色扁平化時的分層提示）。`MainLayout` 的 `<main>` 因此不再捲動，底部留白改由各頁 ScrollArea 的 `pb-*` 負責。採用此模式的頁面：HomePage、GroupListPage、PersonalPage、SettingsPage、PersonalContactDetailPage、GroupDetailPage。放在固定區塊裡的 `PageHeader` 要傳 `sticky={false}`（它就不會自己畫漸層）。`GroupDetailPage` 的 header 與 tabs 都固定，內容區有 touchstart/touchend 手勢可左右滑動切換 tab（`tab-panel-in-left/right` 動畫定義在 `src/index.css`，動畫結束會移除 class，避免殘留的 transform 讓 `position:fixed` 的 modal 錯位）。ActionSheet 與 ConfirmModal 以 `createPortal` 掛在 body。
+**Layout（全站共用模式）**：有清單的頁面都是「固定標頭 + 內層捲動」——外層 `flex h-full flex-col overflow-hidden`，清單上方的東西（標題、搜尋列、統計區塊）全放進 `shrink-0` 的固定區，只有清單包在 `src/components/ui/ScrollArea.tsx` 裡捲動。`ScrollArea` 負責捲動、`resetKey` 換頁捲回頂端，並在交界處畫一層捲動後才淡入的漸層（同色扁平化時的分層提示）。`MainLayout` 的 `<main>` 因此不再捲動，底部留白改由各頁 ScrollArea 的 `pb-*` 負責。採用此模式的頁面：HomePage、GroupListPage、PersonalPage、SettingsPage、PersonalContactDetailPage、GroupDetailPage。放在固定區塊裡的 `PageHeader` 要傳 `sticky={false}`（它就不會自己畫漸層）。`GroupDetailPage` 的 header 與 tabs 都固定，內容區改用 `src/components/ui/SwipeViews.tsx`。ActionSheet 與 ConfirmModal 以 `createPortal` 掛在 body。
+
+**左右滑動換頁（`src/components/ui/SwipeViews.tsx`）**：受控元件（`index` / `count` / `onIndexChange` / `renderPage`），拖曳時頁面即時跟著手指走，放開後依位移（>25% 寬）或甩動速度決定換頁或彈回。
+- 容器是 `touch-action: pan-y`，垂直捲動交給瀏覽器，水平手勢自己處理（React 的 onTouchMove 是 passive，不能 preventDefault）。
+- **靜止時完全不留 transform**：帶 transform 的祖先會變成 `position:fixed` 的包含區塊，分頁裡的 daisyUI modal（例如 MembersTab）會錯位。只有拖曳／回彈期間才上 transform，transitionend（外加逾時保險）後拿掉。
+- 只有目前頁與手勢中的左右鄰居會顯示，其餘保持掛載但 `display:none`；鄰居在 touchstart 才首次掛載，沒滑過的人不會多付訂閱／查詢成本。頁面內容以 useMemo 保持 element 參考，拖曳時不會重畫分頁內容。
+- 用在兩處：`MainLayout`（首頁／群組／個人／設定四個 nav 分頁，換頁時 `navigate(path)`，所以 App.tsx 的這四條子路由不帶 element，由 MainLayout 自己渲染並保持掛載）與 `GroupDetailPage`（群組內的 tab）。
+- 群組 tab 用 `setSearchParams(..., { replace: true })`：切 tab 不進歷史，手機返回鍵會回到上一頁而不是上一個 tab。
 
 **底部導覽列**：`.dock-in-frame`（`src/index.css`）在手機維持 `position: fixed`，只有 md+ 的手機框才改 `absolute`。改成 absolute 會讓它依賴 MainLayout 的盒子高度，容器一旦比可視範圍高（Android Chrome 網址列收合造成 dvh 變動、鍵盤彈出、內容溢位），導覽列就會被推出畫面外且捲不到（外層 `overflow:hidden`）。z-index 需要 `!important` 才不會被 daisyUI `.dock` 的 `z-index: 1` 蓋掉。
 
@@ -185,6 +192,9 @@ interface GroupStore {
 - `AuthGuard` 只在網址帶 `invite` 且路徑符合 `/groups/:id` 或 `/groups/:id/expenses/:eid` 時放行。
 - `GroupDetailPage` 比對 `group.inviteCode`，不符就導走；成員判定用 `memberUids[uid]`。
 - 權限透過 `src/pages/groups/groupAccess.ts` 的 `GroupAccessProvider` / `useGroupAccess()` 傳給各 tab：`canEdit` 為 false 時隱藏所有新增／編輯入口，設定分頁整個不顯示，`requireAuth()` 會導到登入／註冊，完成後回 `/join/<code>` 綁定成員。
+- 預覽狀態不另外佔一條橫幅：群組頁 header 副標題是「N 位成員」＋一顆黃色扁平 badge「預覽中」（`border-warning/30 bg-warning/10 text-warning`，無陰影），底部 FAB 顯示「登入以新增」，帳務詳情頁的鉛筆鍵維持可按、按了跳 toast 提示登入（`group.preview.badge` / `joinToEdit` / `editHint`）。
+
+**Toast（`src/components/ui/ToastProvider.tsx` + `.toast-in-frame`）**：手機優先，固定在畫面正下方置中、由下往上滑入。bottom 取 `env(safe-area-inset-bottom) + 5.5rem`，才會高過底部導覽列（4rem）與群組頁 FAB（1.5rem + 2.75rem）；md+ 沿用 `.fab-in-frame` 的算式貼齊手機框底部。z-index 60（要高過 z-50 的 FAB，因為 ToastProvider 在 App 裡渲染得比路由早）。樣式扁平化：`.toast-soft` 不帶陰影，只用同色系底色（14%）＋稍深邊框（32%）與內容分層。
 - Firestore Rules：`groups/{id}/expenses` 與 `settlements` 的 read 已開放（知道 groupId 即視為持有邀請），`activity` 仍僅成員可讀，因此預覽模式不訂閱 activity。
 
 ---
