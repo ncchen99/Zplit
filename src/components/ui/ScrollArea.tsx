@@ -59,7 +59,7 @@ export function ScrollArea({
       {/* 固定區與內容的交界漸層，捲動後才出現 */}
       <div
         aria-hidden="true"
-        className={`pointer-events-none absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-base-100 to-transparent transition-opacity duration-200 ${
+        className={`pointer-events-none absolute inset-x-0 top-0 h-4 bg-gradient-to-b from-base-100 to-transparent transition-opacity duration-200 ${
           isScrolled ? "opacity-100" : "opacity-0"
         }`}
       />

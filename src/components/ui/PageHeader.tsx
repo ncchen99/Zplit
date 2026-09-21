@@ -98,7 +98,7 @@ export function PageHeader({
         {headerRow}
         {/* Gradient fade below header, only visible after scrolling */}
         <div
-          className={`absolute left-0 right-0 h-6 bg-gradient-to-b from-base-100 to-transparent pointer-events-none transition-opacity duration-200 ${isScrolled ? "opacity-100" : "opacity-0"}`}
+          className={`absolute left-0 right-0 h-4 bg-gradient-to-b from-base-100 to-transparent pointer-events-none transition-opacity duration-200 ${isScrolled ? "opacity-100" : "opacity-0"}`}
         />
       </div>
     </>

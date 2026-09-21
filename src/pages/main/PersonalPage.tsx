@@ -55,50 +55,52 @@ export function PersonalPage() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header（固定不捲動） */}
-      <div className="shrink-0 flex items-center justify-between px-4 pt-4">
-        <h1 className="text-2xl font-bold tracking-tight">
-          {t("personal.title")}
-        </h1>
+      {/* 標題、搜尋與統計固定置頂，只有下方清單捲動 */}
+      <div className="shrink-0 px-4 pt-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold tracking-tight">
+            {t("personal.title")}
+          </h1>
+        </div>
+
+        {/* Search */}
+        <div className="mt-4">
+          <label className="input w-full flex items-center gap-2">
+            <MagnifyingGlassIcon className="h-4 w-4 text-base-content/40" />
+            <input
+              type="text"
+              className="grow"
+              placeholder={t("personal.search")}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </label>
+        </div>
+
+        {/* Net Summary */}
+        {contactsWithNet.length > 0 && (totalOwed > 0 || totalOwe > 0) && (
+          <div className="mt-4 stats stats-horizontal w-full flex border border-base-300 bg-base-100">
+            <div className="stat flex-1 py-3 px-4 min-w-0">
+              <div className="stat-title text-success">
+                {t("personal.owedToYouTotal")}
+              </div>
+              <div className="stat-value text-success text-2xl truncate">
+                NT${totalOwed.toLocaleString()}
+              </div>
+            </div>
+            <div className="stat flex-1 py-3 px-4 border-l border-base-300 min-w-0">
+              <div className="stat-title text-warning">
+                {t("personal.youOweTotal")}
+              </div>
+              <div className="stat-value text-warning text-2xl truncate">
+                NT${totalOwe.toLocaleString()}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <ScrollArea className="px-4 pb-40">
-      {/* Search */}
-      <div className="mt-4">
-        <label className="input w-full flex items-center gap-2">
-          <MagnifyingGlassIcon className="h-4 w-4 text-base-content/40" />
-          <input
-            type="text"
-            className="grow"
-            placeholder={t("personal.search")}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </label>
-      </div>
-
-      {/* Net Summary */}
-      {contactsWithNet.length > 0 && (totalOwed > 0 || totalOwe > 0) && (
-        <div className="mt-4 stats stats-horizontal w-full flex border border-base-300 bg-base-100">
-          <div className="stat flex-1 py-3 px-4 min-w-0">
-            <div className="stat-title text-success">
-              {t("personal.owedToYouTotal")}
-            </div>
-            <div className="stat-value text-success text-2xl truncate">
-              NT${totalOwed.toLocaleString()}
-            </div>
-          </div>
-          <div className="stat flex-1 py-3 px-4 border-l border-base-300 min-w-0">
-            <div className="stat-title text-warning">
-              {t("personal.youOweTotal")}
-            </div>
-            <div className="stat-value text-warning text-2xl truncate">
-              NT${totalOwe.toLocaleString()}
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Loading */}
       {isLoading ? (
         <div className="mt-4 space-y-3">

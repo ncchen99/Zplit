@@ -38,35 +38,37 @@ export function GroupListPage() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header（固定不捲動） */}
-      <div className="shrink-0 flex items-center justify-between px-4 pt-4">
-        <h1 className="text-2xl font-bold tracking-tight">
-          {t("group.list.title")}
-        </h1>
-        <button
-          className="btn-theme-green btn-sm"
-          onClick={() => navigate("/groups/new")}
-        >
-          <PlusIcon className="h-4 w-4" />
-          {t("home.createGroup")}
-        </button>
+      {/* 標題與搜尋固定置頂，只有下方清單捲動 */}
+      <div className="shrink-0 px-4 pt-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold tracking-tight">
+            {t("group.list.title")}
+          </h1>
+          <button
+            className="btn-theme-green btn-sm"
+            onClick={() => navigate("/groups/new")}
+          >
+            <PlusIcon className="h-4 w-4" />
+            {t("home.createGroup")}
+          </button>
+        </div>
+
+        {/* Search */}
+        <div className="mt-4">
+          <label className="input w-full flex items-center gap-2">
+            <MagnifyingGlassIcon className="h-4 w-4 text-base-content/40" />
+            <input
+              type="text"
+              className="grow"
+              placeholder={t("group.list.search")}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </label>
+        </div>
       </div>
 
       <ScrollArea className="px-4 pb-20">
-      {/* Search */}
-      <div className="mt-4">
-        <label className="input w-full flex items-center gap-2">
-          <MagnifyingGlassIcon className="h-4 w-4 text-base-content/40" />
-          <input
-            type="text"
-            className="grow"
-            placeholder={t("group.list.search")}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </label>
-      </div>
-
       {loading ? (
         <div className="mt-6 space-y-3">
           {Array.from({ length: 4 }).map((_, idx) => (
