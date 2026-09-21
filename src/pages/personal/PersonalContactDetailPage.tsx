@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { PageHeader, HeaderIconButton } from "@/components/ui/PageHeader";
+import { ScrollArea } from "@/components/ui/ScrollArea";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { ActionSheet } from "@/components/ui/ActionSheet";
 import { useAuthStore } from "@/store/authStore";
@@ -195,8 +196,9 @@ export function PersonalContactDetailPage() {
 
   if (isLoading && !currentContact) {
     return (
-      <div className="relative flex min-h-[100dvh] md:min-h-[inherit] flex-col">
+      <div className="relative flex h-full min-h-[inherit] flex-col overflow-hidden">
         <PageHeader
+          sticky={false}
           title={
             <span className="inline-flex min-w-0 items-center gap-2">
               <span className="truncate text-lg font-bold">
@@ -212,6 +214,7 @@ export function PersonalContactDetailPage() {
           }
         />
 
+        <div className="min-h-0 flex-1 overflow-hidden">
         <div className="px-4 mt-4">
           <div className="stats stats-horizontal w-full flex border border-base-300 bg-base-100">
             <div className="stat flex-1 py-3 px-4 min-w-0">
@@ -246,7 +249,9 @@ export function PersonalContactDetailPage() {
           </div>
         </div>
 
-          <div className="fab-in-frame" aria-hidden="true">
+        </div>
+
+        <div className="fab-in-frame" aria-hidden="true">
           <div className="skeleton h-16 w-16 rounded-full" />
         </div>
       </div>
@@ -256,8 +261,9 @@ export function PersonalContactDetailPage() {
   const displayName = currentContact?.displayName ?? "Contact";
 
   return (
-    <div className="relative flex min-h-[100dvh] md:min-h-[inherit] flex-col">
+    <div className="relative flex h-full min-h-[inherit] flex-col overflow-hidden">
       <PageHeader
+        sticky={false}
         title={
           <span className="inline-flex min-w-0 items-center gap-2">
             <span className="truncate text-lg font-bold">{displayName}</span>
@@ -271,6 +277,7 @@ export function PersonalContactDetailPage() {
         }
       />
 
+      <ScrollArea className="pb-28">
       {/* Net Amount Card */}
       <div className="px-4 mt-4">
         <div className="stats stats-horizontal w-full flex border border-base-300 bg-base-100">
@@ -345,6 +352,8 @@ export function PersonalContactDetailPage() {
           </div>
         )}
       </div>
+
+      </ScrollArea>
 
       {/* FAB - Add Expense */}
       <div className="fab-in-frame">

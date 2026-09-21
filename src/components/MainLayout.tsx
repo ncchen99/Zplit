@@ -24,7 +24,8 @@ export function MainLayout() {
 
   return (
     <div className="relative flex h-full min-h-[inherit] flex-col overflow-hidden">
-      <main className="flex-1 overflow-y-auto pb-16">
+      {/* 各分頁自行固定標頭、內層 ScrollArea 捲動，這層不再捲動 */}
+      <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <Suspense fallback={<PageSkeleton withNav={false} />}>
           <Outlet />
         </Suspense>

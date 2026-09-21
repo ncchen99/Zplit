@@ -15,6 +15,7 @@ import {
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { GroupListItem } from "@/components/ui/GroupListItem";
 import { HomeSectionsSkeleton } from "@/components/ui/PageSkeleton";
+import { ScrollArea } from "@/components/ui/ScrollArea";
 
 export function HomePage() {
   const { t } = useTranslation();
@@ -56,9 +57,9 @@ export function HomePage() {
   const topGroups = groups.slice(0, 3);
 
   return (
-    <div className="px-4 pt-4 pb-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="flex h-full flex-col overflow-hidden">
+      {/* Header（固定不捲動） */}
+      <div className="shrink-0 flex items-center justify-between px-4 pt-4">
         <div className="flex items-center gap-2">
           <img src="/favicon.svg" alt="Zplit Logo" className="w-8 h-8" />
           <h1 className="text-2xl font-extrabold tracking-tight text-brand">
@@ -80,6 +81,7 @@ export function HomePage() {
         </div>
       </div>
 
+      <ScrollArea className="px-4 pb-20">
       {/* Welcome */}
       <div className="mt-4">
         <p className="text-lg font-semibold">
@@ -191,6 +193,7 @@ export function HomePage() {
           )}
         </>
       )}
+      </ScrollArea>
     </div>
   );
 }

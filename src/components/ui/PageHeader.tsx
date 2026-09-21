@@ -62,34 +62,43 @@ export function PageHeader({
     return () => observer.disconnect();
   }, []);
 
+  const headerRow = (
+    <div className="flex items-center px-4 pt-4 pb-2 bg-base-100">
+      <div className="flex w-10 justify-start">
+        <button
+          className="btn btn-ghost btn-sm btn-circle text-base-content/50 hover:text-base-content/50 [&>svg]:h-5 [&>svg]:w-5"
+          onClick={onBack}
+          aria-label="Back"
+        >
+          <ArrowLeftIcon />
+        </button>
+      </div>
+
+      <h1 className="flex-1 truncate px-2 text-center text-lg font-bold">
+        {title}
+      </h1>
+
+      <div className="flex w-10 justify-end">
+        {rightAction ?? <span className="h-9 w-9" aria-hidden="true" />}
+      </div>
+    </div>
+  );
+
+  // 放在不捲動的固定區塊裡時，交界處的漸層由下方的 ScrollArea 負責
+  if (!sticky) {
+    return <div className="relative z-10 shrink-0">{headerRow}</div>;
+  }
+
   return (
     <>
       {/* Sentinel: 1px tall, -1px margin so it doesn't affect layout.
           When it scrolls out of view, isScrolled becomes true. */}
       <div ref={sentinelRef} className="h-px -mb-px" aria-hidden="true" />
-      <div className={`relative z-10 ${sticky ? "sticky top-0" : ""}`}>
-        <div className="flex items-center px-4 pt-4 pb-2 bg-base-100">
-          <div className="flex w-10 justify-start">
-            <button
-              className="btn btn-ghost btn-sm btn-circle text-base-content/50 hover:text-base-content/50 [&>svg]:h-5 [&>svg]:w-5"
-              onClick={onBack}
-              aria-label="Back"
-            >
-              <ArrowLeftIcon />
-            </button>
-          </div>
-
-          <h1 className="flex-1 truncate px-2 text-center text-lg font-bold">
-            {title}
-          </h1>
-
-          <div className="flex w-10 justify-end">
-            {rightAction ?? <span className="h-9 w-9" aria-hidden="true" />}
-          </div>
-        </div>
+      <div className="relative z-10 sticky top-0">
+        {headerRow}
         {/* Gradient fade below header, only visible after scrolling */}
         <div
-          className={`absolute left-0 right-0 h-4 bg-gradient-to-b from-base-100 to-transparent pointer-events-none transition-opacity duration-200 ${isScrolled ? "opacity-100" : "opacity-0"}`}
+          className={`absolute left-0 right-0 h-6 bg-gradient-to-b from-base-100 to-transparent pointer-events-none transition-opacity duration-200 ${isScrolled ? "opacity-100" : "opacity-0"}`}
         />
       </div>
     </>

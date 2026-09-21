@@ -24,6 +24,7 @@ import { MembersTab } from "./tabs/MembersTab";
 import { SettingsTab } from "./tabs/SettingsTab";
 import { GroupAccessProvider } from "./groupAccess";
 import { PageHeader, HeaderIconButton } from "@/components/ui/PageHeader";
+import { ScrollArea } from "@/components/ui/ScrollArea";
 import { buildExternalBrowserUrl } from "@/utils/browser";
 import { Plus as PlusIcon, Share2 as ShareIcon } from "lucide-react";
 
@@ -116,13 +117,7 @@ export function GroupDetailPage() {
     setPanelAnimating(true);
   }
 
-  const scrollRef = useRef<HTMLDivElement>(null);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
-
-  // 換分頁後回到頂端，否則會停在上一個分頁的捲動位置
-  useEffect(() => {
-    scrollRef.current?.scrollTo({ top: 0 });
-  }, [activeTab]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length !== 1) {
@@ -260,6 +255,7 @@ export function GroupDetailPage() {
     return (
       <div className="relative flex h-full min-h-[inherit] flex-col overflow-hidden">
         <PageHeader
+          sticky={false}
           title={t("group.summary.title")}
           onBack={() => navigate(backTarget)}
           rightAction={
@@ -312,6 +308,7 @@ export function GroupDetailPage() {
       {/* 外層不捲動：header 與 tabs 固定，只有下方內容區可以上下捲動 */}
       <div className="relative flex h-full min-h-[inherit] flex-col overflow-hidden">
         <PageHeader
+          sticky={false}
           title={
             <span className="inline-flex max-w-full flex-col items-center justify-center leading-none">
               <span className="max-w-full truncate text-base font-bold leading-tight">
@@ -352,10 +349,10 @@ export function GroupDetailPage() {
           </p>
         )}
 
-        {/* Tab Content：左右滑動切換分頁 */}
-        <div
-          ref={scrollRef}
-          className="flex-1 overflow-y-auto overscroll-contain px-4 pt-4 pb-24"
+        {/* Tab Content：左右滑動切換分頁；resetKey 讓換頁後回到頂端 */}
+        <ScrollArea
+          className="px-4 pt-4 pb-24"
+          resetKey={activeTab}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
@@ -377,7 +374,7 @@ export function GroupDetailPage() {
             {activeTab === "members" && <MembersTab />}
             {activeTab === "settings" && <SettingsTab />}
           </div>
-        </div>
+        </ScrollArea>
 
         {/* FAB - Add Expense */}
         <div className="fab-in-frame">

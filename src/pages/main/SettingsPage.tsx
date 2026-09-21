@@ -12,6 +12,7 @@ import {
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { PWAInstallModal } from "@/components/ui/PWAInstallModal";
+import { ScrollArea } from "@/components/ui/ScrollArea";
 
 export function SettingsPage() {
   const { t, i18n } = useTranslation();
@@ -49,12 +50,16 @@ export function SettingsPage() {
   };
 
   return (
-    <div className="flex h-full min-h-full flex-col px-4 pt-4 pb-8">
-      <div className="flex-1">
+    <div className="flex h-full flex-col overflow-hidden">
+      {/* Header（固定不捲動） */}
+      <div className="shrink-0 px-4 pt-4">
         <h1 className="text-2xl font-bold tracking-tight">
           {t("settings.title")}
         </h1>
+      </div>
 
+      <ScrollArea className="flex flex-col px-4 pb-24">
+      <div className="flex-1">
         <div className="mt-2 flex flex-col">
           {/* Profile Row */}
           <div
@@ -154,12 +159,6 @@ export function SettingsPage() {
         </div>
       </div>
 
-      <PWAInstallModal
-        open={installModalVariant !== null}
-        variant={installModalVariant ?? "android"}
-        onClose={() => setInstallModalVariant(null)}
-      />
-
       {/* Footer Links */}
       <div className="mt-auto pt-6 flex flex-wrap justify-center gap-x-6 gap-y-2 px-4 pb-4">
         <a
@@ -187,6 +186,13 @@ export function SettingsPage() {
           {t("settings.privacy")}
         </a>
       </div>
+      </ScrollArea>
+
+      <PWAInstallModal
+        open={installModalVariant !== null}
+        variant={installModalVariant ?? "android"}
+        onClose={() => setInstallModalVariant(null)}
+      />
     </div>
   );
 }
