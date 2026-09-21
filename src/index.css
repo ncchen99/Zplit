@@ -274,35 +274,37 @@
     @apply h-auto min-h-10 py-1.5 whitespace-normal leading-tight;
   }
 
-  /* 扁平化：不用陰影浮起來，改用同色系的底色 + 稍深的邊框把它和內容分開 */
+  /* 吐司：寬度隨字數自適應、大圓角、邊界不明顯但帶一圈微光 */
   .toast-soft {
-    @apply w-full cursor-pointer rounded-xl border px-4 py-3 text-center text-sm font-medium;
+    @apply w-auto max-w-full cursor-pointer rounded-full px-4 py-2.5 text-center text-sm font-medium;
+    color: var(--toast-ink);
+    background-color: color-mix(in oklab,
+        var(--toast-tone) 22%,
+        var(--color-base-100));
+    border: 1px solid color-mix(in oklab, var(--toast-tone) 26%, transparent);
+    box-shadow:
+      0 10px 28px -12px color-mix(in oklab, var(--toast-tone) 55%, transparent),
+      0 0 20px -4px color-mix(in oklab, var(--toast-tone) 32%, transparent);
   }
 
   .toast-soft-success {
-    @apply text-primary;
-    background-color: color-mix(in oklab,
-        var(--color-primary) 14%,
-        var(--color-base-100));
-    border-color: color-mix(in oklab,
-        var(--color-primary) 32%,
-        var(--color-base-100));
+    --toast-tone: var(--color-primary);
+    --toast-ink: var(--color-primary);
+  }
+
+  .toast-soft-warning {
+    --toast-tone: var(--color-warning);
+    --toast-ink: var(--color-warning);
   }
 
   .toast-soft-error {
-    @apply text-error;
-    background-color: color-mix(in oklab,
-        var(--color-error) 14%,
-        var(--color-base-100));
-    border-color: color-mix(in oklab,
-        var(--color-error) 32%,
-        var(--color-base-100));
+    --toast-tone: var(--color-error);
+    --toast-ink: var(--color-error);
   }
 
   .toast-soft-info {
-    @apply text-base-content/75;
-    background-color: var(--color-base-200);
-    border-color: var(--color-base-300);
+    --toast-tone: var(--color-base-content);
+    --toast-ink: color-mix(in oklab, var(--color-base-content) 88%, transparent);
   }
 }
 

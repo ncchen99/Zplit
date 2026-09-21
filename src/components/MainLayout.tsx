@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/ui/BottomNav";
 import { PageSkeleton } from "@/components/ui/PageSkeleton";
 import { SwipeViews } from "@/components/ui/SwipeViews";
+import { useSwipeProgressStore } from "@/components/ui/swipeProgress";
 
 const HomePage = lazy(() =>
   import("@/pages/main/HomePage").then((m) => ({ default: m.HomePage })),
@@ -58,6 +59,9 @@ export function MainLayout() {
     ),
   );
 
+  // nav bar 訂閱滑動進度，拖曳時圖示會即時亮起來
+  const progress = useSwipeProgressStore(activeIndex);
+
   return (
     <div className="relative flex h-full min-h-[inherit] flex-col overflow-hidden">
       {/* 各分頁自行固定標頭、內層 ScrollArea 捲動，這層不再捲動 */}
@@ -66,6 +70,7 @@ export function MainLayout() {
           index={activeIndex}
           count={TAB_PAGES.length}
           onIndexChange={(next) => navigate(TAB_PAGES[next].path)}
+          progress={progress}
           renderPage={(i) => {
             const { Page } = TAB_PAGES[i];
             return (
@@ -76,7 +81,7 @@ export function MainLayout() {
           }}
         />
       </main>
-      <BottomNav />
+      <BottomNav progress={progress} />
     </div>
   );
 }

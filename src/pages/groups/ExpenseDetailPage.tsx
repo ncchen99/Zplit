@@ -104,7 +104,7 @@ export function ExpenseDetailPage() {
             onClick={() =>
               canEdit
                 ? navigate(`/groups/${groupId}/expense/${expenseId}/edit`)
-                : showToast(t("group.preview.editHint"), "info")
+                : showToast(t("group.preview.editHint"), "warning")
             }
           >
             <PencilIcon className="h-5 w-5" />

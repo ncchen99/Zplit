@@ -179,12 +179,16 @@ interface GroupStore {
 
 **Layout（全站共用模式）**：有清單的頁面都是「固定標頭 + 內層捲動」——外層 `flex h-full flex-col overflow-hidden`，清單上方的東西（標題、搜尋列、統計區塊）全放進 `shrink-0` 的固定區，只有清單包在 `src/components/ui/ScrollArea.tsx` 裡捲動。`ScrollArea` 負責捲動、`resetKey` 換頁捲回頂端，並在交界處畫一層捲動後才淡入的漸層（同色扁平化時的分層提示）。`MainLayout` 的 `<main>` 因此不再捲動，底部留白改由各頁 ScrollArea 的 `pb-*` 負責。採用此模式的頁面：HomePage、GroupListPage、PersonalPage、SettingsPage、PersonalContactDetailPage、GroupDetailPage。放在固定區塊裡的 `PageHeader` 要傳 `sticky={false}`（它就不會自己畫漸層）。`GroupDetailPage` 的 header 與 tabs 都固定，內容區改用 `src/components/ui/SwipeViews.tsx`。ActionSheet 與 ConfirmModal 以 `createPortal` 掛在 body。
 
+**Toast**：`toast-soft`（`src/index.css`）寬度隨字數自適應、圓角膠囊、邊框很淡但帶一圈微光；色調由 `--toast-tone` / `--toast-ink` 決定，型別有 `info`（灰）／`success`（綠，用 primary）／`warning`（黃）／`error`（紅），class 直接由 `toast-soft-${type}` 組出來。
+
 **左右滑動換頁（`src/components/ui/SwipeViews.tsx`）**：受控元件（`index` / `count` / `onIndexChange` / `renderPage`），拖曳時頁面即時跟著手指走，放開後依位移（>25% 寬）或甩動速度決定換頁或彈回。
 - 容器是 `touch-action: pan-y`，垂直捲動交給瀏覽器，水平手勢自己處理（React 的 onTouchMove 是 passive，不能 preventDefault）。
 - **靜止時完全不留 transform**：帶 transform 的祖先會變成 `position:fixed` 的包含區塊，分頁裡的 daisyUI modal（例如 MembersTab）會錯位。只有拖曳／回彈期間才上 transform，transitionend（外加逾時保險）後拿掉。
 - 只有目前頁與手勢中的左右鄰居會顯示，其餘保持掛載但 `display:none`；鄰居在 touchstart 才首次掛載，沒滑過的人不會多付訂閱／查詢成本。頁面內容以 useMemo 保持 element 參考，拖曳時不會重畫分頁內容。
 - 用在兩處：`MainLayout`（首頁／群組／個人／設定四個 nav 分頁，換頁時 `navigate(path)`，所以 App.tsx 的這四條子路由不帶 element，由 MainLayout 自己渲染並保持掛載）與 `GroupDetailPage`（群組內的 tab）。
 - 群組 tab 用 `setSearchParams(..., { replace: true })`：切 tab 不進歷史，手機返回鍵會回到上一頁而不是上一個 tab。
+- 指示器同步：`src/components/ui/swipeProgress.ts` 是一個極小的外部 store（`useSwipeProgressStore` / `useSwipeProgress`），SwipeViews 拖曳時把小數位置推進去，只有 `BottomNav` 與 `src/pages/groups/GroupTabBar.tsx` 訂閱，因此每幀更新不會重畫分頁內容。拖曳中 `dragging=true`（指示器直接跟手、關掉 transition），放開後推「目標整數 + dragging=false」，由 CSS transition 補完動畫。
+- `GroupTabBar` 自己畫底線（量各頁籤 rect 後內插），所以 **不能** 用 daisyUI 的 `tabs-border`：它會依 `aria-selected` 再畫一條固定的底線。
 
 **底部導覽列**：`.dock-in-frame`（`src/index.css`）在手機維持 `position: fixed`，只有 md+ 的手機框才改 `absolute`。改成 absolute 會讓它依賴 MainLayout 的盒子高度，容器一旦比可視範圍高（Android Chrome 網址列收合造成 dvh 變動、鍵盤彈出、內容溢位），導覽列就會被推出畫面外且捲不到（外層 `overflow:hidden`）。z-index 需要 `!important` 才不會被 daisyUI `.dock` 的 `z-index: 1` 蓋掉。
 

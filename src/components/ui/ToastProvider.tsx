@@ -12,13 +12,9 @@ export function ToastProvider() {
       {toasts.map((t) => (
         <div
           key={t.id}
-          className={`toast-soft ${
-            t.type === "success"
-              ? "toast-soft-success"
-              : t.type === "error"
-                ? "toast-soft-error"
-                : "toast-soft-info"
-          } ${t.closing ? "toast-motion-out" : "toast-motion-in"}`}
+          className={`toast-soft toast-soft-${t.type} ${
+            t.closing ? "toast-motion-out" : "toast-motion-in"
+          }`}
           onClick={() => removeToast(t.id)}
         >
           <span>{t.message}</span>

@@ -26,6 +26,8 @@ import { GroupAccessProvider } from "./groupAccess";
 import { PageHeader, HeaderIconButton } from "@/components/ui/PageHeader";
 import { ScrollArea } from "@/components/ui/ScrollArea";
 import { SwipeViews } from "@/components/ui/SwipeViews";
+import { useSwipeProgressStore } from "@/components/ui/swipeProgress";
+import { GroupTabBar } from "./GroupTabBar";
 import { buildExternalBrowserUrl } from "@/utils/browser";
 import { Plus as PlusIcon, Share2 as ShareIcon } from "lucide-react";
 
@@ -90,6 +92,8 @@ export function GroupDetailPage() {
     ? (rawTab as TabKey)
     : "summary";
   const activeIndex = tabs.findIndex((tab) => tab.key === activeTab);
+  // 頁籤列訂閱滑動進度，底線與文字顏色會跟著手指走
+  const swipeProgress = useSwipeProgressStore(activeIndex);
 
   const setActiveTab = (tab: TabKey) => {
     // 直接改寫既有查詢字串，才不會把預覽用的 invite 參數弄丟。
@@ -236,18 +240,13 @@ export function GroupDetailPage() {
           }
         />
 
-        <div role="tablist" className="tabs tabs-border shrink-0 px-4">
-          {tabs.map((tab) => (
-            <button
-              key={tab.key}
-              role="tab"
-              className={`tab ${tab.key === "summary" ? "tab-active" : ""}`}
-              disabled
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        <GroupTabBar
+          tabs={tabs}
+          activeKey="summary"
+          onSelect={() => {}}
+          progress={swipeProgress}
+          disabled
+        />
 
         <div className="flex-1 overflow-hidden px-4 pt-4 pb-24">
           <div className="space-y-4">
@@ -291,9 +290,10 @@ export function GroupDetailPage() {
                     count: group.members?.length ?? 0,
                   })}
                 </span>
-                {/* 預覽模式的提示併進副標題，不另外佔一條橫幅；扁平化：只有底色與同色邊框，不加陰影 */}
+                {/* 預覽模式的提示併進副標題，不另外佔一條橫幅；
+                    樣式與成員列表的「已連結」標籤一致（soft badge，無外框、不加粗） */}
                 {!canEdit && (
-                  <span className="rounded-md border border-warning/30 bg-warning/10 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-warning">
+                  <span className="badge badge-soft badge-warning badge-xs font-normal">
                     {t("group.preview.badge")}
                   </span>
                 )}
@@ -309,24 +309,19 @@ export function GroupDetailPage() {
         />
 
         {/* Tabs */}
-        <div role="tablist" className="tabs tabs-border shrink-0 px-4">
-          {tabs.map((tab) => (
-            <button
-              key={tab.key}
-              role="tab"
-              className={`tab ${activeTab === tab.key ? "tab-active" : ""}`}
-              onClick={() => setActiveTab(tab.key)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        <GroupTabBar
+          tabs={tabs}
+          activeKey={activeTab}
+          onSelect={(key) => setActiveTab(key as TabKey)}
+          progress={swipeProgress}
+        />
 
         {/* Tab Content：左右拖曳時分頁即時跟著手指移動，每頁各自捲動 */}
         <SwipeViews
           index={activeIndex}
           count={tabs.length}
           onIndexChange={(next) => setActiveTab(tabs[next].key)}
+          progress={swipeProgress}
           renderPage={(i) => (
             <ScrollArea className="px-4 pt-4 pb-24">
               {renderTab(tabs[i].key)}

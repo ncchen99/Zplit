@@ -8,6 +8,7 @@ import {
   type TouchEvent as ReactTouchEvent,
   type TransitionEvent as ReactTransitionEvent,
 } from "react";
+import type { SwipeProgressStore } from "@/components/ui/swipeProgress";
 
 const SETTLE_DURATION = 260;
 const SETTLE_EASING = "cubic-bezier(0.22, 0.8, 0.22, 1)";
@@ -47,6 +48,8 @@ interface SwipeViewsProps {
   /** 手勢換頁時回報，由外層決定要改網址還是改 state */
   onIndexChange: (index: number) => void;
   renderPage: (index: number) => ReactNode;
+  /** 有傳就會即時回報滑動進度，讓 tab bar / nav bar 跟著動 */
+  progress?: SwipeProgressStore;
   className?: string;
 }
 
@@ -71,6 +74,7 @@ export function SwipeViews({
   count,
   onIndexChange,
   renderPage,
+  progress,
   className = "",
 }: SwipeViewsProps) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -86,6 +90,9 @@ export function SwipeViews({
   const gestureRef = useRef<Gesture | null>(null);
   const settleTimerRef = useRef<number | null>(null);
   const lastIndexRef = useRef(index);
+
+  const publish = (value: number, dragging: boolean) =>
+    progress?.set(clamp(value, count - 1), dragging);
 
   const mount = (...indexes: number[]) => {
     setMounted((prev) => {
@@ -108,6 +115,7 @@ export function SwipeViews({
   /** 先把畫面定在 fromOffset（不帶動畫），下一幀再滑回 0 */
   const settleTo = (target: number, fromOffset: number) => {
     clearSettleTimer();
+    publish(target, false);
     if (fromOffset === 0 || prefersReducedMotion()) {
       setMotion({ base: target, offset: 0, phase: "idle" });
       return;
@@ -133,6 +141,7 @@ export function SwipeViews({
     const width = rootRef.current?.clientWidth ?? 0;
     if (width === 0 || Math.abs(index - from) !== 1) {
       clearSettleTimer();
+      publish(index, false);
       setMotion({ base: index, offset: 0, phase: "idle" });
       return;
     }
@@ -194,11 +203,10 @@ export function SwipeViews({
     const base = motionRef.current.base;
     const dx = touch.clientX - gesture.originX;
     const atEdge = (base === 0 && dx > 0) || (base === count - 1 && dx < 0);
-    setMotion({
-      base,
-      offset: atEdge ? dx * EDGE_RESISTANCE : dx,
-      phase: "drag",
-    });
+    const offset = atEdge ? dx * EDGE_RESISTANCE : dx;
+    const width = gesture.width || rootRef.current?.clientWidth || 1;
+    publish(base - offset / width, true);
+    setMotion({ base, offset, phase: "drag" });
   };
 
   const handleTouchEnd = () => {
