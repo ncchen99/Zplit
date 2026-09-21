@@ -1,3 +1,5 @@
+import { createPortal } from "react-dom";
+
 interface ConfirmModalProps {
   open: boolean;
   title?: string;
@@ -29,7 +31,9 @@ export function ConfirmModal({
     return `btn ${confirmVariant}`;
   })();
 
-  return (
+  // .modal 是 position:fixed，若祖先帶有 transform 會改以該祖先為定位基準
+  // 而錯位，因此固定掛在 body 底下
+  return createPortal(
     <div className="modal modal-open">
       <div className="modal-box">
         {title && <h3 className="font-bold text-lg mb-2">{title}</h3>}
@@ -44,6 +48,7 @@ export function ConfirmModal({
         </div>
       </div>
       <div className="modal-backdrop" onClick={onCancel} />
-    </div>
+    </div>,
+    document.body,
   );
 }

@@ -106,9 +106,14 @@ export function GroupDetailPage() {
   const [slideDirection, setSlideDirection] = useState<"left" | "right">(
     "right",
   );
+  // 動畫進行中才掛 class：animation-fill-mode 會把 transform 留在元素上，
+  // 而帶 transform 的祖先會變成 position:fixed 的包含區塊，
+  // 讓分頁裡的 modal / ActionSheet 錯位。動畫結束就把 class 拿掉。
+  const [panelAnimating, setPanelAnimating] = useState(false);
   if (prevIndex !== activeIndex) {
     setSlideDirection(activeIndex > prevIndex ? "right" : "left");
     setPrevIndex(activeIndex);
+    setPanelAnimating(true);
   }
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -357,10 +362,13 @@ export function GroupDetailPage() {
           <div
             key={activeTab}
             className={
-              slideDirection === "right"
-                ? "tab-panel-in-right"
-                : "tab-panel-in-left"
+              panelAnimating
+                ? slideDirection === "right"
+                  ? "tab-panel-in-right"
+                  : "tab-panel-in-left"
+                : undefined
             }
+            onAnimationEnd={() => setPanelAnimating(false)}
           >
             {activeTab === "summary" && (
               <SummaryTab onNavigateSettle={() => setActiveTab("settle")} />

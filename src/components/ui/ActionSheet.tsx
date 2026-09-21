@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 
 type ActionTone = "default" | "active" | "danger";
 
@@ -42,7 +43,9 @@ export function ActionSheet({ open, items, onClose }: ActionSheetProps) {
 
   if (!open) return null;
 
-  return (
+  // .modal 是 position:fixed，若祖先帶有 transform（例如分頁切換動畫）
+  // 會改以該祖先為定位基準而錯位，因此固定掛在 body 底下
+  return createPortal(
     <div className="modal modal-open z-50">
       <div className="modal-box w-full max-w-72 p-0 shadow-2xl rounded-2xl">
         <div className="join join-vertical w-full overflow-hidden rounded-2xl bg-base-100">
@@ -65,6 +68,7 @@ export function ActionSheet({ open, items, onClose }: ActionSheetProps) {
         className="modal-backdrop"
         onClick={onClose}
       />
-    </div>
+    </div>,
+    document.body,
   );
 }
