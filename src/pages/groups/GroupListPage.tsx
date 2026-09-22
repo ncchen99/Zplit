@@ -68,7 +68,7 @@ export function GroupListPage() {
         </div>
       </div>
 
-      <ScrollArea className="px-4 pb-20">
+      <ScrollArea className="px-4 pb-20" restoreKey="groups">
       {loading ? (
         <div className="mt-6 space-y-3">
           {Array.from({ length: 4 }).map((_, idx) => (

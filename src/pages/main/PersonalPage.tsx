@@ -100,7 +100,7 @@ export function PersonalPage() {
         )}
       </div>
 
-      <ScrollArea className="px-4 pb-40">
+      <ScrollArea className="px-4 pb-40" restoreKey="personal">
       {/* Loading */}
       {isLoading ? (
         <div className="mt-4 space-y-3">

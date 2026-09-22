@@ -81,7 +81,7 @@ export function HomePage() {
         </div>
       </div>
 
-      <ScrollArea className="px-4 pb-20">
+      <ScrollArea className="px-4 pb-20" restoreKey="home">
       {/* Welcome */}
       <div className="mt-4">
         <p className="text-lg font-semibold">

@@ -325,7 +325,10 @@ export function GroupDetailPage() {
           onIndexChange={(next) => setActiveTab(tabs[next].key)}
           progress={swipeProgress}
           renderPage={(i) => (
-            <ScrollArea className="px-4 pt-4 pb-24">
+            <ScrollArea
+              className="px-4 pt-4 pb-24"
+              restoreKey={`group:${groupId}:${tabs[i].key}`}
+            >
               {renderTab(tabs[i].key)}
             </ScrollArea>
           )}

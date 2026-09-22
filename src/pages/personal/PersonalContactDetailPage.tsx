@@ -306,7 +306,7 @@ export function PersonalContactDetailPage() {
         </div>
       </div>
 
-      <ScrollArea className="px-4 pb-28">
+      <ScrollArea className="px-4 pb-28" restoreKey={`personal:${contactId}`}>
       {/* Lending History */}
       <div className="mt-6">
         <h2 className="text-sm font-semibold text-base-content/60 uppercase tracking-wider">

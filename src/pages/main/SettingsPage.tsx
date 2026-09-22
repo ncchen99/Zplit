@@ -58,7 +58,7 @@ export function SettingsPage() {
         </h1>
       </div>
 
-      <ScrollArea className="flex flex-col px-4 pb-24">
+      <ScrollArea className="flex flex-col px-4 pb-24" restoreKey="settings">
       <div className="flex-1">
         <div className="mt-2 flex flex-col">
           {/* Profile Row */}

@@ -1,6 +1,12 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, clearLocalDataAndReload } from "@/lib/firebase";
 import { clearQueryMemoryCache } from "@/hooks/useCachedQuery";
@@ -116,6 +122,20 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+/** 換頁時把外層捲動容器（#root）捲回頂端。
+    全螢幕頁面（帳務詳情、各種表單）是靠 #root 捲動的，而 #root 不會隨路由重新掛載，
+    不歸零的話新的一頁會從上一頁停的位置開始看（例如詳情頁捲到一半按編輯）。
+    內層 ScrollArea 的頁面自己記位置（restoreKey），不受這裡影響。 */
+function RouteScrollReset() {
+  const { pathname } = useLocation();
+
+  useLayoutEffect(() => {
+    document.getElementById("root")?.scrollTo({ top: 0 });
+  }, [pathname]);
+
+  return null;
+}
+
 function NetworkListener() {
   const { t } = useTranslation();
   const showToast = useUIStore((s) => s.showToast);
@@ -201,6 +221,7 @@ export default function App() {
       <ThemeProvider>
         <BrowserRouter>
           <AuthInitializer>
+            <RouteScrollReset />
             <NetworkListener />
             <OfflineBanner />
             <ToastProvider />
