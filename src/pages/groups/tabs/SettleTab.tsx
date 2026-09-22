@@ -187,11 +187,12 @@ export function SettleTab() {
             key={i}
             className="flex items-center gap-3 py-3 border-b border-base-200 last:border-b-0"
           >
-            {/* 頭貼貼著名字、整列讀起來是一句話。付款人／收款人各佔固定的一半，
+            {/* 頭貼貼著名字、整列讀起來是一句話。付款人／收款人各佔固定比例，
                 所以每一列的箭頭都落在同一個 x——長短名字混在一起時才不會歪。
-                名字太長就在自己那一半換行，不截斷：名字被切掉這一列就沒意義了 */}
+                左 4／右 6：多數群組的名字都不長，對半切會讓箭頭離左邊的名字太遠。
+                收款人那側留多一點，因為同一個人常常重複出現在收款側。 */}
             <div className="flex-1 min-w-0">
-              <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-x-1.5">
+              <div className="grid grid-cols-[minmax(0,0.8fr)_auto_minmax(0,1.2fr)] items-center gap-x-1.5">
                 <div className="flex min-w-0 items-center gap-1.5">
                   <UserAvatar
                     src={memberAvatarMap.get(debt.from) ?? null}
@@ -199,7 +200,7 @@ export function SettleTab() {
                     size="w-6"
                     textSize="text-[10px]"
                   />
-                  <span className="text-sm font-semibold break-words">
+                  <span className="min-w-0 truncate text-sm font-semibold">
                     {getName(debt.from)}
                   </span>
                 </div>
@@ -211,7 +212,7 @@ export function SettleTab() {
                     size="w-6"
                     textSize="text-[10px]"
                   />
-                  <span className="text-sm font-semibold break-words">
+                  <span className="min-w-0 truncate text-sm font-semibold">
                     {getName(debt.to)}
                   </span>
                 </div>
