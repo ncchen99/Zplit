@@ -86,9 +86,13 @@ export function SplitMemberPicker({
               onPointerDown={() => handlePointerDown(m.memberId)}
               onPointerCancel={handlePointerCancel}
               onClick={() => handleClick(m.memberId)}
-              // 不要 transition：底色要在手指按下的當下就出現，淡入會讓人
-              // 以為沒點到。touch-manipulation 拿掉行動瀏覽器的點擊延遲。
-              className={`flex min-h-12 touch-manipulation items-center gap-2 px-3 py-2 text-left active:bg-base-200/50 ${
+              // 不要 transition，也不要 active: 的按壓底色。切換已經發生在
+              // pointerdown，格子自己變色就是最直接的回饋；再疊一層
+              // active:bg-base-200/50 反而會因為 :active 的特異性蓋掉
+              // bg-split-fill，手指按著的時候看到的是灰色，放開才「出現」
+              // 綠色——那不是延遲，是被蓋住。實機用 CSS.forcePseudoState
+              // 量過：按住時背景是 oklab(0.280 … / 0.5)，不是該有的綠。
+              className={`flex min-h-12 touch-manipulation items-center gap-2 px-3 py-2 text-left ${
                 inLastRow ? "" : "border-b border-field-line"
               } ${i % 2 === 0 ? "border-r border-field-line" : ""} ${
                 isSelected ? "bg-split-fill" : ""
