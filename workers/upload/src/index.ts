@@ -50,7 +50,13 @@ export default {
     const key = `uploads/${uid}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
 
     await env.R2_BUCKET.put(key, file.stream(), {
-      httpMetadata: { contentType: file.type },
+      httpMetadata: {
+        contentType: file.type,
+        // key 帶了 timestamp + uuid，每次上傳都是全新路徑、永遠不會被覆寫，
+        // 所以可以讓瀏覽器永久快取。沒有這行 R2 不會回 Cache-Control，
+        // 瀏覽器每次進頁面都要重新驗證一次頭貼。
+        cacheControl: 'public, max-age=31536000, immutable',
+      },
     });
 
     const url = `${env.R2_PUBLIC_URL}/${key}`;

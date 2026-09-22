@@ -189,10 +189,12 @@ export function SettleTab() {
           >
             {/* 頭貼貼著名字、整列讀起來是一句話。付款人／收款人各佔固定比例，
                 所以每一列的箭頭都落在同一個 x——長短名字混在一起時才不會歪。
-                左 4／右 6：多數群組的名字都不長，對半切會讓箭頭離左邊的名字太遠。
-                收款人那側留多一點，因為同一個人常常重複出現在收款側。 */}
+                左 45／右 55：多數群組的名字都不長，對半切會讓箭頭離左邊的名字太遠。
+                收款人那側留多一點，因為同一個人常常重複出現在收款側。
+                箭頭右邊比左邊多留一點：右邊緊接著一顆頭貼，兩個實心的東西靠在
+                一起，視覺上的間距會比實際數字看起來更窄。 */}
             <div className="flex-1 min-w-0">
-              <div className="grid grid-cols-[minmax(0,0.8fr)_auto_minmax(0,1.2fr)] items-center gap-x-1.5">
+              <div className="grid grid-cols-[minmax(0,0.9fr)_auto_minmax(0,1.1fr)] items-center gap-x-2">
                 <div className="flex min-w-0 items-center gap-1.5">
                   <UserAvatar
                     src={memberAvatarMap.get(debt.from) ?? null}
@@ -204,7 +206,7 @@ export function SettleTab() {
                     {getName(debt.from)}
                   </span>
                 </div>
-                <ArrowRightIcon className="h-4 w-4 text-base-content/40" />
+                <ArrowRightIcon className="mr-1 h-4 w-4 text-base-content/40" />
                 <div className="flex min-w-0 items-center gap-1.5">
                   <UserAvatar
                     src={memberAvatarMap.get(debt.to) ?? null}
