@@ -51,7 +51,7 @@ export function EditGroupPage() {
   };
 
   return (
-    <div className="flex min-h-[100dvh]  flex-col">
+    <div className="flex min-h-full  flex-col">
       <PageHeader
         title={t("group.edit.title")}
         onBack={() => navigate(-1)}

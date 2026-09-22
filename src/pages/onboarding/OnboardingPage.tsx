@@ -61,7 +61,7 @@ export function OnboardingPage() {
   };
 
   return (
-    <div className="flex min-h-[100dvh] md:min-h-full flex-col pb-8">
+    <div className="flex min-h-full md:min-h-full flex-col pb-8">
       <PageHeader title={t("auth.onboarding.title")} onBack={handleBack} />
 
       <div className="mx-auto w-full max-w-sm flex-1 flex flex-col items-center justify-center px-6">

@@ -75,7 +75,7 @@ export function PersonalExpenseDetailPage() {
 
   if (loading || !expense) {
     return (
-      <div className="flex min-h-[100dvh] md:min-h-[inherit] flex-col">
+      <div className="flex min-h-full md:min-h-[inherit] flex-col">
         <PageHeader
           title={t("expense.detail.title")}
           onBack={() => navigate(`/personal/${contactId}`)}
@@ -137,7 +137,7 @@ export function PersonalExpenseDetailPage() {
     : "";
 
   return (
-    <div className="flex min-h-[100dvh] md:min-h-[inherit] flex-col">
+    <div className="flex min-h-full md:min-h-[inherit] flex-col">
       <PageHeader
         title={t("expense.detail.title")}
         onBack={() => navigate(`/personal/${contactId}`)}

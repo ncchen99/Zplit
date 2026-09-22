@@ -98,7 +98,7 @@ export function JoinPage() {
   // ── Invalid link ─────────────────────────────────────────
   if (!group) {
     return (
-      <div className="flex min-h-[100dvh] flex-col items-center justify-center gap-4 px-6 text-center md:min-h-full">
+      <div className="flex min-h-full flex-col items-center justify-center gap-4 px-6 text-center md:min-h-full">
         <AlertCircle className="h-12 w-12 text-warning" />
         <p className="text-lg font-bold">{t("join.invalidLink")}</p>
         <button
@@ -123,7 +123,7 @@ export function JoinPage() {
   });
 
   return (
-    <div className="flex h-full min-h-[100dvh] flex-col overflow-hidden md:min-h-[inherit]">
+    <div className="flex h-full min-h-full flex-col overflow-hidden md:min-h-[inherit]">
       {/* 選身份時才有標題列；固定不捲動，交界的漸層交給下面的 ScrollArea */}
       {selectingIdentity ? (
         <PageHeader

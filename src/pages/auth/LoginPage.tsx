@@ -174,7 +174,7 @@ export function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-[100dvh] md:min-h-full flex-col items-center justify-center px-6">
+    <div className="flex min-h-full md:min-h-full flex-col items-center justify-center px-6">
       <div className="w-full max-w-sm text-center">
         {/* Logo & Tagline - upper area */}
         <div className="mb-12 flex flex-col items-center">

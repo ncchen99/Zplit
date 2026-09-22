@@ -59,11 +59,18 @@
     touch-action: none;
   }
 
+  /* 高度用 svh 不用 dvh。實測 Pixel 10 Pro 的 PWA：載入當下 100dvh 會被
+     解析成 748px（網址列／系統列收起時的大視窗），之後可視高度穩定在
+     692px 時卻不會重算——getComputedStyle 一直回報 748.16px，強制 reflow
+     也救不回來，於是 #root 比螢幕高 56px，底部內容永遠捲不到。
+     svh 是「小視窗」，不隨列的收合改變，本來就沒有可以走味的動態值；
+     而且 body 在手機上不捲動（捲的是 #root），網址列永遠不會收起，
+     svh 正好就等於實際可視高度。 */
   #root {
     background-color: var(--color-base-100);
     width: 100%;
-    height: 100dvh;
-    min-height: 100dvh;
+    height: 100svh;
+    min-height: 100svh;
     display: flex;
     flex-direction: column;
     position: relative;

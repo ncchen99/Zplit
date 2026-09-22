@@ -102,7 +102,7 @@ function ListSkeleton({ rows }: { rows: number }) {
 export function JoinSkeleton() {
   return (
     <div
-      className="flex h-full min-h-[100dvh] flex-col overflow-hidden md:min-h-[inherit]"
+      className="flex h-full min-h-full flex-col overflow-hidden md:min-h-[inherit]"
       aria-busy="true"
     >
       {/* Header placeholder */}
@@ -163,7 +163,7 @@ export function PageSkeleton({ variant, withNav = true, rows = 4 }: PageSkeleton
   if (resolved === "detail") {
     return (
       <div
-        className="flex min-h-[100dvh] flex-col md:min-h-[inherit]"
+        className="flex min-h-full flex-col md:min-h-[inherit]"
         aria-busy="true"
       >
         <div className="flex h-14 items-center gap-3 px-4">
