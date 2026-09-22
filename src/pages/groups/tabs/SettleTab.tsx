@@ -48,14 +48,29 @@ export function SettleTab() {
     return map;
   }, [currentGroup]);
 
+  const myMemberId =
+    currentGroup?.members?.find((m) => m.userId === user?.uid)?.memberId ??
+    null;
+
   /**
    * 剩餘待結清債務：直接從帳款（含已建立的結算帳款）計算。
    * 結算動作會建立一筆抵銷帳款，使餘額歸零，此處自動反映最新狀態。
+   *
+   * 排序把跟自己有關的提到最前面（先「我要付」再「要付給我」），其餘維持原順序。
+   * 只動順序、不加「你」之類的個人化標籤——這一頁常常被整張截圖丟進群組，
+   * 標籤會讓其他人看不懂那一列在講誰。
    */
   const remainingDebts = useMemo(() => {
     if (!expenses.length) return [];
-    return computeSettlements(computeBalances(expenses));
-  }, [expenses]);
+    const debts = computeSettlements(computeBalances(expenses));
+    if (!myMemberId) return debts;
+    const rank = (d: SettlementResult) =>
+      d.from === myMemberId ? 0 : d.to === myMemberId ? 1 : 2;
+    return debts
+      .map((debt, i) => ({ debt, i }))
+      .sort((a, b) => rank(a.debt) - rank(b.debt) || a.i - b.i)
+      .map(({ debt }) => debt);
+  }, [expenses, myMemberId]);
 
   const getName = (memberId: string) =>
     memberMap.get(memberId) ?? t("group.members.unknownMember");
@@ -172,40 +187,49 @@ export function SettleTab() {
             key={i}
             className="flex items-center gap-3 py-3 border-b border-base-200 last:border-b-0"
           >
-            <UserAvatar
-              src={memberAvatarMap.get(debt.from) ?? null}
-              name={getName(debt.from)}
-              size="w-9"
-            />
-            <ArrowRightIcon className="h-4 w-4 text-base-content/40 flex-shrink-0" />
-            <UserAvatar
-              src={memberAvatarMap.get(debt.to) ?? null}
-              name={getName(debt.to)}
-              size="w-9"
-            />
-
+            {/* 頭貼貼著名字、整列讀起來是一句話。付款人／收款人各佔固定的一半，
+                所以每一列的箭頭都落在同一個 x——長短名字混在一起時才不會歪。
+                名字太長就在自己那一半換行，不截斷：名字被切掉這一列就沒意義了 */}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold truncate">
-                {t("group.settle.transfer", {
-                  from: getName(debt.from),
-                  to: getName(debt.to),
-                })}
-              </p>
-              <p className="text-base font-bold text-warning">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-x-1.5">
+                <div className="flex min-w-0 items-center gap-1.5">
+                  <UserAvatar
+                    src={memberAvatarMap.get(debt.from) ?? null}
+                    name={getName(debt.from)}
+                    size="w-6"
+                    textSize="text-[10px]"
+                  />
+                  <span className="text-sm font-semibold break-words">
+                    {getName(debt.from)}
+                  </span>
+                </div>
+                <ArrowRightIcon className="h-4 w-4 text-base-content/40" />
+                <div className="flex min-w-0 items-center gap-1.5">
+                  <UserAvatar
+                    src={memberAvatarMap.get(debt.to) ?? null}
+                    name={getName(debt.to)}
+                    size="w-6"
+                    textSize="text-[10px]"
+                  />
+                  <span className="text-sm font-semibold break-words">
+                    {getName(debt.to)}
+                  </span>
+                </div>
+              </div>
+              <p className="mt-1 text-base font-bold text-warning">
                 NT${debt.amount.toLocaleString()}
               </p>
             </div>
 
             {canEdit && (
-              <div className="flex-shrink-0">
-                <button
-                  className="btn-theme-green btn-sm btn-circle"
-                  onClick={() => setPendingDebt(debt)}
-                  title={t("group.settle.markDone")}
-                >
-                  <CheckIcon className="h-5 w-5" />
-                </button>
-              </div>
+              <button
+                className="btn-theme-green btn-sm flex-shrink-0 gap-1 rounded-full px-3"
+                onClick={() => setPendingDebt(debt)}
+                title={t("group.settle.markDone")}
+              >
+                <CheckIcon className="h-4 w-4" />
+                {t("group.settle.settleAction")}
+              </button>
             )}
           </div>
         ))}

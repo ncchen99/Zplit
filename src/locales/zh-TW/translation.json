@@ -11,7 +11,8 @@
       "done": "完成",
       "close": "關閉",
       "selectAll": "全選",
-      "clearAll": "清除全部"
+      "clearAll": "清除全部",
+      "onlyMe": "只有我"
     },
     "toast": {
       "groupCreated": "群組建立完成",
@@ -132,6 +133,7 @@
     },
     "settings": {
       "title": "設定",
+      "tabLabel": "設定",
       "coverPhoto": "群組封面",
       "tapToEditCover": "點擊修改封面",
       "groupInfo": "群組資料",
@@ -153,6 +155,7 @@
     },
     "summary": {
       "title": "總覽",
+      "tabLabel": "總覽",
       "noExpenses": "目前還沒有任何帳務",
       "addFirst": "新增第一筆帳務",
       "owes": "{{from}} 需支付 {{to}}",
@@ -168,9 +171,11 @@
     },
     "settle": {
       "title": "結算",
+      "tabLabel": "結算",
       "noDebts": "所有債務已結清！",
       "transfer": "{{from}} 支付給 {{to}}",
       "markDone": "標記完成",
+      "settleAction": "結清",
       "markDoneConfirm": "確定將「{{from}} 支付給 {{to}}」的 NT${{amount}} 標記為已結清？",
       "markAllDone": "全部標記完成",
       "markAllDoneConfirm": "確定要將全部 {{count}} 筆待結清項目標記為完成？",
@@ -184,6 +189,7 @@
     },
     "members": {
       "title": "成員與動態",
+      "tabLabel": "成員與動態",
       "members": "成員",
       "activity": "近期動態",
       "addMember": "新增成員",
@@ -228,6 +234,10 @@
     "descriptionPlaceholder": "例如：3/29 東寧福利中心 Happy 一下...",
     "receipt": "收據圖片",
     "receiptUpload": "上傳收據圖片",
+    "splitSummary": {
+      "count": "{{count}} 人分",
+      "each": "每人 NT${{amount}}"
+    },
     "splitMode": {
       "label": "分帳模式",
       "equal": "平均分帳",

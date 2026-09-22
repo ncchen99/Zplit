@@ -24,6 +24,7 @@ import { PageHeader, HeaderIconButton } from "@/components/ui/PageHeader";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { ActionSheetSelect } from "@/components/ui/ActionSheetSelect";
+import { SplitMemberPicker } from "./SplitMemberPicker";
 import {
   Check as CheckIcon,
   Trash2 as TrashIcon,
@@ -117,6 +118,16 @@ export function EditExpensePage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const members = currentGroup?.members ?? [];
+
+  // 自己永遠排在分帳對象的第一個（與 AddExpensePage 一致）
+  const myMemberId =
+    members.find((m) => m.userId === user?.uid)?.memberId ?? null;
+  const orderedMembers = myMemberId
+    ? [
+        ...members.filter((m) => m.memberId === myMemberId),
+        ...members.filter((m) => m.memberId !== myMemberId),
+      ]
+    : members;
 
   // Initialize form from existing expense
   useEffect(() => {
@@ -214,6 +225,7 @@ export function EditExpensePage() {
 
   const selectAll = () => setSelectedMembers(members.map((m) => m.memberId));
   const clearAll = () => setSelectedMembers([]);
+  const selectOnlyMe = () => setSelectedMembers(myMemberId ? [myMemberId] : []);
 
   const handleSplitModeChange = (mode: SplitMode) => {
     setSplitMode(mode);
@@ -414,55 +426,38 @@ export function EditExpensePage() {
                 >
                   {t("common.button.clearAll")}
                 </button>
+                {myMemberId && (
+                  <>
+                    <span className="text-base-content/20">|</span>
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-xs"
+                      onClick={selectOnlyMe}
+                    >
+                      {t("common.button.onlyMe")}
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </div>
 
           {splitMode === "equal" && (
-            <form className="filter mb-3 flex w-full flex-wrap gap-2">
-              {members.map((m) => {
-                const isSelected = selectedMembers.includes(m.memberId);
-                return (
-                  <label
-                    key={m.memberId}
-                    className={`btn h-auto min-h-11 gap-2 bg-base-100 px-3 text-base-content hover:bg-base-200 ${isSelected ? "border-success" : "border-base-300"}`}
-                  >
-                    <input
-                      type="checkbox"
-                      name="split-members"
-                      className="sr-only"
-                      checked={isSelected}
-                      onChange={() => toggleMember(m.memberId)}
-                    />
-                    {isSelected ? (
-                      <input
-                        type="checkbox"
-                        checked
-                        readOnly
-                        className="checkbox checkbox-primary checkbox-sm pointer-events-none"
-                        aria-label={m.displayName}
-                      />
-                    ) : (
-                      <UserAvatar
-                        src={m.avatarUrl}
-                        name={m.displayName}
-                        size="w-6"
-                        textSize="text-[10px]"
-                        bgClass="bg-base-300 text-base-content"
-                      />
-                    )}
-                    <span className="max-w-24 truncate text-xs">
-                      {m.displayName}
-                    </span>
-                  </label>
-                );
-              })}
-            </form>
+            <SplitMemberPicker
+              members={orderedMembers}
+              selectedMemberIds={selectedMembers}
+              onToggle={toggleMember}
+              perPersonAmount={
+                selectedMembers.length
+                  ? Math.floor(amountNum / selectedMembers.length)
+                  : 0
+              }
+            />
           )}
 
           {splitMode !== "equal" && (
             <div className="flex flex-col gap-2">
-              {members.map((m) => {
+              {orderedMembers.map((m) => {
                 const splitAmount =
                   splits.find((s) => s.memberId === m.memberId)?.amount ?? 0;
                 return (

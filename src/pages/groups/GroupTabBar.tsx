@@ -100,7 +100,9 @@ export function GroupTabBar({
               key={tab.key}
               role="tab"
               aria-selected={tab.key === activeKey}
-              className="tab"
+              // daisyUI 的 .tabs 會 flex-wrap，字一長整列就掉到第二行。
+              // 四格等寬 + nowrap，不管哪個語言都維持單行。
+              className="tab min-w-0 flex-1 px-1 whitespace-nowrap"
               disabled={disabled}
               onClick={() => onSelect(tab.key)}
               style={{

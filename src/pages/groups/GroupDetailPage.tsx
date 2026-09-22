@@ -76,11 +76,13 @@ export function GroupDetailPage() {
   const canEdit = isMember;
 
   const tabs = useMemo(() => {
+    // 頁籤用短標籤，不共用各分頁的標題：英文的 "Members & Activity" 放進
+    // 四格頁籤會把整列擠到第二行（daisyUI 的 .tabs 是 flex-wrap: wrap）
     const labels: Record<TabKey, string> = {
-      summary: t("group.summary.title"),
-      settle: t("group.settle.title"),
-      members: t("group.members.title"),
-      settings: t("group.settings.title"),
+      summary: t("group.summary.tabLabel"),
+      settle: t("group.settle.tabLabel"),
+      members: t("group.members.tabLabel"),
+      settings: t("group.settings.tabLabel"),
     };
     return (canEdit ? VALID_TABS : PREVIEW_TABS).map((key) => ({
       key,

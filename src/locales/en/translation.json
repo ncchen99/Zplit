@@ -11,7 +11,8 @@
       "done": "Done",
       "close": "Close",
       "selectAll": "Select All",
-      "clearAll": "Clear All"
+      "clearAll": "Clear All",
+      "onlyMe": "Only Me"
     },
     "toast": {
       "groupCreated": "Group created",
@@ -132,6 +133,7 @@
     },
     "settings": {
       "title": "Settings",
+      "tabLabel": "Settings",
       "coverPhoto": "Cover Photo",
       "tapToEditCover": "Tap to edit cover",
       "groupInfo": "Group Info",
@@ -153,6 +155,7 @@
     },
     "summary": {
       "title": "Summary",
+      "tabLabel": "Summary",
       "noExpenses": "No expenses yet",
       "addFirst": "Add the first expense",
       "owes": "{{from}} needs to pay {{to}}",
@@ -168,9 +171,11 @@
     },
     "settle": {
       "title": "Settle Up",
+      "tabLabel": "Settle",
       "noDebts": "All debts settled!",
       "transfer": "{{from}} pays {{to}}",
       "markDone": "Mark Done",
+      "settleAction": "Settle",
       "markDoneConfirm": "Mark {{from}}'s payment of NT${{amount}} to {{to}} as settled?",
       "markAllDone": "Mark All Complete",
       "markAllDoneConfirm": "Mark all {{count}} pending settlements as complete?",
@@ -184,6 +189,7 @@
     },
     "members": {
       "title": "Members & Activity",
+      "tabLabel": "Members",
       "members": "Members",
       "activity": "Recent Activity",
       "addMember": "Add Member",
@@ -228,6 +234,10 @@
     "descriptionPlaceholder": "Optional, e.g. Business dinner on 3/29...",
     "receipt": "Receipt photo",
     "receiptUpload": "Upload receipt",
+    "splitSummary": {
+      "count": "{{count}} splitting",
+      "each": "NT${{amount}} each"
+    },
     "splitMode": {
       "label": "Split Mode",
       "equal": "Split Equally",

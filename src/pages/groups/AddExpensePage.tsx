@@ -17,6 +17,7 @@ import { CalculatorInput } from "@/components/ui/CalculatorInput";
 import { PageHeader, HeaderIconButton } from "@/components/ui/PageHeader";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { ActionSheetSelect } from "@/components/ui/ActionSheetSelect";
+import { SplitMemberPicker } from "./SplitMemberPicker";
 import {
   Check as CheckIcon,
   CircleCheck as CheckCircleIcon,
@@ -55,6 +56,18 @@ export function AddExpensePage() {
   const [showDiscardModal, setShowDiscardModal] = useState(false);
 
   const members = useMemo(() => currentGroup?.members ?? [], [currentGroup]);
+
+  // 自己永遠排在分帳對象的第一個：幾乎每一筆帳都要判斷「我在不在裡面」，
+  // 固定在第一格就不用每次重新找
+  const myMemberId = useMemo(
+    () => members.find((m) => m.userId === user?.uid)?.memberId ?? null,
+    [members, user?.uid],
+  );
+  const orderedMembers = useMemo(() => {
+    if (!myMemberId) return members;
+    const me = members.filter((m) => m.memberId === myMemberId);
+    return [...me, ...members.filter((m) => m.memberId !== myMemberId)];
+  }, [members, myMemberId]);
 
   // 若 currentGroup 不在 store（例如直接導航到此頁），從 Firestore 載入
   useEffect(() => {
@@ -142,6 +155,7 @@ export function AddExpensePage() {
 
   const selectAll = () => setSelectedMembers(members.map((m) => m.memberId));
   const clearAll = () => setSelectedMembers([]);
+  const selectOnlyMe = () => setSelectedMembers(myMemberId ? [myMemberId] : []);
 
   const handleSplitModeChange = (mode: SplitMode) => {
     setSplitMode(mode);
@@ -306,56 +320,39 @@ export function AddExpensePage() {
                 >
                   {t("common.button.clearAll")}
                 </button>
+                {myMemberId && (
+                  <>
+                    <span className="text-base-content/20">|</span>
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-xs"
+                      onClick={selectOnlyMe}
+                    >
+                      {t("common.button.onlyMe")}
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </div>
 
           {splitMode === "equal" && (
-            <div className="filter mb-3 flex w-full flex-wrap gap-2">
-              {members.map((m) => {
-                const isSelected = selectedMembers.includes(m.memberId);
-                return (
-                  <label
-                    key={m.memberId}
-                    className={`btn h-auto min-h-11 gap-2 bg-base-100 px-3 text-base-content hover:bg-base-200 ${isSelected ? "border-success" : "border-base-300"}`}
-                  >
-                    <input
-                      type="checkbox"
-                      name="split-members"
-                      className="sr-only"
-                      checked={isSelected}
-                      onChange={() => toggleMember(m.memberId)}
-                    />
-                    {isSelected ? (
-                      <input
-                        type="checkbox"
-                        checked
-                        readOnly
-                        className="checkbox checkbox-primary checkbox-sm pointer-events-none"
-                        aria-label={m.displayName}
-                      />
-                    ) : (
-                      <UserAvatar
-                        src={m.avatarUrl}
-                        name={m.displayName}
-                        size="w-6"
-                        textSize="text-[10px]"
-                        bgClass="bg-base-300 text-base-content"
-                      />
-                    )}
-                    <span className="max-w-20 truncate text-xs">
-                      {m.displayName}
-                    </span>
-                  </label>
-                );
-              })}
-            </div>
+            <SplitMemberPicker
+              members={orderedMembers}
+              selectedMemberIds={selectedMembers}
+              onToggle={toggleMember}
+              perPersonAmount={
+                selectedMembers.length
+                  ? Math.floor(amountNum / selectedMembers.length)
+                  : 0
+              }
+            />
           )}
 
-          {/* 平均分帳改由上方 filter 直接控制，不再顯示重複名單 */}
+          {/* 平均分帳改由上方 picker 直接控制，不再顯示重複名單 */}
           {splitMode !== "equal" && (
             <div className="flex flex-col gap-2">
-              {members.map((m) => {
+              {orderedMembers.map((m) => {
                 const splitAmount =
                   splits.find((s) => s.memberId === m.memberId)?.amount ?? 0;
                 return (
