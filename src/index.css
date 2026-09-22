@@ -10,6 +10,17 @@
   --color-root-bg: var(--color-base-200);
   /* Brand green, matched to the app icon (public/favicon.svg) */
   --color-brand: #0f6b34;
+  /* 分帳對象表格裡選中格子的底色。刻意和 .btn-theme-green 共用同一條配方
+     （oklab 14%），結清按鈕和選中的格子才會是同一個綠——Tailwind 的
+     bg-primary/10 是 sRGB 的 alpha 疊色，是另一套數學，深色主題下會偏灰。 */
+  --color-split-fill: color-mix(in oklab,
+      var(--color-primary) 14%,
+      var(--color-base-100));
+  /* daisyUI .input 的邊框色（--input-color）。表單裡的容器要跟 input、
+     select 同一個框色，否則深色主題下 base-300 會比底色更暗，方向相反。 */
+  --color-field-line: color-mix(in oklab,
+      var(--color-base-content) 20%,
+      #0000);
   --app-frame-max-width: 24rem;
   --app-frame-height: 800px;
   --app-frame-gutter: 1rem;
