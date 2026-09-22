@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Check as CheckIcon } from "lucide-react";
 import { UserAvatar } from "@/components/ui/UserAvatar";
@@ -37,25 +38,61 @@ export function SplitMemberPicker({
     selectedMemberIds.includes(m.memberId),
   ).length;
 
+  // 奇數人數時最後一格只佔左半邊，摘要補上右半邊把那一列填滿；
+  // 偶數人數時摘要自己佔一整列。讓最後一個人維持正常格寬，他才不會
+  // 因為右邊空著而看起來偏左——即使他的起始位置和上面那些格子一樣。
+  const summaryInLastRow = members.length % 2 === 1;
+
+  /**
+   * click 要等手指離開螢幕才觸發，所以「按下去」到「上色」之間隔著整個
+   * 按壓的時間，手感上就是延遲。改成在 pointerdown 當下就切換，瀏覽器
+   * 判定這其實是捲動手勢時會送出 pointercancel，那時再把剛才的切換收回。
+   * pressedRef 同時讓後續的 click 知道這一下已經處理過，不要切第二次；
+   * 鍵盤的 Enter／Space 沒有 pointer 事件，會正常落到 click。
+   */
+  const pressedRef = useRef<string | null>(null);
+
+  const handlePointerDown = (memberId: string) => {
+    pressedRef.current = memberId;
+    onToggle(memberId);
+  };
+
+  const handlePointerCancel = () => {
+    const memberId = pressedRef.current;
+    pressedRef.current = null;
+    if (memberId) onToggle(memberId);
+  };
+
+  const handleClick = (memberId: string) => {
+    if (pressedRef.current === memberId) {
+      pressedRef.current = null;
+      return;
+    }
+    onToggle(memberId);
+  };
+
   return (
     <div className="mb-3 overflow-hidden rounded-field border border-field-line bg-base-100">
       <div className="grid grid-cols-2">
         {members.map((m, i) => {
           const isSelected = selectedMemberIds.includes(m.memberId);
-          // 奇數人數時最後一格跨滿整列，表格才不會缺一角
-          const isWideTail =
-            i === members.length - 1 && members.length % 2 === 1;
+          // 最後一列的下面已經沒有東西了，再畫 border-b 會和容器外框疊成雙線
+          const inLastRow = summaryInLastRow && i === members.length - 1;
           return (
             <button
               key={m.memberId}
               type="button"
               aria-pressed={isSelected}
-              onClick={() => onToggle(m.memberId)}
+              onPointerDown={() => handlePointerDown(m.memberId)}
+              onPointerCancel={handlePointerCancel}
+              onClick={() => handleClick(m.memberId)}
               // 不要 transition：底色要在手指按下的當下就出現，淡入會讓人
               // 以為沒點到。touch-manipulation 拿掉行動瀏覽器的點擊延遲。
-              className={`flex min-h-12 touch-manipulation items-center gap-2 border-b border-field-line px-3 py-2 text-left active:bg-base-200/50 ${
-                isWideTail ? "col-span-2" : "border-r even:border-r-0"
-              } ${isSelected ? "bg-split-fill" : ""}`}
+              className={`flex min-h-12 touch-manipulation items-center gap-2 px-3 py-2 text-left active:bg-base-200/50 ${
+                inLastRow ? "" : "border-b border-field-line"
+              } ${i % 2 === 0 ? "border-r border-field-line" : ""} ${
+                isSelected ? "bg-split-fill" : ""
+              }`}
             >
               <div className="relative flex-shrink-0">
                 <UserAvatar
@@ -88,19 +125,34 @@ export function SplitMemberPicker({
             </button>
           );
         })}
-      </div>
 
-      <div className="flex items-center justify-between px-3 py-2 text-xs">
-        <span className="text-base-content/60">
-          {t("expense.splitSummary.count", { count: selectedCount })}
-        </span>
-        {selectedCount > 0 && perPersonAmount > 0 && (
-          <span className="font-medium text-base-content/80">
-            {t("expense.splitSummary.each", {
-              amount: perPersonAmount.toLocaleString(),
-            })}
+        {/* 摘要也是格子之一，交給 grid 自己排：奇數時它自然落在最後一列的
+            右半邊，偶數時跨滿一整列。半格放不下就換行靠右，不會撐開列高。 */}
+        <div
+          className={`flex items-center px-3 py-2 text-xs ${
+            summaryInLastRow
+              ? "flex-wrap justify-end"
+              : "col-span-2 justify-between"
+          }`}
+        >
+          <span className="text-base-content/60">
+            {t("expense.splitSummary.count", { count: selectedCount })}
           </span>
-        )}
+          {selectedCount > 0 && perPersonAmount > 0 && (
+            <span className="font-medium text-base-content/80">
+              {/* 擠在同半格時用一條分隔線斷開——人數和金額是兩件事，
+                  只隔一個空格會讀成一串。分隔線包在金額的 span 裡，
+                  半格放不下而換行時它會跟著金額一起走到第二行。
+                  偶數人數時摘要獨佔整列，左右已經拉開就不需要。 */}
+              {summaryInLastRow && (
+                <span className="mx-1.5 text-base-content/30">|</span>
+              )}
+              {t("expense.splitSummary.each", {
+                amount: perPersonAmount.toLocaleString(),
+              })}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

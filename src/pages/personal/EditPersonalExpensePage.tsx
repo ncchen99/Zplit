@@ -151,7 +151,7 @@ export function EditPersonalExpensePage() {
 
   if (loading || !expense) {
     return (
-      <div className="flex min-h-[100dvh] md:min-h-[inherit] flex-col">
+      <div className="flex min-h-full md:min-h-[inherit] flex-col">
         <PageHeader title={t("expense.edit")} onBack={() => navigate(-1)} />
         <div className="px-4 pt-4 space-y-4">
           <div className="skeleton h-12 w-full rounded-xl" />
@@ -163,7 +163,7 @@ export function EditPersonalExpensePage() {
   }
 
   return (
-    <div className="flex min-h-[100dvh] md:min-h-[inherit] flex-col">
+    <div className="flex min-h-full md:min-h-[inherit] flex-col">
       <PageHeader
         title={t("expense.edit")}
         onBack={handleBack}

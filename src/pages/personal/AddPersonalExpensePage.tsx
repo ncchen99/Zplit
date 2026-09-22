@@ -262,7 +262,7 @@ export function AddPersonalExpensePage() {
   };
 
   return (
-    <div className="flex min-h-[100dvh] md:min-h-[inherit] flex-col">
+    <div className="flex min-h-full md:min-h-[inherit] flex-col">
       <PageHeader
         title={t("personal.addExpense")}
         onBack={handleBack}
