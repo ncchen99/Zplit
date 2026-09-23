@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown as ChevronDownIcon } from "lucide-react";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 
@@ -56,6 +56,12 @@ export function ActionSheetSelect({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [open]);
 
+  // 選項多到要捲動時，打開就捲到目前選的那一個（例如已經選過的銀行）
+  const activeOptionRef = useRef<HTMLButtonElement>(null);
+  useLayoutEffect(() => {
+    if (open) activeOptionRef.current?.scrollIntoView({ block: "center" });
+  }, [open]);
+
   const handleSelect = (nextValue: string) => {
     onChange(nextValue);
     setOpen(false);
@@ -93,13 +99,17 @@ export function ActionSheetSelect({
 
       {open && (
         <div className="modal modal-open z-50">
-          <div className="modal-box w-full max-w-72 p-0 shadow-2xl rounded-2xl">
+          {/* 選項很多時（銀行清單、大群組的成員）捲的是這張卡片本身，捲軸在卡片裡。
+              手機的捲軸只在捲動時才出現，所以高度抓 7.5 列（每列 h-12）：
+              最後一列只露出一半，一看就知道下面還有 */}
+          <div className="modal-box w-full max-w-72 max-h-[min(70dvh,22.5rem)] p-0 shadow-2xl rounded-2xl">
             <div className="join join-vertical w-full overflow-hidden rounded-2xl bg-base-100">
               {options.map((option) => {
                 const isActive = option.value === value;
                 return (
                   <button
                     key={option.value}
+                    ref={isActive ? activeOptionRef : undefined}
                     type="button"
                     className={`${resolveOptionClass(isActive)} btn-block justify-start px-3`}
                     onClick={() => handleSelect(option.value)}

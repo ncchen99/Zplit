@@ -51,6 +51,20 @@ service cloud.firestore {
         && d.get('isSettlement', false) is bool;
     }
 
+    // 收款方式：銀行（3 碼代碼 + 8–16 碼純數字帳號，兩個欄位一起有或一起沒有）
+    // 和／或 LINE Pay，至少要有一種
+    function isValidPaymentAccount(d) {
+      return hasOnlyKeys(d, ['bankCode', 'accountNumber', 'linePay', 'updatedAt'])
+        && d.updatedAt is timestamp
+        && d.get('linePay', false) is bool
+        && (
+          (d.keys().hasAll(['bankCode', 'accountNumber'])
+            && d.bankCode is string && d.bankCode.matches('[0-9]{3}')
+            && d.accountNumber is string && d.accountNumber.matches('[0-9]{8,16}'))
+          || (!d.keys().hasAny(['bankCode', 'accountNumber']) && d.get('linePay', false) == true)
+        );
+    }
+
     // 自助加入時 members 只能多出「自己」這一筆，其他成員一個欄位都不能動：
     //  - 以新成員加入：append 一筆 memberId、userId 都是自己的已綁定成員
     //  - 綁定佔位成員：把一筆「未綁定」成員換成同 memberId、userId 是自己的已綁定成員
@@ -83,6 +97,14 @@ service cloud.firestore {
         && isOptionalString(request.resource.data.get('avatarUrl', null), 2048)
         && request.resource.data.get('isAnonymous', false) is bool;
       allow delete: if isOwner(userId);
+
+      // 收款帳號原始資料：users 文件任何登入者都讀得到，所以另外放在只有本人能讀的子集合
+      match /private/{docId} {
+        allow get, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+          && docId == 'payment'
+          && isValidPaymentAccount(request.resource.data);
+      }
     }
 
     // ── inviteCodes（公開查詢用，僅存 groupId）──────────────
@@ -220,6 +242,19 @@ service cloud.firestore {
             ['activityId', 'expenseId', 'actorUid', 'action', 'title', 'amount', 'description', 'timestamp', 'createdAt', 'isSettlement', 'settlementFrom', 'settlementTo']
           );
         allow update, delete: if false;
+      }
+
+      // ── payees 子集合（收款帳號副本，doc id = userId）────────
+      // 群組文件是公開讀取（邀請預覽），帳號不能放在 members 裡；這裡只有成員讀得到
+      match /payees/{userId} {
+        allow read: if isGroupMember(groupId);
+        allow create, update: if isOwner(userId)
+          && isGroupMember(groupId)
+          && isValidPaymentAccount(request.resource.data);
+        // 本人隨時可以刪；已經不在群組裡的人，由移除他的成員順手清掉
+        allow delete: if isOwner(userId)
+          || (isGroupMember(groupId)
+              && get(/databases/$(database)/documents/groups/$(groupId)).data.memberUids.get(userId, false) != true);
       }
     }
 

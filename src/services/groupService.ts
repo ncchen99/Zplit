@@ -551,6 +551,20 @@ export async function removeGroupMember(
 
   await commitWrite(updateDoc(doc(db, "groups", groupId), updateData));
 
+  // 被移出群組的人，收款帳號副本也一起清掉（要在移出之後，Rules 才允許別人刪）
+  if (updateData.memberUids && targetMember.userId) {
+    try {
+      await commitWrite(
+        deleteDoc(doc(db, "groups", groupId, "payees", targetMember.userId)),
+      );
+    } catch (err) {
+      logger.warn("groupService.removeMember", "清除收款帳號副本失敗", {
+        groupId,
+        err,
+      });
+    }
+  }
+
   logger.info("groupService.removeMember", "成員移除成功", {
     groupId,
     memberId,

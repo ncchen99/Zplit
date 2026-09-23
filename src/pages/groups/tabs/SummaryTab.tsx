@@ -4,6 +4,8 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useGroupStore } from "@/store/groupStore";
 import { computeSettlementPlan } from "@/lib/algorithm/settlement";
 import {
+  ArrowRight as ArrowRightIcon,
+  Check as CheckIcon,
   ChevronDown,
   FileText as DocumentTextIcon,
 } from "lucide-react";
@@ -158,6 +160,13 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
                 .filter((s) => s.amount > 0)
                 .map((s) => memberFullMap.get(s.memberId))
                 .filter(Boolean) as GroupMember[];
+              // 結清記錄是「付款人 → 收款人」的一筆轉帳，不是花費：
+              // 左邊換成結清按鈕的綠色勾勾（一眼看出是結清），金額也用同一個綠色；
+              // 右下角是「付款人 → 收款人」，頭貼沿用 AvatarGroup，跟一般花費同大小、同位置
+              const payee =
+                expense.isSettlement && expense.splits.length === 1
+                  ? expense.splits[0].memberId
+                  : null;
 
               return (
                 <button
@@ -171,7 +180,13 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
                     )
                   }
                 >
-                  <UserAvatar src={payerAvatar} name={payer} />
+                  {payee ? (
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+                      <CheckIcon className="h-5 w-5" />
+                    </div>
+                  ) : (
+                    <UserAvatar src={payerAvatar} name={payer} />
+                  )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1">
                       <p className="font-semibold truncate">{expense.title}</p>
@@ -190,10 +205,30 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
                     )}
                   </div>
                   <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                    <span className="font-bold text-warning">
+                    <span
+                      className={`font-bold ${payee ? "text-primary" : "text-warning"}`}
+                    >
                       NT${expense.amount.toLocaleString()}
                     </span>
-                    {splitMembers.length > 0 && (
+                    {payee ? (
+                      <span className="flex items-center">
+                        <AvatarGroup
+                          items={[
+                            { id: expense.paidBy, name: payer, avatarUrl: payerAvatar },
+                          ]}
+                        />
+                        <ArrowRightIcon className="h-3.5 w-3.5 text-base-content/40" />
+                        <AvatarGroup
+                          items={[
+                            {
+                              id: payee,
+                              name: getName(payee),
+                              avatarUrl: memberAvatarMap.get(payee) ?? null,
+                            },
+                          ]}
+                        />
+                      </span>
+                    ) : splitMembers.length > 0 && (
                       <AvatarGroup
                         items={splitMembers.map((m) => ({
                           id: m.memberId,

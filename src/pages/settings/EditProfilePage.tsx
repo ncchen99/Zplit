@@ -9,6 +9,8 @@ import { createOrUpdateUser } from "@/services/userService";
 import { linkAnonymousAccountWithGoogle } from "@/services/accountService";
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { saveMyPaymentAccount } from "@/services/paymentService";
+import { PaymentAccountSection } from "./PaymentAccountSection";
 import { logger } from "@/utils/logger";
 import {
   ArrowRightStartOnRectangleIcon,
@@ -138,6 +140,12 @@ export function EditProfilePage() {
   const handleDeleteAccount = async () => {
     if (!firebaseUser) return;
     try {
+      // 帳號刪掉之後就沒有權限再清，先把各群組裡的收款帳號收回來
+      try {
+        await saveMyPaymentAccount(firebaseUser.uid, null);
+      } catch (err) {
+        logger.warn("editProfile.deleteAccount", "清除收款帳號失敗", err);
+      }
       await deleteUser(firebaseUser);
       setShowDeleteConfirm(false);
       setDeleteText("");
@@ -206,6 +214,8 @@ export function EditProfilePage() {
             )}
           </div>
         </fieldset>
+
+        {firebaseUser && <PaymentAccountSection uid={firebaseUser.uid} />}
 
         {/* Account Actions */}
         <div className="flex flex-col gap-3 mt-2">

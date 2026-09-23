@@ -186,7 +186,19 @@
       "progressDetail": "{{completed}} done / {{total}} total",
       "settlementTitle": "Pay {{to}}",
       "settlementNote": "{{from}} settled",
-      "planChanged": "Settlements just changed. Please check again"
+      "planChanged": "Settlements just changed. Please check again",
+      "accountCopied": "Account number copied",
+      "amountCopied": "Amount copied",
+      "paidSettle": "Paid, settle",
+      "setupAccountLink": "Add a payment method",
+      "setupAccountRest": " so people can pay you directly",
+      "transferTo": "Pay {{to}}",
+      "transferFromTo": "{{from}} pays {{to}}",
+      "copyAccount": "Copy account number",
+      "copyAmount": "Copy amount",
+      "viewAccount": "View payment info",
+      "linePayAlso": "LINE Pay works too",
+      "linePayOnly": "Pay with LINE Pay"
     },
     "members": {
       "title": "Members & Activity",
@@ -352,7 +364,16 @@
     "anonymous": "Anonymous User",
     "anonymousHint": "Link Google to keep your data",
     "editProfileTitle": "Edit Profile",
-    "changeAvatar": "Tap to change photo"
+    "changeAvatar": "Tap to change photo",
+    "payment": {
+      "title": "Payment methods",
+      "bankPlaceholder": "Choose a bank",
+      "otherBank": "Other bank",
+      "bankCodePlaceholder": "3-digit bank code",
+      "accountPlaceholder": "Account number (digits only)",
+      "incomplete": "Saves when complete",
+      "linePay": "Accept LINE Pay"
+    }
   },
   "pwa": {
     "install": {

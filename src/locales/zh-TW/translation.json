@@ -186,7 +186,19 @@
       "progressDetail": "{{completed}} 筆完成 / 共 {{total}} 筆",
       "settlementTitle": "支付 {{to}}",
       "settlementNote": "{{from}} 結算",
-      "planChanged": "結算金額剛剛有更新，請再確認一次"
+      "planChanged": "結算金額剛剛有更新，請再確認一次",
+      "accountCopied": "已複製帳號",
+      "amountCopied": "已複製金額",
+      "paidSettle": "已轉帳，結清",
+      "setupAccountLink": "設定收款方式",
+      "setupAccountRest": "，大家就能直接轉給你",
+      "transferTo": "轉帳給 {{to}}",
+      "transferFromTo": "{{from}} 轉帳給 {{to}}",
+      "copyAccount": "複製帳號",
+      "copyAmount": "複製金額",
+      "viewAccount": "查看收款方式",
+      "linePayAlso": "也可以用 LINE Pay 轉帳",
+      "linePayOnly": "用 LINE Pay 轉帳"
     },
     "members": {
       "title": "成員與動態",
@@ -352,7 +364,16 @@
     "anonymous": "匿名使用者",
     "anonymousHint": "綁定 Google 可保留所有資料",
     "editProfileTitle": "編輯個人資料",
-    "changeAvatar": "點擊更換照片"
+    "changeAvatar": "點擊更換照片",
+    "payment": {
+      "title": "收款方式",
+      "bankPlaceholder": "選擇銀行",
+      "otherBank": "其他銀行",
+      "bankCodePlaceholder": "銀行代碼（3 碼）",
+      "accountPlaceholder": "帳號（只填數字）",
+      "incomplete": "填完會自動儲存",
+      "linePay": "可以收 LINE Pay"
+    }
   },
   "pwa": {
     "install": {

@@ -17,6 +17,7 @@ import {
 } from "@/store/groupStore";
 import { useAuthStore } from "@/store/authStore";
 import { useUIStore } from "@/store/uiStore";
+import { syncMyPayee } from "@/services/paymentService";
 import { logger } from "@/utils/logger";
 import { SummaryTab } from "./tabs/SummaryTab";
 import { SettleTab } from "./tabs/SettleTab";
@@ -202,6 +203,12 @@ export function GroupDetailPage() {
     if (!group || !isSynced || isMember || isInvitedPreview) return;
     navigate(authStatus === "ready" ? "/home" : "/login", { replace: true });
   }, [authStatus, group, isInvitedPreview, isMember, isSynced, navigate]);
+
+  // 設定收款帳號之後才加入的群組，或上次沒同步成功的，打開時補上副本
+  useEffect(() => {
+    if (!groupId || !user || !isSynced || !isMember) return;
+    void syncMyPayee(groupId, user.uid);
+  }, [groupId, isMember, isSynced, user]);
 
   /** 預覽者要新增／編輯時，先登入或註冊，完成後回到加入群組流程綁定成員 */
   const requireAuth = () => {
