@@ -467,8 +467,7 @@ function TransferModal({
             {t("common.button.close")}
           </button>
           {onSettle && (
-            <button className="btn-theme-green gap-1" onClick={onSettle}>
-              <CheckIcon className="h-4 w-4" />
+            <button className="btn-theme-green" onClick={onSettle}>
               {t("group.settle.paidSettle")}
             </button>
           )}
