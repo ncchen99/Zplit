@@ -25,6 +25,7 @@ import { UserAvatar } from "@/components/ui/UserAvatar";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { ActionSheetSelect } from "@/components/ui/ActionSheetSelect";
 import { SplitMemberPicker } from "./SplitMemberPicker";
+import { useGroupMemberGuard } from "./groupAccess";
 import {
   Check as CheckIcon,
   Trash2 as TrashIcon,
@@ -95,6 +96,7 @@ export function EditExpensePage() {
   }, [groupId, needsFetch, setCurrentGroup, setExpenses]);
 
   const currentGroup = storeGroup?.groupId === groupId ? storeGroup : null;
+  const isMember = useGroupMemberGuard(groupId, currentGroup);
   const expense = storeExpenses.find((e) => e.expenseId === expenseId);
 
   const [title, setTitle] = useState("");
@@ -295,7 +297,8 @@ export function EditExpensePage() {
     }
   };
 
-  if (loading || !expense) {
+  // 還在確認成員身份時也維持骨架，不讓非成員看到表單
+  if (loading || !expense || !isMember) {
     return (
       <div className="flex min-h-full md:min-h-[inherit] flex-col">
         <PageHeader title={t("expense.edit")} onBack={() => navigate(-1)} />

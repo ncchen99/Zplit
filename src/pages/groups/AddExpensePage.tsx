@@ -18,6 +18,7 @@ import { PageHeader, HeaderIconButton } from "@/components/ui/PageHeader";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { ActionSheetSelect } from "@/components/ui/ActionSheetSelect";
 import { SplitMemberPicker } from "./SplitMemberPicker";
+import { useGroupMemberGuard } from "./groupAccess";
 import {
   Check as CheckIcon,
   CircleCheck as CheckCircleIcon,
@@ -55,7 +56,10 @@ export function AddExpensePage() {
   const [saving, setSaving] = useState(false);
   const [showDiscardModal, setShowDiscardModal] = useState(false);
 
-  const members = useMemo(() => currentGroup?.members ?? [], [currentGroup]);
+  // 只採用網址上這個群組的資料，不然 store 裡上一個群組的成員會被拿來初始化分帳對象
+  const group = currentGroup?.groupId === groupId ? currentGroup : null;
+  const isMember = useGroupMemberGuard(groupId, group);
+  const members = useMemo(() => group?.members ?? [], [group]);
 
   // 自己永遠排在分帳對象的第一個：幾乎每一筆帳都要判斷「我在不在裡面」，
   // 固定在第一格就不用每次重新找
@@ -205,6 +209,21 @@ export function AddExpensePage() {
     e.preventDefault();
     await submitExpense();
   };
+
+  // 群組還沒載入，或還在確認成員身份：先顯示骨架，不讓非成員看到表單
+  if (!isMember) {
+    return (
+      <div className="flex min-h-full md:min-h-[inherit] flex-col">
+        <PageHeader title={t("expense.add")} onBack={() => navigate(-1)} />
+        <div className="px-4 pt-4 space-y-4">
+          <div className="skeleton h-12 w-full rounded-xl" />
+          <div className="skeleton h-12 w-full rounded-xl" />
+          <div className="skeleton h-12 w-full rounded-xl" />
+          <div className="skeleton h-12 w-full rounded-xl" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-full md:min-h-[inherit] flex-col">
