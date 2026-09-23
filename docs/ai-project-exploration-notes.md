@@ -194,12 +194,13 @@ interface GroupStore {
 
 **邀請預覽（唯讀）**：`/groups/:groupId?invite=<邀請碼>` 讓非成員（含未登入）唯讀瀏覽群組。
 - `AuthGuard` 只在網址帶 `invite` 且路徑符合 `/groups/:id` 或 `/groups/:id/expenses/:eid` 時放行。
-- `GroupDetailPage` 比對 `group.inviteCode`，不符就導走；成員判定用 `memberUids[uid]`。
+- `GroupDetailPage` 比對 `group.inviteCode`，不符就導走；成員判定用 `memberUids[uid]`。「不是成員就導走」要等這次掛載的 onSnapshot 回報過（`syncedGroupId`）才判斷：groupStore 離開頁面後仍保留群組資料，加入前預覽留下的舊 `memberUids` 會讓剛加入的人被踢回首頁，直到重新整理。同步前的舊快照只在「是成員」或「網址帶相符邀請碼」時先拿來畫畫面，其餘顯示骨架（避免剛加入時閃一下預覽模式）；監聽到群組文件不存在（已刪除）就清掉 store 並回首頁。
 - 權限透過 `src/pages/groups/groupAccess.ts` 的 `GroupAccessProvider` / `useGroupAccess()` 傳給各 tab：`canEdit` 為 false 時隱藏所有新增／編輯入口，設定分頁整個不顯示，`requireAuth()` 會導到登入／註冊，完成後回 `/join/<code>` 綁定成員。
 - `JoinPage` 刻意只給一個動作，不讓人在邀請頁上做選擇：未登入只顯示「直接進去看紀錄」（沒有登入按鈕、沒有說明文字），已登入但還不是成員則直接進選身份（會走到這裡的人本來就是要加入，不必再問一次），已是成員則顯示前往群組。選身份頁沿用固定標頭 + `ScrollArea` 的模式，返回鍵回到唯讀預覽。原本的兩點進度條已移除——流程只剩一步，留著會變成永遠停在同一格的假進度。
 - 預覽狀態不另外佔一條橫幅：群組頁 header 副標題是「N 位成員」＋一顆黃色扁平 badge「預覽中」（`border-warning/30 bg-warning/10 text-warning`，無陰影），底部 FAB 顯示「登入以新增」，帳務詳情頁的鉛筆鍵維持可按、按了跳 toast 提示登入（`group.preview.badge` / `joinToEdit` / `editHint`）。
 
 **Toast（`src/components/ui/ToastProvider.tsx` + `.toast-in-frame`）**：手機優先，固定在畫面正下方置中、由下往上滑入。bottom 取 `env(safe-area-inset-bottom) + 5.5rem`，才會高過底部導覽列（4rem）與群組頁 FAB（1.5rem + 2.75rem）；md+ 沿用 `.fab-in-frame` 的算式貼齊手機框底部。z-index 60（要高過 z-50 的 FAB，因為 ToastProvider 在 App 裡渲染得比路由早）。樣式扁平化：`.toast-soft` 不帶陰影，只用同色系底色（14%）＋稍深邊框（32%）與內容分層。
+- Firestore Rules 自助加入（非成員把自己加進 `memberUids`）由 `isValidSelfJoin` 把關：`members` 前後用 `removeAll` 取差異，只允許「append 一筆 memberId=自己的已綁定成員」或「把一筆未綁定成員換成同 memberId、userId=自己」，`memberNameMap` 也只能動那一筆。改 `bindMemberToUser` / `addMemberToGroup` 的寫入內容時要一起對照。
 - Firestore Rules：`groups/{id}/expenses` 與 `settlements` 的 read 已開放（知道 groupId 即視為持有邀請），`activity` 仍僅成員可讀，因此預覽模式不訂閱 activity。
 
 ---

@@ -50,6 +50,26 @@ service cloud.firestore {
         && d.get('editLog', []) is list && d.get('editLog', []).size() <= 500;
     }
 
+    // 自助加入時 members 只能多出「自己」這一筆，其他成員一個欄位都不能動：
+    //  - 以新成員加入：append 一筆 memberId、userId 都是自己的已綁定成員
+    //  - 綁定佔位成員：把一筆「未綁定」成員換成同 memberId、userId 是自己的已綁定成員
+    // 用 removeAll 取出前後差異（整筆物件比對），被改過的成員會同時出現在 added 與 removed
+    function isValidSelfJoin(before, after) {
+      let added = after.members.removeAll(before.members);
+      let removed = before.members.removeAll(after.members);
+      return added.size() == 1
+        && added[0].userId == request.auth.uid
+        && added[0].isBound == true
+        && (
+          (removed.size() == 0 && added[0].memberId == request.auth.uid)
+          || (removed.size() == 1
+              && removed[0].get('isBound', false) == false
+              && removed[0].memberId == added[0].memberId)
+        )
+        // 名稱索引也只能動到自己那一筆
+        && after.get('memberNameMap', {}).diff(before.get('memberNameMap', {})).affectedKeys().hasOnly([added[0].memberId]);
+    }
+
     // ── users ──────────────────────────────────────────────
     match /users/{userId} {
       // 已登入的使用者可查看其他人（顯示頭像、名稱用）
@@ -143,10 +163,8 @@ service cloud.firestore {
         )
         // 加入者只能把「自己」加進 memberUids，不能移除或新增其他人
         && request.resource.data.memberUids.diff(resource.data.memberUids).affectedKeys().hasOnly([request.auth.uid])
-        // 只能新增或綁定一位成員（自己），不能刪除既有成員
-        && request.resource.data.get('memberNameMap', {}).diff(resource.data.get('memberNameMap', {})).affectedKeys().size() <= 1
-        && request.resource.data.members.size() >= resource.data.members.size()
-        && request.resource.data.members.size() <= resource.data.members.size() + 1
+        // 只能新增或綁定一位成員（自己），不能刪除、改名或搶走其他成員
+        && isValidSelfJoin(resource.data, request.resource.data)
       );
 
       // 僅允許群組建立者刪除群組
