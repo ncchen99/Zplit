@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useEffectEvent, useMemo, useState } from "react";
 import { useParams, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -68,11 +68,26 @@ export function GroupDetailPage() {
   );
   const setUnsubscribeGroup = useGroupStore((s) => s.setUnsubscribeGroup);
 
+  // 這次掛載後監聽器實際回報過的群組。store 離開頁面後仍保留資料（給子頁面用），
+  // 所以 store 裡的群組可能是上一次留下的快照，例如加入前的唯讀預覽（memberUids 還沒有自己）
+  const [syncedGroupId, setSyncedGroupId] = useState<string | null>(null);
+  const isSynced = syncedGroupId === groupId;
+
   // 只有 store 裡的群組確實是網址上的這一個時才採用，避免沿用上一個群組的殘留資料
-  const group = currentGroup?.groupId === groupId ? currentGroup : null;
-  const isMember = !!user && group?.memberUids?.[user.uid] === true;
+  const storeGroup = currentGroup?.groupId === groupId ? currentGroup : null;
+  const isMemberOf = (g: Group | null) =>
+    !!user && g?.memberUids?.[user.uid] === true;
   // 非成員唯讀預覽：必須帶著與群組相符的邀請碼
-  const isInvitedPreview = !!inviteCode && group?.inviteCode === inviteCode;
+  const isInvitedPreviewOf = (g: Group | null) =>
+    !!inviteCode && g?.inviteCode === inviteCode;
+  // 還沒同步前，舊快照只有在「是成員」或「本來就是預覽」時才拿來先畫畫面；
+  // 否則顯示骨架，不讓剛加入的人先看到一瞬間的預覽模式
+  const group =
+    isSynced || isMemberOf(storeGroup) || isInvitedPreviewOf(storeGroup)
+      ? storeGroup
+      : null;
+  const isMember = isMemberOf(group);
+  const isInvitedPreview = isInvitedPreviewOf(group);
   const canEdit = isMember;
 
   const tabs = useMemo(() => {
@@ -106,6 +121,10 @@ export function GroupDetailPage() {
     setSearchParams(next, { replace: true });
   };
 
+  const leaveMissingGroup = useEffectEvent(() => {
+    navigate(authStatus === "ready" ? "/home" : "/login", { replace: true });
+  });
+
   useEffect(() => {
     if (!groupId) return;
 
@@ -120,7 +139,13 @@ export function GroupDetailPage() {
       (snap) => {
         if (snap.exists()) {
           setCurrentGroup({ groupId: snap.id, ...snap.data() } as Group);
+          setSyncedGroupId(snap.id);
+          return;
         }
+        // 群組已被刪除：清掉殘留的舊資料並離開，否則會一直顯示刪除前的內容。
+        // 線上時快取沒有的文件會等伺服器回覆才觸發，所以這裡不會誤判
+        clearCurrentGroup();
+        leaveMissingGroup();
       },
       (err) => logger.error("group.subscribe", "群組監聽失敗", err),
     );
@@ -171,11 +196,12 @@ export function GroupDetailPage() {
     unsubscribeListeners,
   ]);
 
-  // 既不是成員、邀請碼也對不上：不該看到這個群組
+  // 既不是成員、邀請碼也對不上：不該看到這個群組。
+  // 要等監聽器回報最新的群組資料才判斷，否則剛加入的人會被殘留的預覽資料踢回首頁
   useEffect(() => {
-    if (!group || isMember || isInvitedPreview) return;
+    if (!group || !isSynced || isMember || isInvitedPreview) return;
     navigate(authStatus === "ready" ? "/home" : "/login", { replace: true });
-  }, [authStatus, group, isInvitedPreview, isMember, navigate]);
+  }, [authStatus, group, isInvitedPreview, isMember, isSynced, navigate]);
 
   /** 預覽者要新增／編輯時，先登入或註冊，完成後回到加入群組流程綁定成員 */
   const requireAuth = () => {
