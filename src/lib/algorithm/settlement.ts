@@ -49,6 +49,16 @@ export function computeBalances(
 }
 
 /**
+ * 還有未結清款項的成員（淨額不為 0）。結清也記成帳務，
+ * 所以只要看帳務算出的淨額，與結算分頁顯示的內容一致。
+ */
+export function getUnsettledMemberIds(
+  expenses: Parameters<typeof computeBalances>[0],
+): Set<string> {
+  return new Set(computeBalances(expenses).map((b) => b.memberId));
+}
+
+/**
  * Greedy minimum transactions algorithm.
  * Takes net balances and returns the minimal set of transfers.
  */

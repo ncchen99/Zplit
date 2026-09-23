@@ -10,6 +10,7 @@ import {
 } from "@/services/groupService";
 import type { Group, GroupMember } from "@/store/groupStore";
 import { logger } from "@/utils/logger";
+import { ZplitError } from "@/utils/errors";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { JoinSkeleton } from "@/components/ui/PageSkeleton";
 import { ScrollArea } from "@/components/ui/ScrollArea";
@@ -81,6 +82,17 @@ export function JoinPage() {
       showToast(t("join.joined"), "success");
       navigate(`/groups/${group.groupId}`, { replace: true });
     } catch (err) {
+      if (
+        err instanceof ZplitError &&
+        err.code === "GROUP_MEMBER_ALREADY_BOUND"
+      ) {
+        // 畫面上的成員列表已過期：重新載入，讓已被綁走的人顯示成「已綁定」
+        showToast(t("join.memberTaken"), "warning");
+        getGroupByInviteCode(group.inviteCode)
+          .then((fresh) => fresh && setGroup(fresh))
+          .catch((e) => logger.error("join.reload", "重新載入群組失敗", e));
+        return;
+      }
       logger.error("join", "加入群組失敗", err);
       showToast(t("common.error"), "error");
     } finally {

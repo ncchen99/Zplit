@@ -312,6 +312,7 @@
     "alreadyMember": "你已是此群組的成員",
     "goToGroup": "前往群組",
     "joined": "已成功加入群組！",
+    "memberTaken": "這個身份剛被其他人連結了，請重新選擇",
     "invalidLink": "此邀請連結已失效或群組不存在",
     "backToHome": "返回首頁",
     "previewGroup": "直接進去看紀錄"

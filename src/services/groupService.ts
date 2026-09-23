@@ -3,23 +3,26 @@ import {
   collection,
   setDoc,
   getDoc,
-  getDocs,
   query,
   where,
   serverTimestamp,
   updateDoc,
   arrayUnion,
   deleteDoc,
+  runTransaction,
+  FirestoreError,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { commitWrite } from "@/lib/firestoreWrite";
 import { readDoc, readDocs, type ReadSource } from "@/lib/firestoreRead";
 import { nanoid } from "nanoid";
-import type { Group, GroupMember, Settlement } from "@/store/groupStore";
+import type { Group, GroupMember } from "@/store/groupStore";
 import {
   ensureContact,
   syncPersonalContactNameByReference,
 } from "@/services/personalLedgerService";
+import { getGroupExpenses } from "@/services/expenseService";
+import { getUnsettledMemberIds } from "@/lib/algorithm/settlement";
 import { logger } from "@/utils/logger";
 import { ZplitError } from "@/utils/errors";
 
@@ -144,30 +147,52 @@ export async function backfillInviteCodes(groups: Group[]): Promise<void> {
   );
 }
 
+/**
+ * 加入群組的寫入（members 是整個陣列覆寫）。兩人同時加入時，後寫的一方沿用了
+ * 舊的 members，Rules 會直接以 permission-denied 拒絕——這發生在 transaction 的
+ * 衝突偵測之前，SDK 不會自動重試，所以這裡自己用最新資料重跑。
+ * 真的沒有權限時重跑結果一樣，最多多花兩次往返。
+ */
+async function retryJoinWrite(run: () => Promise<void>): Promise<void> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await run();
+    } catch (err) {
+      const retryable =
+        err instanceof FirestoreError && err.code === "permission-denied";
+      if (!retryable || attempt >= 2) throw err;
+    }
+  }
+}
+
 export async function addMemberToGroup(
   groupId: string,
   member: GroupMember,
 ): Promise<void> {
   const ref = doc(db, "groups", groupId);
-  const group = await getGroupById(groupId);
-  if (!group) throw new ZplitError("GROUP_NOT_FOUND", "群組不存在");
+  // 在 transaction 裡讀寫，每次重跑都拿最新的 members
+  await retryJoinWrite(() => runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists()) throw new ZplitError("GROUP_NOT_FOUND", "群組不存在");
+    const group = { groupId: snap.id, ...snap.data() } as Group;
 
-  const alreadyExists = group.members.some((m) => m.memberId === member.memberId);
-  const nextMembers = alreadyExists ? group.members : [...group.members, member];
-  const nextMemberNameMap = {
-    ...(group.memberNameMap ?? {}),
-    [member.memberId]: member.displayName,
-  };
-  const nextMemberUids = { ...(group.memberUids ?? {}) };
-  if (member.isBound && member.userId) {
-    nextMemberUids[member.userId] = true;
-  }
+    const alreadyExists = group.members.some((m) => m.memberId === member.memberId);
+    const nextMembers = alreadyExists ? group.members : [...group.members, member];
+    const nextMemberNameMap = {
+      ...(group.memberNameMap ?? {}),
+      [member.memberId]: member.displayName,
+    };
+    const nextMemberUids = { ...(group.memberUids ?? {}) };
+    if (member.isBound && member.userId) {
+      nextMemberUids[member.userId] = true;
+    }
 
-  await commitWrite(updateDoc(ref, {
-    members: nextMembers,
-    memberNameMap: nextMemberNameMap,
-    memberUids: nextMemberUids,
-    updatedAt: serverTimestamp(),
+    tx.update(ref, {
+      members: nextMembers,
+      memberNameMap: nextMemberNameMap,
+      memberUids: nextMemberUids,
+      updatedAt: serverTimestamp(),
+    });
   }));
   logger.info("groupService.addMember", "成員加入群組", {
     groupId,
@@ -253,30 +278,39 @@ export async function bindMemberToUser(
   displayName: string,
   avatarUrl: string | null,
 ): Promise<void> {
-  const group = await getGroupById(groupId);
-  if (!group) throw new ZplitError("GROUP_NOT_FOUND", "群組不存在");
+  const ref = doc(db, "groups", groupId);
+  // 在 transaction 裡讀寫，每次重跑都拿最新的 members（理由同 addMemberToGroup）
+  await retryJoinWrite(() => runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists()) throw new ZplitError("GROUP_NOT_FOUND", "群組不存在");
+    const group = { groupId: snap.id, ...snap.data() } as Group;
 
-  const updatedMembers = group.members.map((m) =>
-    m.memberId === memberId
-      ? { ...m, userId, displayName, avatarUrl, isBound: true }
-      : m,
-  );
+    // 選身份的畫面不是即時的：打開之後別人可能已經綁走同一個成員
+    const target = group.members.find((m) => m.memberId === memberId);
+    if (!target) throw new ZplitError("GROUP_NOT_FOUND", "成員不存在");
+    if (target.isBound) {
+      throw new ZplitError("GROUP_MEMBER_ALREADY_BOUND", "此成員已被其他帳號綁定");
+    }
 
-  const nextMemberNameMap = {
-    ...(group.memberNameMap ?? {}),
-    [memberId]: displayName,
-  };
-  const nextMemberUids = {
-    ...(group.memberUids ?? {}),
-    [userId]: true as const,
-  };
+    const updatedMembers = group.members.map((m) =>
+      m.memberId === memberId
+        ? { ...m, userId, displayName, avatarUrl, isBound: true }
+        : m,
+    );
 
-  await commitWrite(updateDoc(doc(db, "groups", groupId), {
-    members: updatedMembers,
-    memberNameMap: nextMemberNameMap,
-    // 同步更新 memberUids，讓 Security Rules 可以驗證此使用者的成員身份
-    memberUids: nextMemberUids,
-    updatedAt: serverTimestamp(),
+    tx.update(ref, {
+      members: updatedMembers,
+      memberNameMap: {
+        ...(group.memberNameMap ?? {}),
+        [memberId]: displayName,
+      },
+      // 同步更新 memberUids，讓 Security Rules 可以驗證此使用者的成員身份
+      memberUids: {
+        ...(group.memberUids ?? {}),
+        [userId]: true as const,
+      },
+      updatedAt: serverTimestamp(),
+    });
   }));
 
   logger.info("groupService.bindMember", "成員帳號綁定成功", {
@@ -481,19 +515,10 @@ export async function removeGroupMember(
     throw new ZplitError("GROUP_NOT_FOUND", "成員不存在");
   }
 
-  const settlementsSnap = await getDocs(
-    collection(db, `groups/${groupId}/settlements`),
-  );
-  const hasPendingSettlements = settlementsSnap.docs.some((docSnap) => {
-    const settlement = docSnap.data() as Settlement;
-    return (
-      !settlement.completed &&
-      settlement.amount > 0 &&
-      (settlement.from === memberId || settlement.to === memberId)
-    );
-  });
-
-  if (hasPendingSettlements) {
+  // 結清也記成帳務，淨額不為 0 就是還有未結清款項（與結算分頁看到的一致）。
+  // 不能只靠畫面擋：畫面上的帳務可能還沒同步到最新
+  const expenses = await getGroupExpenses(groupId);
+  if (getUnsettledMemberIds(expenses).has(memberId)) {
     throw new ZplitError(
       "GROUP_MEMBER_HAS_PENDING_SETTLEMENTS",
       "成員尚有未結清款項，無法移除",
@@ -504,7 +529,12 @@ export async function removeGroupMember(
 
   const updateData: Record<string, unknown> = {
     members: updatedMembers,
-    memberNameMap: buildMemberNameMap(updatedMembers),
+    // 保留被移除成員的名稱：過去的帳務仍然引用這個 memberId，
+    // 帳務明細、動態都靠 memberNameMap 顯示已不在群組裡的人
+    memberNameMap: {
+      ...buildMemberNameMap(group.members),
+      ...(group.memberNameMap ?? {}),
+    },
     updatedAt: serverTimestamp(),
   };
 

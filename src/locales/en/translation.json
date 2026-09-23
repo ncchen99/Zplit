@@ -312,6 +312,7 @@
     "alreadyMember": "You're already a member of this group",
     "goToGroup": "Go to Group",
     "joined": "Successfully joined!",
+    "memberTaken": "Someone just linked this member. Please pick again.",
     "invalidLink": "This invite link is invalid or the group doesn't exist",
     "backToHome": "Back to Home",
     "previewGroup": "Browse the records first"

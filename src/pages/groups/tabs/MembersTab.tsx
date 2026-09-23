@@ -20,6 +20,7 @@ import { ActionSheet } from "@/components/ui/ActionSheet";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { removeGroupMember, renameGroupMember } from "@/services/groupService";
 import { ZplitError } from "@/utils/errors";
+import { getUnsettledMemberIds } from "@/lib/algorithm/settlement";
 import { useGroupAccess } from "../groupAccess";
 
 interface ActivityItem {
@@ -48,7 +49,6 @@ export function MembersTab() {
   const navigate = useNavigate();
   const currentGroup = useGroupStore((s) => s.currentGroup);
   const expenses = useGroupStore((s) => s.expenses);
-  const settlements = useGroupStore((s) => s.settlements);
   const user = useAuthStore((s) => s.user);
   const showToast = useUIStore((s) => s.showToast);
   const { canEdit } = useGroupAccess();
@@ -256,15 +256,11 @@ export function MembersTab() {
     [currentGroup?.members],
   );
 
-  const unsettledCountByMember = useMemo(() => {
-    const map = new Map<string, number>();
-    settlements.forEach((settlement) => {
-      if (settlement.completed || settlement.amount <= 0) return;
-      map.set(settlement.from, (map.get(settlement.from) ?? 0) + 1);
-      map.set(settlement.to, (map.get(settlement.to) ?? 0) + 1);
-    });
-    return map;
-  }, [settlements]);
+  // 結清也記成帳務，看帳務算出的淨額才準（舊的 settlements 集合已不再寫入）
+  const unsettledMemberIds = useMemo(
+    () => getUnsettledMemberIds(expenses),
+    [expenses],
+  );
 
   const formatActivityText = (log: ActivityItem): string => {
     if (log.isSettlement) {
@@ -302,9 +298,8 @@ export function MembersTab() {
 
   const isCreatorMember =
     !!selectedMember && selectedMember.userId === currentGroup?.createdBy;
-  const selectedMemberUnsettledCount = selectedMember
-    ? (unsettledCountByMember.get(selectedMember.memberId) ?? 0)
-    : 0;
+  const selectedMemberUnsettled =
+    !!selectedMember && unsettledMemberIds.has(selectedMember.memberId);
   const canRenameSelected = !!selectedMember && !selectedMember.isBound;
   const canOpenRemoveAction = !!selectedMember && !isCreatorMember;
 
@@ -346,7 +341,7 @@ export function MembersTab() {
   const handleOpenDeleteModal = () => {
     if (!selectedMember || !canOpenRemoveAction) return;
     setShowMemberActionSheet(false);
-    if (selectedMemberUnsettledCount > 0) {
+    if (selectedMemberUnsettled) {
       setShowRemoveBlockedModal(true);
       return;
     }
