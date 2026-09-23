@@ -194,6 +194,7 @@ interface GroupStore {
 
 **邀請預覽（唯讀）**：`/groups/:groupId?invite=<邀請碼>` 讓非成員（含未登入）唯讀瀏覽群組。
 - 新增／編輯帳務頁用 `useGroupMemberGuard`（`groupAccess.ts`）：非成員只看到骨架，store 的舊快照說「不是成員」時先向伺服器確認再導回首頁。
+- **結算建議要穩定（`computeSettlementPlan`，`src/lib/algorithm/settlement.ts`）**：結算分頁與總覽的 treemap 都用它，不要再直接對淨額跑 `computeSettlements`。貪婪配對只看金額排序，有人結清一筆後重算會整張表重新配對（2026-09-23「湖水不能喝」：育辰結清 Neo 後，其他人的列全換了）。做法是依 `createdAt` 重播帳務：一般帳務只累積淨額；結清（帳務文件上 `isSettlement: true`，單一分帳對象）直接扣掉對應那一列，其他列不動；付超過或重複結清改成收款人退回的一列（不會繞成圈、也不比重新調整多筆時才用），否則保留原列補差額（`adjustPlan`）；結清到一半才記的新帳也走 `adjustPlan`。沒有任何結清的群組，結果與直接跑 `computeSettlements` 相同。`isSettlement` 必須寫在 expense 文件上（Rules 的 `hasOnlyKeys` 已允許），2026-09-23 前建立的結清只有 activity 帶旗標，需要回填。SettleTab 按確認時會用 store 最新帳務再算一次，建議變了就提示重看、不寫入。
 - 移除成員的「未結清」判斷一律看帳務算出的淨額（`getUnsettledMemberIds`，結清也記成帳務），MembersTab 與 `removeGroupMember` 都用它；舊的 settlements 集合已不參與判斷。移除時保留該成員在 `memberNameMap` 的名稱，過去的帳務才顯示得出來。
 - `AuthGuard` 只在網址帶 `invite` 且路徑符合 `/groups/:id` 或 `/groups/:id/expenses/:eid` 時放行。
 - `GroupDetailPage` 比對 `group.inviteCode`，不符就導走；成員判定用 `memberUids[uid]`。「不是成員就導走」要等這次掛載的 onSnapshot 回報過（`syncedGroupId`）才判斷：groupStore 離開頁面後仍保留群組資料，加入前預覽留下的舊 `memberUids` 會讓剛加入的人被踢回首頁，直到重新整理。同步前的舊快照只在「是成員」或「網址帶相符邀請碼」時先拿來畫畫面，其餘顯示骨架（避免剛加入時閃一下預覽模式）；監聽到群組文件不存在（已刪除）就清掉 store 並回首頁。

@@ -47,7 +47,8 @@ service cloud.firestore {
         && d.date is timestamp
         && isOptionalString(d.get('description', null), 2000)
         && isOptionalString(d.get('imageUrl', null), 2048)
-        && d.get('editLog', []) is list && d.get('editLog', []).size() <= 500;
+        && d.get('editLog', []) is list && d.get('editLog', []).size() <= 500
+        && d.get('isSettlement', false) is bool;
     }
 
     // 自助加入時 members 只能多出「自己」這一筆，其他成員一個欄位都不能動：
@@ -182,7 +183,7 @@ service cloud.firestore {
           && isValidExpense(request.resource.data)
           && hasOnlyKeys(
             request.resource.data,
-            ['title', 'amount', 'paidBy', 'splitMode', 'splits', 'description', 'imageUrl', 'date', 'createdBy', 'repeat', 'expenseId', 'editLog', 'createdAt', 'updatedAt']
+            ['title', 'amount', 'paidBy', 'splitMode', 'splits', 'description', 'imageUrl', 'date', 'createdBy', 'repeat', 'expenseId', 'editLog', 'isSettlement', 'createdAt', 'updatedAt']
           );
         allow update: if isGroupMember(groupId)
           // 建立者與建立時間不可被竄改
@@ -192,7 +193,7 @@ service cloud.firestore {
           && isValidExpense(request.resource.data)
           && hasOnlyKeys(
             request.resource.data,
-            ['title', 'amount', 'paidBy', 'splitMode', 'splits', 'description', 'imageUrl', 'date', 'createdBy', 'repeat', 'expenseId', 'editLog', 'createdAt', 'updatedAt']
+            ['title', 'amount', 'paidBy', 'splitMode', 'splits', 'description', 'imageUrl', 'date', 'createdBy', 'repeat', 'expenseId', 'editLog', 'isSettlement', 'createdAt', 'updatedAt']
           );
         allow delete: if isGroupMember(groupId);
       }

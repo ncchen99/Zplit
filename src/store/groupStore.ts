@@ -60,6 +60,8 @@ export interface Expense {
   date: Timestamp;
   createdBy: string;
   editLog: EditLogEntry[];
+  /** 結算分頁「結清」建立的付款記錄 */
+  isSettlement?: boolean;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }

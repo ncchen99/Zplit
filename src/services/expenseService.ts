@@ -120,6 +120,8 @@ export async function addExpense(
       editLog,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
+      // 結算建議靠這個旗標把結清記錄從對應的那一列扣掉（computeSettlementPlan）
+      ...(data.isSettlement && { isSettlement: true }),
     });
     batch.set(activityRef, {
       activityId: activityRef.id,

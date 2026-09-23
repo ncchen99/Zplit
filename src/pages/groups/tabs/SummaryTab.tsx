@@ -2,10 +2,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useGroupStore } from "@/store/groupStore";
-import {
-  computeBalances,
-  computeSettlements,
-} from "@/lib/algorithm/settlement";
+import { computeSettlementPlan } from "@/lib/algorithm/settlement";
 import {
   ChevronDown,
   FileText as DocumentTextIcon,
@@ -56,13 +53,11 @@ export function SummaryTab({ onNavigateSettle }: SummaryTabProps) {
     return map;
   }, [currentGroup]);
 
-  // Build DebtEntry[] for treemap — only negative balances (debtors).
-  // Settlement expenses are already included in the expenses array, so
-  // computeBalances naturally reflects the remaining debts.
+  // Build DebtEntry[] for treemap — 與結算分頁同一份建議，按付款人加總，
+  // 點進去看到的列才對得上
   const treemapData: DebtEntry[] = useMemo(() => {
     if (!expenses.length) return [];
-    const balances = computeBalances(expenses);
-    const debts = computeSettlements(balances);
+    const debts = computeSettlementPlan(expenses);
 
     // Aggregate per debtor (from)
     const debtorMap = new Map<string, number>();

@@ -185,7 +185,8 @@
       "progress": "結算進度",
       "progressDetail": "{{completed}} 筆完成 / 共 {{total}} 筆",
       "settlementTitle": "支付 {{to}}",
-      "settlementNote": "{{from}} 結算"
+      "settlementNote": "{{from}} 結算",
+      "planChanged": "結算金額剛剛有更新，請再確認一次"
     },
     "members": {
       "title": "成員與動態",

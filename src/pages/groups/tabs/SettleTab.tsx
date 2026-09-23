@@ -2,8 +2,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useGroupStore } from "@/store/groupStore";
 import {
-  computeBalances,
-  computeSettlements,
+  computeSettlementPlan,
   type SettlementResult,
 } from "@/lib/algorithm/settlement";
 import { addExpense } from "@/services/expenseService";
@@ -53,8 +52,8 @@ export function SettleTab() {
     null;
 
   /**
-   * 剩餘待結清債務：直接從帳款（含已建立的結算帳款）計算。
-   * 結算動作會建立一筆抵銷帳款，使餘額歸零，此處自動反映最新狀態。
+   * 剩餘待結清債務：從帳款（含已建立的結算帳款）算出的結算建議。
+   * 結清只會拿掉對應的那一列，其他人的列不會因此重新配對（見 computeSettlementPlan）。
    *
    * 排序把跟自己有關的提到最前面（先「我要付」再「要付給我」），其餘維持原順序。
    * 只動順序、不加「你」之類的個人化標籤——這一頁常常被整張截圖丟進群組，
@@ -62,7 +61,7 @@ export function SettleTab() {
    */
   const remainingDebts = useMemo(() => {
     if (!expenses.length) return [];
-    const debts = computeSettlements(computeBalances(expenses));
+    const debts = computeSettlementPlan(expenses);
     if (!myMemberId) return debts;
     const rank = (d: SettlementResult) =>
       d.from === myMemberId ? 0 : d.to === myMemberId ? 1 : 2;
@@ -92,8 +91,21 @@ export function SettleTab() {
     isSettlement: true,
   });
 
+  /**
+   * 確認框開著的時候可能有人記了新帳，按下確認時用最新的帳務再算一次，
+   * 建議已經變了就不寫入，免得照著舊畫面記下一筆對不上的結清。
+   */
+  const latestDebtKeys = () =>
+    new Set(
+      computeSettlementPlan(useGroupStore.getState().expenses).map(debtKey),
+    );
+
   const handleMarkDone = async (debt: SettlementResult) => {
     if (!currentGroup || !user) return;
+    if (!latestDebtKeys().has(debtKey(debt))) {
+      showToast(t("group.settle.planChanged"), "warning");
+      return;
+    }
     try {
       await addExpense(currentGroup.groupId, buildSettlementExpense(debt));
     } catch (err) {
@@ -104,6 +116,14 @@ export function SettleTab() {
 
   const handleMarkAllDone = async () => {
     if (!currentGroup || !user) return;
+    const latest = latestDebtKeys();
+    if (
+      latest.size !== remainingDebts.length ||
+      remainingDebts.some((debt) => !latest.has(debtKey(debt)))
+    ) {
+      showToast(t("group.settle.planChanged"), "warning");
+      return;
+    }
     try {
       for (const debt of remainingDebts) {
         await addExpense(currentGroup.groupId, buildSettlementExpense(debt));
@@ -182,9 +202,9 @@ export function SettleTab() {
       {/* 待結清列表：間距全部交給每一列的 py-3，
           不要再加 space-y，否則分隔線上下的留白會不對稱 */}
       <div className="flex flex-col">
-        {remainingDebts.map((debt, i) => (
+        {remainingDebts.map((debt) => (
           <div
-            key={i}
+            key={`${debt.from}>${debt.to}`}
             className="flex items-center gap-3 py-3 border-b border-base-200 last:border-b-0"
           >
             {/* 頭貼貼著名字、整列讀起來是一句話。付款人／收款人各佔固定比例，
@@ -239,4 +259,8 @@ export function SettleTab() {
       </div>
     </div>
   );
+}
+
+function debtKey(debt: SettlementResult): string {
+  return `${debt.from}>${debt.to}:${debt.amount}`;
 }

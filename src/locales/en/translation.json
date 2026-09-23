@@ -185,7 +185,8 @@
       "progress": "Settlement Progress",
       "progressDetail": "{{completed}} done / {{total}} total",
       "settlementTitle": "Pay {{to}}",
-      "settlementNote": "{{from}} settled"
+      "settlementNote": "{{from}} settled",
+      "planChanged": "Settlements just changed. Please check again"
     },
     "members": {
       "title": "Members & Activity",
