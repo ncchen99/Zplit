@@ -12,7 +12,13 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches
       .open(CACHE_NAME)
-      .then((cache) => cache.addAll([APP_SHELL, ...PRECACHE_MANIFEST]))
+      // cache: 'reload' 繞過瀏覽器 HTTP 快取，確保存下的 index.html 與 chunk 都是這一版，
+      // 否則可能存到舊的 index.html，離線或弱網路時就會去要已經不存在的舊 chunk
+      .then((cache) =>
+        cache.addAll(
+          [APP_SHELL, ...PRECACHE_MANIFEST].map((url) => new Request(url, { cache: 'reload' }))
+        )
+      )
       .then(() => self.skipWaiting())
   );
 });
@@ -51,11 +57,21 @@ function networkFirstNavigation(request) {
     .then((response) => response || fetch(request));
 }
 
+// 舊版的 chunk 部署後就不存在了，Hosting 的 SPA rewrite 會改回 index.html
+// （200、text/html）。這種回應不能當成 JS 存進快取，否則同一個網址之後永遠拿到 HTML。
+function isAssetResponse(response) {
+  const type = response.headers.get('content-type') || '';
+  return response.ok && !type.includes('text/html');
+}
+
 // 檔名含 hash 的建置產物永不改變：快取優先
 function cacheFirst(request) {
   return caches.match(request).then((cached) => {
-    if (cached) return cached;
+    if (cached && isAssetResponse(cached)) return cached;
     return fetch(request).then((response) => {
+      if (response.ok && !isAssetResponse(response)) {
+        return new Response('', { status: 404, statusText: 'Not Found' });
+      }
       if (response.ok) {
         const clone = response.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
