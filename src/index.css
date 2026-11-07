@@ -236,6 +236,26 @@
           var(--color-primary) 22%,
           var(--color-base-100)) !important;
     }
+
+    /* 停用：同一條配方再往底色退，變成偏灰的淡綠——不能換成灰色按鈕，
+       不然會跟 btn-muted／ghost 分不出來。上面的底色是 !important，
+       daisyUI 自己的 :disabled 灰底蓋不過來，所以要自己寫。
+       aria-disabled 是「看起來停用、但仍可點來提示哪裡沒填」（HeaderSubmitButton）。 */
+    &:is(:disabled, [aria-disabled="true"]),
+    &:is(:disabled, [aria-disabled="true"]):hover {
+      --btn-border: color-mix(in oklab,
+          var(--color-primary) 7%,
+          var(--color-base-100));
+      color: color-mix(in oklab,
+          var(--color-primary) 45%,
+          var(--color-base-100)) !important;
+      background-color: color-mix(in oklab,
+          var(--color-primary) 7%,
+          var(--color-base-100)) !important;
+      border-color: color-mix(in oklab,
+          var(--color-primary) 7%,
+          var(--color-base-100)) !important;
+    }
   }
 
   .btn-success-soft {

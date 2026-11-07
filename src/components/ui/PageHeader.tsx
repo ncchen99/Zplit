@@ -52,7 +52,8 @@ interface HeaderSubmitButtonProps {
 /**
  * 表單頁右上角的「完成」：有底色的文字按鈕，比圖示鈕好找。
  * 樣式跟群組列表標頭的「新增」一樣（btn-theme-green btn-sm）；實心的 btn-primary 膠囊
- * 只留給浮動的「新增帳務」，別處用了會像另一顆新增鍵。沒填好時換成灰色 btn-muted。
+ * 只留給浮動的「新增帳務」，別處用了會像另一顆新增鍵。沒填好時是 btn-theme-green 的
+ * 停用樣式（偏灰的淡綠，由 aria-disabled 觸發，見 index.css），仍可點。
  */
 export function HeaderSubmitButton({
   onClick,
@@ -63,7 +64,9 @@ export function HeaderSubmitButton({
   return (
     <button
       type="button"
-      className={`${ready ? "btn-theme-green" : "btn-muted"} btn-sm`}
+      // 看起來 36px 高、14px 字（btn-sm 的 12px 擺在 18px 粗體標題旁太小），
+      // 但 -my-0.5 讓它在版面上只佔 32px：跟其他頁的圖示鈕一樣，標頭維持 56px 不變高
+      className="btn-theme-green btn-sm -my-0.5 h-9 min-h-9 px-4 text-sm"
       onClick={onClick}
       disabled={loading}
       aria-disabled={!ready}
