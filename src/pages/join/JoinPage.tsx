@@ -51,7 +51,16 @@ export function JoinPage() {
 
   const isAlreadyMember =
     user != null &&
-    (group?.members?.some((m) => m.isBound && m.userId === user.uid) ?? false);
+    group != null &&
+    (group.memberUids?.[user.uid] === true ||
+      (group.members?.some((m) => m.isBound && m.userId === user.uid) ??
+        false));
+
+  // 已經是成員就不必停在邀請頁：直接進群組（replace，返回鍵不會再回到邀請頁）
+  const memberGroupId = isAlreadyMember ? group.groupId : null;
+  useEffect(() => {
+    if (memberGroupId) navigate(`/groups/${memberGroupId}`, { replace: true });
+  }, [memberGroupId, navigate]);
 
   const handleJoin = async (selectedMember: GroupMember | null) => {
     if (!group || !user) return;
@@ -103,7 +112,7 @@ export function JoinPage() {
   // ── Loading ─────────────────────────────────────────────
   // 與 AuthGuard / Suspense / index.html 的骨架共用同一份版面，
   // 從點開邀請連結到資料到齊都是同一個畫面，不會換骨架
-  if (loading) {
+  if (loading || isAlreadyMember) {
     return <JoinSkeleton />;
   }
 
@@ -258,28 +267,15 @@ export function JoinPage() {
 
               <div className="flex-1" />
 
-              {isAlreadyMember ? (
-                <div className="flex flex-col gap-3">
-                  <p className="text-center text-sm text-base-content/50">
-                    {t("join.alreadyMember")}
-                  </p>
-                  <button
-                    className="btn-theme-green btn-block"
-                    onClick={() => navigate(`/groups/${group.groupId}`)}
-                  >
-                    {t("join.goToGroup")}
-                  </button>
-                </div>
-              ) : (
-                /* 未登入：直接進去看紀錄，要新增／編輯時才在群組裡引導登入 */
-                <button
-                  className="btn-theme-green btn-block"
-                  onClick={goToPreview}
-                >
-                  <Eye className="h-5 w-5" />
-                  {t("join.previewGroup")}
-                </button>
-              )}
+              {/* 未登入：直接進去看紀錄，要新增／編輯時才在群組裡引導登入
+                  （已是成員的人在上面就直接導進群組，不會看到這頁） */}
+              <button
+                className="btn-theme-green btn-block"
+                onClick={goToPreview}
+              >
+                <Eye className="h-5 w-5" />
+                {t("join.previewGroup")}
+              </button>
             </>
           )}
         </div>
