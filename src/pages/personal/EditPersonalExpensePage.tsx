@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, useNavigate } from "react-router-dom";
-import { Check as CheckIcon, Trash2 as TrashIcon } from "lucide-react";
+import { Trash2 as TrashIcon } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { usePersonalStore } from "@/store/personalStore";
 import { useUIStore } from "@/store/uiStore";
-import { PageHeader, HeaderIconButton } from "@/components/ui/PageHeader";
+import { PageHeader, HeaderSubmitButton } from "@/components/ui/PageHeader";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import {
   getContact,
@@ -17,6 +17,8 @@ import {
 import { CalculatorInput } from "@/components/ui/CalculatorInput";
 import { logger } from "@/utils/logger";
 import { cacheThenServer } from "@/lib/firestoreRead";
+import { useSubmitGuard, type FormIssue } from "@/hooks/useSubmitGuard";
+import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import {
   getTaipeiDateTimeLocalString,
   parseTaipeiDateTimeLocalString,
@@ -104,10 +106,32 @@ export function EditPersonalExpensePage() {
     setInitialized(true);
   }, [expense, initialized]);
 
-  const isValid = title.trim() && amount && Number(amount) > 0;
+  const issues: FormIssue<"title" | "amount">[] = [];
+  if (!title.trim()) {
+    issues.push({ field: "title", message: t("expense.validation.title") });
+  }
+  if (!(Math.round(Number(amount)) > 0)) {
+    issues.push({ field: "amount", message: t("expense.validation.amount") });
+  }
+  const { ready, errorOf, guard } = useSubmitGuard(issues);
+
+  // 表單剛帶入原本記錄時的樣子；跟現在不一樣才算有未儲存的變更
+  const formSnapshot = JSON.stringify([title, amount, paidBy, description, date]);
+  const [initialSnapshot, setInitialSnapshot] = useState<string | null>(null);
+  useEffect(() => {
+    if (initialized && initialSnapshot === null) {
+      setInitialSnapshot(formSnapshot);
+    }
+  }, [initialized, initialSnapshot, formSnapshot]);
+  const isDirty = initialSnapshot !== null && formSnapshot !== initialSnapshot;
+  // 系統返回（Android 返回鍵、側滑）也要先問，不然改到一半的內容就直接不見
+  const { leave, release } = useUnsavedChangesGuard(isDirty, () =>
+    setShowDiscardModal(true),
+  );
 
   const handleSave = async () => {
-    if (!user || !contactId || !expenseId || !isValid) return;
+    if (!user || !contactId || !expenseId || saving) return;
+    if (!guard()) return;
     const amountNum = Math.round(Number(amount));
     if (amountNum <= 0 || isNaN(amountNum)) return;
 
@@ -121,6 +145,7 @@ export function EditPersonalExpensePage() {
         date: parseTaipeiDateTimeLocalString(date),
       });
       showToast(t("common.toast.saved"), "success");
+      await release();
       navigate(`/personal/${contactId}`, { replace: true });
     } catch (err) {
       logger.error("personal.editExpense", "Failed to update", err);
@@ -136,6 +161,7 @@ export function EditPersonalExpensePage() {
     try {
       await deletePersonalExpense(user.uid, contactId, expenseId);
       showToast(t("common.button.done"), "success");
+      await release();
       navigate(`/personal/${contactId}`, { replace: true });
     } catch (err) {
       logger.error("personal.deleteExpense", "Failed to delete", err);
@@ -146,7 +172,11 @@ export function EditPersonalExpensePage() {
   };
 
   const handleBack = () => {
-    setShowDiscardModal(true);
+    if (isDirty) {
+      setShowDiscardModal(true);
+      return;
+    }
+    navigate(-1);
   };
 
   if (loading || !expense) {
@@ -168,14 +198,13 @@ export function EditPersonalExpensePage() {
         title={t("expense.edit")}
         onBack={handleBack}
         rightAction={
-          <HeaderIconButton
+          <HeaderSubmitButton
             onClick={handleSave}
-            disabled={!isValid || saving}
+            ready={ready}
             loading={saving}
-            tone="primary"
           >
-            <CheckIcon className="h-5 w-5" />
-          </HeaderIconButton>
+            {t("common.button.done")}
+          </HeaderSubmitButton>
         }
       />
 
@@ -185,12 +214,15 @@ export function EditPersonalExpensePage() {
           <legend className="fieldset-legend">{t("expense.title")}</legend>
           <input
             type="text"
-            className="input w-full"
+            className={`input w-full ${errorOf("title") ? "input-error" : ""}`}
             placeholder={t("expense.titlePlaceholder")}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             maxLength={50}
           />
+          {errorOf("title") && (
+            <p className="text-xs text-error">{errorOf("title")}</p>
+          )}
         </fieldset>
 
         {/* Amount */}
@@ -200,7 +232,11 @@ export function EditPersonalExpensePage() {
             value={amount}
             onChange={setAmount}
             placeholder={t("expense.amountPlaceholder")}
+            invalid={!!errorOf("amount")}
           />
+          {errorOf("amount") && (
+            <p className="text-xs text-error">{errorOf("amount")}</p>
+          )}
         </fieldset>
 
         {/* Paid By */}
@@ -280,7 +316,7 @@ export function EditPersonalExpensePage() {
               >
                 {t("common.discard.cancel")}
               </button>
-              <button className="btn-danger-soft" onClick={() => navigate(-1)}>
+              <button className="btn-danger-soft" onClick={leave}>
                 {t("common.discard.confirm")}
               </button>
             </div>

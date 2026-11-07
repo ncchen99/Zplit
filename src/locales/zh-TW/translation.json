@@ -263,6 +263,20 @@
       "percentTotal": "總計：{{percent}}%",
       "mismatch": "金額不符"
     },
+    "validation": {
+      "title": "請輸入品項名稱",
+      "amount": "請輸入金額",
+      "paidBy": "請選擇付款人",
+      "splitMembers": "請選擇分帳對象",
+      "splitAmounts": "請輸入每個人要分的金額",
+      "percent": "比例加總需為 100%（目前 {{percent}}%）",
+      "mismatch": "分帳加總與金額不符",
+      "contact": "請選擇對象"
+    },
+    "autoTotal": {
+      "empty": "依下方每個人的金額自動加總",
+      "formula": "自動加總：{{formula}}"
+    },
     "paidFor": "{{name}} 代墊",
     "deleteConfirm": "確定要刪除這筆帳務嗎？",
     "detail": {

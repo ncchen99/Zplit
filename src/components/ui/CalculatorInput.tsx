@@ -6,6 +6,10 @@ interface CalculatorInputProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  /** 只顯示數字、不能點開計算機（例如依金額分帳時由每人金額自動加總） */
+  readOnly?: boolean;
+  /** 送出時這欄沒填好，框線改成紅色 */
+  invalid?: boolean;
 }
 
 function liveEval(expr: string): string {
@@ -54,6 +58,8 @@ export function CalculatorInput({
   value,
   onChange,
   placeholder = "0",
+  readOnly = false,
+  invalid = false,
 }: CalculatorInputProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [visible, setVisible] = useState(false);
@@ -147,11 +153,13 @@ export function CalculatorInput({
     <div className="relative w-full">
       {/* Trigger field */}
       <div
-        className="input flex items-center gap-2 w-full cursor-pointer"
-        onClick={openCalculator}
-        role="button"
-        tabIndex={0}
+        className={`input flex items-center gap-2 w-full ${readOnly ? "cursor-default bg-base-200" : "cursor-pointer"} ${invalid ? "input-error" : ""}`}
+        onClick={readOnly ? undefined : openCalculator}
+        role={readOnly ? undefined : "button"}
+        tabIndex={readOnly ? undefined : 0}
+        aria-invalid={invalid || undefined}
         onKeyDown={(e) => {
+          if (readOnly) return;
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
             openCalculator();

@@ -20,19 +20,19 @@ import {
 } from "@/utils/datetime";
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import { CalculatorInput } from "@/components/ui/CalculatorInput";
-import { PageHeader, HeaderIconButton } from "@/components/ui/PageHeader";
+import { PageHeader, HeaderSubmitButton } from "@/components/ui/PageHeader";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { ActionSheetSelect } from "@/components/ui/ActionSheetSelect";
 import { SplitMemberPicker } from "./SplitMemberPicker";
 import { useGroupMemberGuard } from "./groupAccess";
+import { getExpenseFormIssues, type SplitMode } from "./expenseFormIssues";
+import { useSubmitGuard } from "@/hooks/useSubmitGuard";
+import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import {
-  Check as CheckIcon,
   Trash2 as TrashIcon,
   CircleCheck as CheckCircleIcon,
 } from "lucide-react";
-
-type SplitMode = "equal" | "amount" | "percent";
 
 export function EditExpensePage() {
   const { t } = useTranslation();
@@ -168,33 +168,57 @@ export function EditExpensePage() {
     setInitialized(true);
   }, [expense, initialized]);
 
-  const amountNum = parseInt(amount) || 0;
+  // 依金額／比例分帳時畫面上每個成員都有輸入框，全部都要算進去；
+  // 原本帳務裡已被移出群組的成員沒有輸入框，但金額要保留
+  const splitMemberIds =
+    splitMode === "equal"
+      ? selectedMembers
+      : [
+          ...orderedMembers.map((m) => m.memberId),
+          ...selectedMembers.filter(
+            (id) => !orderedMembers.some((m) => m.memberId === id),
+          ),
+        ];
 
+  // 依金額分帳時，總金額就是每個人金額的加總：不用先在上面算好總數、下面再填一次
+  const customAmountParts =
+    splitMode === "amount"
+      ? splitMemberIds
+          .map((id) => parseInt(customAmounts[id] ?? "") || 0)
+          .filter((n) => n > 0)
+      : [];
+  const amountNum =
+    splitMode === "amount"
+      ? customAmountParts.reduce((sum, n) => sum + n, 0)
+      : parseInt(amount) || 0;
+
+  const splitKey = splitMemberIds.join(",");
   const splits = useMemo(() => {
-    if (!amountNum || selectedMembers.length === 0) return [];
+    const ids = splitKey ? splitKey.split(",") : [];
+    if (!amountNum || ids.length === 0) return [];
     switch (splitMode) {
       case "equal": {
-        const perPerson = Math.floor(amountNum / selectedMembers.length);
-        const remainder = amountNum - perPerson * selectedMembers.length;
-        return selectedMembers.map((memberId, i) => ({
+        const perPerson = Math.floor(amountNum / ids.length);
+        const remainder = amountNum - perPerson * ids.length;
+        return ids.map((memberId, i) => ({
           memberId,
           amount: perPerson + (i < remainder ? 1 : 0),
         }));
       }
       case "amount":
-        return selectedMembers.map((memberId) => ({
+        return ids.map((memberId) => ({
           memberId,
-          amount: parseInt(customAmounts[memberId] ?? "0") || 0,
+          amount: Math.max(0, parseInt(customAmounts[memberId] ?? "0") || 0),
         }));
       case "percent":
-        return selectedMembers.map((memberId) => {
+        return ids.map((memberId) => {
           const pct = parseFloat(customPercents[memberId] ?? "0") || 0;
           return { memberId, amount: Math.round((amountNum * pct) / 100) };
         });
       default:
         return [];
     }
-  }, [amountNum, selectedMembers, splitMode, customAmounts, customPercents]);
+  }, [amountNum, splitKey, splitMode, customAmounts, customPercents]);
 
   // 與新增頁一致：分到 0 元的成員代表沒有一起分帳，不寫進帳務
   const splitsToSave = useMemo(
@@ -203,19 +227,29 @@ export function EditExpensePage() {
   );
 
   const splitTotal = splits.reduce((sum, s) => sum + s.amount, 0);
-  const percentTotal = useMemo(() => {
-    if (splitMode !== "percent") return 0;
-    return selectedMembers.reduce(
-      (sum, id) => sum + (parseFloat(customPercents[id] ?? "0") || 0),
-      0,
-    );
-  }, [splitMode, selectedMembers, customPercents]);
+  const percentTotal =
+    splitMode === "percent"
+      ? splitMemberIds.reduce(
+          (sum, id) => sum + (parseFloat(customPercents[id] ?? "0") || 0),
+          0,
+        )
+      : 0;
 
-  const isValid =
-    title.trim() &&
-    amountNum > 0 &&
-    splitsToSave.length > 0 &&
-    splitTotal === amountNum;
+  const { ready, errorOf, guard } = useSubmitGuard(
+    getExpenseFormIssues(
+      {
+        title,
+        amountNum,
+        paidBy,
+        splitMode,
+        selectedCount: splitMemberIds.length,
+        splitTotal,
+        savedSplitCount: splitsToSave.length,
+        percentTotal,
+      },
+      t,
+    ),
+  );
 
   const toggleMember = (memberId: string) => {
     setSelectedMembers((prev) =>
@@ -230,6 +264,8 @@ export function EditExpensePage() {
   const selectOnlyMe = () => setSelectedMembers(myMemberId ? [myMemberId] : []);
 
   const handleSplitModeChange = (mode: SplitMode) => {
+    // 從依金額分帳切走時，把加總好的金額留給新的模式用
+    if (splitMode === "amount" && amountNum > 0) setAmount(String(amountNum));
     setSplitMode(mode);
     if (mode !== "equal") {
       setSelectedMembers(members.map((m) => m.memberId));
@@ -238,13 +274,43 @@ export function EditExpensePage() {
     setCustomPercents({});
   };
 
+  // 表單剛帶入原本帳務時的樣子；跟現在不一樣才算有未儲存的變更
+  const formSnapshot = JSON.stringify([
+    title,
+    amount,
+    paidBy,
+    splitMode,
+    selectedMembers,
+    customAmounts,
+    customPercents,
+    description,
+    imageUrl,
+    expenseDate,
+  ]);
+  const [initialSnapshot, setInitialSnapshot] = useState<string | null>(null);
+  useEffect(() => {
+    if (initialized && initialSnapshot === null) {
+      setInitialSnapshot(formSnapshot);
+    }
+  }, [initialized, initialSnapshot, formSnapshot]);
+  const isDirty = initialSnapshot !== null && formSnapshot !== initialSnapshot;
+  // 系統返回（Android 返回鍵、側滑）也要先問，不然改到一半的內容就直接不見
+  const { leave, release } = useUnsavedChangesGuard(isDirty, () =>
+    setShowDiscardModal(true),
+  );
+
   const handleBack = () => {
-    setShowDiscardModal(true);
+    if (isDirty) {
+      setShowDiscardModal(true);
+      return;
+    }
+    navigate(-1);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!groupId || !expenseId || !user || !isValid) return;
+    if (!groupId || !expenseId || !user || saving) return;
+    if (!guard()) return;
 
     setSaving(true);
     try {
@@ -265,6 +331,7 @@ export function EditExpensePage() {
       );
 
       showToast(t("common.toast.saved"), "success");
+      await release();
       navigate(`/groups/${groupId}/expenses/${expenseId}`, { replace: true });
     } catch (err) {
       logger.error("expense.edit", "Failed to update expense", err);
@@ -288,6 +355,7 @@ export function EditExpensePage() {
         user.uid,
       );
       showToast(t("common.button.done"), "success");
+      await release();
       navigate(`/groups/${groupId}`, { replace: true });
     } catch (err) {
       logger.error("expense.delete", "Failed to delete expense", err);
@@ -319,16 +387,15 @@ export function EditExpensePage() {
         onBack={handleBack}
         sticky
         rightAction={
-          <HeaderIconButton
+          <HeaderSubmitButton
             onClick={() =>
               handleSubmit({ preventDefault: () => {} } as React.FormEvent)
             }
-            disabled={!isValid || saving}
+            ready={ready}
             loading={saving}
-            tone="primary"
           >
-            <CheckIcon className="h-5 w-5" />
-          </HeaderIconButton>
+            {t("common.button.done")}
+          </HeaderSubmitButton>
         }
       />
 
@@ -341,23 +408,45 @@ export function EditExpensePage() {
           <legend className="fieldset-legend">{t("expense.title")}</legend>
           <input
             type="text"
-            className="input w-full"
+            className={`input w-full ${errorOf("title") ? "input-error" : ""}`}
             placeholder={t("expense.titlePlaceholder")}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             maxLength={50}
-            required
           />
+          {errorOf("title") && (
+            <p className="text-xs text-error">{errorOf("title")}</p>
+          )}
         </fieldset>
 
         {/* Amount */}
         <fieldset className="fieldset w-full">
           <legend className="fieldset-legend">{t("expense.amount")}</legend>
           <CalculatorInput
-            value={amount}
+            value={
+              splitMode === "amount"
+                ? amountNum > 0
+                  ? String(amountNum)
+                  : ""
+                : amount
+            }
             onChange={setAmount}
             placeholder={t("expense.amountPlaceholder")}
+            readOnly={splitMode === "amount"}
+            invalid={!!errorOf("amount")}
           />
+          {splitMode === "amount" && (
+            <p className="text-xs text-base-content/60 break-words">
+              {customAmountParts.length > 0
+                ? t("expense.autoTotal.formula", {
+                    formula: customAmountParts.join(" + "),
+                  })
+                : t("expense.autoTotal.empty")}
+            </p>
+          )}
+          {errorOf("amount") && (
+            <p className="text-xs text-error">{errorOf("amount")}</p>
+          )}
         </fieldset>
 
         {/* Paid By */}
@@ -374,6 +463,9 @@ export function EditExpensePage() {
               avatarUrl: m.avatarUrl,
             }))}
           />
+          {errorOf("paidBy") && (
+            <p className="text-xs text-error">{errorOf("paidBy")}</p>
+          )}
         </fieldset>
 
         {/* Date */}
@@ -535,23 +627,10 @@ export function EditExpensePage() {
             </div>
           )}
 
-          {/* Split validation */}
+          {/* Split validation：依金額分帳的總金額直接由加總而來，只顯示總計 */}
           {amountNum > 0 && splitMode === "amount" && (
-            <div
-              className={`text-sm mt-2 flex items-center gap-2 ${splitTotal === amountNum ? "text-success" : "text-error"}`}
-            >
-              <span>
-                {t("expense.splitValidation.total", { total: splitTotal })}
-              </span>
-              <span>|</span>
-              <span>
-                {t("expense.splitValidation.remaining", {
-                  remaining: amountNum - splitTotal,
-                })}
-              </span>
-              {splitTotal === amountNum && (
-                <CheckCircleIcon className="h-4 w-4" />
-              )}
+            <div className="text-sm mt-2 text-base-content/60">
+              {t("expense.splitValidation.total", { total: amountNum })}
             </div>
           )}
           {amountNum > 0 && splitMode === "percent" && (
@@ -565,6 +644,9 @@ export function EditExpensePage() {
               </span>
               {percentTotal === 100 && <CheckCircleIcon className="h-4 w-4" />}
             </div>
+          )}
+          {errorOf("split") && (
+            <p className="text-sm mt-2 text-error">{errorOf("split")}</p>
           )}
         </div>
 
@@ -639,7 +721,7 @@ export function EditExpensePage() {
               >
                 {t("common.discard.cancel")}
               </button>
-              <button className="btn-danger-soft" onClick={() => navigate(-1)}>
+              <button className="btn-danger-soft" onClick={leave}>
                 {t("common.discard.confirm")}
               </button>
             </div>

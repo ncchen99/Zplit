@@ -263,6 +263,20 @@
       "percentTotal": "Total: {{percent}}%",
       "mismatch": "Amount mismatch"
     },
+    "validation": {
+      "title": "Enter an item name",
+      "amount": "Enter an amount",
+      "paidBy": "Choose who paid",
+      "splitMembers": "Choose who to split with",
+      "splitAmounts": "Enter each person's share",
+      "percent": "Percentages must add up to 100% (now {{percent}}%)",
+      "mismatch": "Shares don't add up to the amount",
+      "contact": "Choose a person"
+    },
+    "autoTotal": {
+      "empty": "Adds up each person's amount below",
+      "formula": "Auto total: {{formula}}"
+    },
     "paidFor": "{{name}} paid for",
     "deleteConfirm": "Delete this expense?",
     "detail": {

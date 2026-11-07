@@ -41,6 +41,42 @@ export function HeaderIconButton({
   );
 }
 
+interface HeaderSubmitButtonProps {
+  onClick: () => void;
+  /** 必填欄位都填好了。沒填好時看起來是停用的，但仍可點，點了由頁面提示哪一欄沒填 */
+  ready: boolean;
+  loading?: boolean;
+  children: ReactNode;
+}
+
+/**
+ * 表單頁右上角的「完成」：有底色的文字按鈕，比圖示鈕好找。
+ * 樣式跟群組列表標頭的「新增」一樣（btn-theme-green btn-sm）；實心的 btn-primary 膠囊
+ * 只留給浮動的「新增帳務」，別處用了會像另一顆新增鍵。沒填好時換成灰色 btn-muted。
+ */
+export function HeaderSubmitButton({
+  onClick,
+  ready,
+  loading,
+  children,
+}: HeaderSubmitButtonProps) {
+  return (
+    <button
+      type="button"
+      className={`${ready ? "btn-theme-green" : "btn-muted"} btn-sm`}
+      onClick={onClick}
+      disabled={loading}
+      aria-disabled={!ready}
+    >
+      {loading ? (
+        <span className="loading loading-spinner loading-xs" />
+      ) : (
+        children
+      )}
+    </button>
+  );
+}
+
 export function PageHeader({
   title,
   onBack,
@@ -63,8 +99,9 @@ export function PageHeader({
   }, []);
 
   const headerRow = (
-    <div className="flex items-center px-4 pt-4 pb-2 bg-base-100">
-      <div className="flex w-10 justify-start">
+    // 左右兩欄等寬（1fr），標題才會置中；右邊放比較寬的按鈕（例如「完成」）時兩欄一起變寬
+    <div className="grid grid-cols-[1fr_minmax(0,auto)_1fr] items-center px-4 pt-4 pb-2 bg-base-100">
+      <div className="flex justify-start">
         <button
           className="btn btn-ghost btn-sm btn-circle text-base-content/50 hover:text-base-content/50 [&>svg]:h-5 [&>svg]:w-5"
           onClick={onBack}
@@ -74,11 +111,11 @@ export function PageHeader({
         </button>
       </div>
 
-      <h1 className="flex-1 truncate px-2 text-center text-lg font-bold">
+      <h1 className="min-w-0 truncate px-2 text-center text-lg font-bold">
         {title}
       </h1>
 
-      <div className="flex w-10 justify-end">
+      <div className="flex justify-end">
         {rightAction ?? <span className="h-9 w-9" aria-hidden="true" />}
       </div>
     </div>

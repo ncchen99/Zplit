@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, useNavigate } from "react-router-dom";
-import { PlusIcon, CheckIcon } from "@heroicons/react/24/outline";
+import { PlusIcon } from "@heroicons/react/24/outline";
 import { useAuthStore } from "@/store/authStore";
 import { usePersonalStore } from "@/store/personalStore";
 import { useUIStore } from "@/store/uiStore";
-import { PageHeader, HeaderIconButton } from "@/components/ui/PageHeader";
+import { PageHeader, HeaderSubmitButton } from "@/components/ui/PageHeader";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import {
   addPersonalExpense,
@@ -15,6 +15,8 @@ import {
 } from "@/services/personalLedgerService";
 import { CalculatorInput } from "@/components/ui/CalculatorInput";
 import { getUserGroups } from "@/services/groupService";
+import { useSubmitGuard, type FormIssue } from "@/hooks/useSubmitGuard";
+import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { logger } from "@/utils/logger";
 import {
   getTaipeiDateTimeLocalString,
@@ -122,8 +124,23 @@ export function AddPersonalExpensePage() {
     : (selectedContact?.displayName ?? "");
 
   const isContactSelected = !!contactId || !!selectedContact;
-  const isValid =
-    isContactSelected && title.trim() && amount && Number(amount) > 0;
+  const issues: FormIssue<"contact" | "title" | "amount">[] = [];
+  if (!isContactSelected) {
+    issues.push({ field: "contact", message: t("expense.validation.contact") });
+  }
+  if (!title.trim()) {
+    issues.push({ field: "title", message: t("expense.validation.title") });
+  }
+  if (!(Math.round(Number(amount)) > 0)) {
+    issues.push({ field: "amount", message: t("expense.validation.amount") });
+  }
+  const { ready, errorOf, guard } = useSubmitGuard(issues);
+
+  const isDirty = !!(title.trim() || amount || description.trim());
+  // 系統返回（Android 返回鍵、側滑）也要先問，不然填到一半的內容就直接不見
+  const { release } = useUnsavedChangesGuard(isDirty, () =>
+    setShowDiscardModal(true),
+  );
 
   const trimmedSearch = contactSearch.trim();
   const allSuggestions = [
@@ -209,7 +226,8 @@ export function AddPersonalExpensePage() {
   };
 
   const handleSave = async () => {
-    if (!user || !title.trim() || !amount) return;
+    if (!user || saving) return;
+    if (!guard()) return;
 
     const resolvedContactId = contactId ?? selectedContact?.contactId;
     if (!resolvedContactId) return;
@@ -231,6 +249,7 @@ export function AddPersonalExpensePage() {
         date: parseTaipeiDateTimeLocalString(date),
       });
       showToast(t("common.toast.recordAdded"), "success");
+      await release();
       navigate(`/personal/${resolvedContactId}`);
     } catch (err) {
       logger.error("personal.addExpense", "新增個人帳務失敗", err);
@@ -241,8 +260,7 @@ export function AddPersonalExpensePage() {
   };
 
   const handleBack = () => {
-    const hasInput = title.trim() || amount;
-    if (hasInput) {
+    if (isDirty) {
       setShowDiscardModal(true);
       return;
     }
@@ -253,7 +271,8 @@ export function AddPersonalExpensePage() {
     }
   };
 
-  const handleConfirmDiscard = () => {
+  const handleConfirmDiscard = async () => {
+    await release();
     if (contactId) {
       navigate(`/personal/${contactId}`);
     } else {
@@ -267,14 +286,13 @@ export function AddPersonalExpensePage() {
         title={t("personal.addExpense")}
         onBack={handleBack}
         rightAction={
-          <HeaderIconButton
+          <HeaderSubmitButton
             onClick={handleSave}
-            disabled={!isValid || saving}
+            ready={ready}
             loading={saving}
-            tone="primary"
           >
-            <CheckIcon className="h-6 w-6" />
-          </HeaderIconButton>
+            {t("common.button.done")}
+          </HeaderSubmitButton>
         }
       />
 
@@ -288,7 +306,7 @@ export function AddPersonalExpensePage() {
             <div className="relative">
               <input
                 type="text"
-                className="input input-bordered w-full"
+                className={`input input-bordered w-full ${errorOf("contact") ? "input-error" : ""}`}
                 placeholder={t("personal.contactPlaceholder")}
                 value={contactSearch}
                 onChange={(e) => {
@@ -356,6 +374,10 @@ export function AddPersonalExpensePage() {
               </button>
             )}
 
+            {errorOf("contact") && (
+              <p className="mt-1 text-xs text-error">{errorOf("contact")}</p>
+            )}
+
             {selectedContact && (
               <p className="mt-1 text-xs text-success">
                 {t("personal.contactSelected", {
@@ -371,13 +393,16 @@ export function AddPersonalExpensePage() {
           <legend className="fieldset-legend">{t("expense.title")}</legend>
           <input
             type="text"
-            className="input w-full"
+            className={`input w-full ${errorOf("title") ? "input-error" : ""}`}
             placeholder={t("expense.titlePlaceholder")}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             maxLength={50}
             autoFocus={!!contactId}
           />
+          {errorOf("title") && (
+            <p className="text-xs text-error">{errorOf("title")}</p>
+          )}
         </fieldset>
 
         {/* Amount */}
@@ -387,7 +412,11 @@ export function AddPersonalExpensePage() {
             value={amount}
             onChange={setAmount}
             placeholder={t("expense.amountPlaceholder")}
+            invalid={!!errorOf("amount")}
           />
+          {errorOf("amount") && (
+            <p className="text-xs text-error">{errorOf("amount")}</p>
+          )}
         </fieldset>
 
         {/* Paid By */}
