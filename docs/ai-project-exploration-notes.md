@@ -369,4 +369,4 @@ return selectedMembers.map((memberId, i) => ({
 5. **groupStore.ts** - Zustand store structure
 6. **App.tsx** - Full routing configuration
 
-**圖片上傳（`src/services/uploadService.ts` → `workers/upload` → R2）**：前端先把圖縮到最長邊 1920 再轉 WebP。Safari（iOS 上所有瀏覽器）不支援 canvas 編碼 WebP，`toBlob` 會默默改回 PNG，照片轉成 PNG 動輒超過 worker 的 5MB 上限（`FILE_TOO_LARGE`），所以拿到的 blob 不是 WebP 就改用 JPEG，檔名／type 依實際格式。Worker 只看宣告的 `file.type`（jpeg/png/webp/gif），`FIREBASE_API_KEY` 是 Worker secret，不在 wrangler.toml。
+**圖片上傳（`src/services/uploadService.ts` → `workers/upload` → R2）**：前端先把圖縮到最長邊 1920 再轉 WebP。Safari（iOS 上所有瀏覽器）不支援 canvas 編碼 WebP，`toBlob` 會默默改回 PNG，照片轉成 PNG 動輒超過 worker 的 5MB 上限（`FILE_TOO_LARGE`），所以拿到的 blob 不是 WebP 就改用 JPEG，檔名／type 依實際格式。HEIF／HEIC（三星等 Android 預設、Chrome 不能原生解碼）：先試原生 `<img>`（Safari 可以），失敗且檔頭 ftyp brand 是 HEIF 才動態 `import("heic-to")`（libheif WASM，約 3MB／gzip 800KB，獨立 chunk，`vite.config.ts` 把 `assets/heic-to-*` 排除在 SW 預先快取外）解成 ImageBitmap 再走同一條壓縮。Android 有時給空的 MIME type，所以型別檢查也看檔頭。本機沒設 `VITE_UPLOAD_WORKER_URL` 時整段上傳程式會被當死碼移除，要驗證打包得帶一個假的 URL build。Worker 只看宣告的 `file.type`（jpeg/png/webp/gif），`FIREBASE_API_KEY` 是 Worker secret，不在 wrangler.toml。

@@ -7,6 +7,9 @@ import { createHash } from 'crypto'
 
 // 不預先快取的檔案（只給社群分享預覽用的大圖）
 const PRECACHE_EXCLUDE = new Set(['sw.js', 'index.html', 'cover.webp'])
+// HEIF 解碼器（libheif WASM，約 3MB）只有上傳 HEIF 照片才用得到，
+// 不要讓每個人安裝 SW 時都下載；用到時由 /assets/ 的 runtime cache 存下來。
+const PRECACHE_EXCLUDE_PATTERNS = [/^assets\/heic-to-/]
 
 /**
  * Build 完成後，把 dist 內所有檔案清單與內容 hash 注入 dist/sw.js，
@@ -29,6 +32,7 @@ function swPrecache(): Plugin {
         .map((f) => f.split(path.sep).join('/'))
         .filter((f) => fs.statSync(path.join(outDir, f)).isFile())
         .filter((f) => !PRECACHE_EXCLUDE.has(f) && !f.endsWith('.map'))
+        .filter((f) => !PRECACHE_EXCLUDE_PATTERNS.some((re) => re.test(f)))
         .sort()
 
       const hash = createHash('sha256')

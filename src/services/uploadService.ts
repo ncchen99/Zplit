@@ -42,12 +42,47 @@ function toBlob(
   });
 }
 
+// HEIF/HEIC 的 ftyp brand（檔頭第 8–12 byte）。
+const HEIF_BRANDS = new Set(["heic", "heix", "hevc", "hevx", "mif1", "msf1"]);
+
+async function isHeif(file: File): Promise<boolean> {
+  if (/\.(heic|heif)$/i.test(file.name)) return true;
+  const header = await file.slice(4, 12).arrayBuffer();
+  const text = new TextDecoder("ascii").decode(header);
+  return text.startsWith("ftyp") && HEIF_BRANDS.has(text.slice(4));
+}
+
+/**
+ * Safari 能直接解 HEIC，但 Chrome（包含 Android 上的 Chrome，三星等手機
+ * 預設存 HEIF）不行。原生解不開又是 HEIF 時，才載入 libheif（WASM，約
+ * 3MB，獨立 chunk，不進 SW 預先快取）來解碼。
+ */
+async function decodeImage(
+  file: File,
+  heif: boolean,
+): Promise<HTMLImageElement | ImageBitmap> {
+  try {
+    return await loadImage(file);
+  } catch (err) {
+    if (!heif) throw err;
+  }
+  try {
+    const { heicTo } = await import("heic-to");
+    return await heicTo({ blob: file, type: "bitmap" });
+  } catch (err) {
+    logger.error("upload", "HEIF 解碼失敗", { err });
+    throw new ZplitError("UPLOAD_FAILED", "圖片讀取失敗", err);
+  }
+}
+
 async function compressImageForUpload(file: File): Promise<File> {
-  if (!file.type.startsWith("image/")) {
+  // 有些 Android 選到的 HEIF 沒有 MIME type，所以也看檔頭。
+  const heif = await isHeif(file);
+  if (!file.type.startsWith("image/") && !heif) {
     throw new ZplitError("UPLOAD_TYPE_INVALID", "僅支援圖片檔案上傳");
   }
 
-  const image = await loadImage(file);
+  const image = await decodeImage(file, heif);
   const maxSide = Math.max(image.width, image.height);
   const scale = maxSide > MAX_IMAGE_DIMENSION ? MAX_IMAGE_DIMENSION / maxSide : 1;
   const targetWidth = Math.max(1, Math.round(image.width * scale));
@@ -63,6 +98,7 @@ async function compressImageForUpload(file: File): Promise<File> {
   }
 
   ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
+  if ("close" in image) image.close();
   // Safari（iOS 上所有瀏覽器都是 WebKit）不支援把 canvas 編碼成 WebP，
   // toBlob 會默默改回 PNG。照片存成 PNG 動輒 5MB 以上，會被 worker 以
   // FILE_TOO_LARGE 擋掉，所以拿到的不是 WebP 就改用 JPEG（到處都支援）。
