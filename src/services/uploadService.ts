@@ -4,6 +4,7 @@ import { logger } from "@/utils/logger";
 
 const MAX_IMAGE_DIMENSION = 1920;
 const WEBP_QUALITY = 0.95;
+const JPEG_QUALITY = 0.9;
 
 async function loadImage(file: File): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -21,7 +22,11 @@ async function loadImage(file: File): Promise<HTMLImageElement> {
   });
 }
 
-function toWebpBlob(canvas: HTMLCanvasElement, quality: number): Promise<Blob> {
+function toBlob(
+  canvas: HTMLCanvasElement,
+  type: string,
+  quality: number,
+): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob(
       (blob) => {
@@ -31,7 +36,7 @@ function toWebpBlob(canvas: HTMLCanvasElement, quality: number): Promise<Blob> {
         }
         resolve(blob);
       },
-      "image/webp",
+      type,
       quality,
     );
   });
@@ -58,11 +63,18 @@ async function compressImageForUpload(file: File): Promise<File> {
   }
 
   ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
-  const webpBlob = await toWebpBlob(canvas, WEBP_QUALITY);
+  // Safari（iOS 上所有瀏覽器都是 WebKit）不支援把 canvas 編碼成 WebP，
+  // toBlob 會默默改回 PNG。照片存成 PNG 動輒 5MB 以上，會被 worker 以
+  // FILE_TOO_LARGE 擋掉，所以拿到的不是 WebP 就改用 JPEG（到處都支援）。
+  let blob = await toBlob(canvas, "image/webp", WEBP_QUALITY);
+  if (blob.type !== "image/webp") {
+    blob = await toBlob(canvas, "image/jpeg", JPEG_QUALITY);
+  }
+  const ext = blob.type === "image/webp" ? "webp" : "jpg";
 
   const baseName = file.name.replace(/\.[^.]+$/, "");
-  return new File([webpBlob], `${baseName}.webp`, {
-    type: "image/webp",
+  return new File([blob], `${baseName}.${ext}`, {
+    type: blob.type,
     lastModified: Date.now(),
   });
 }

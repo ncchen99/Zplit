@@ -368,3 +368,5 @@ return selectedMembers.map((memberId, i) => ({
 4. **personalLedgerService.ts** - Data model for personal expenses
 5. **groupStore.ts** - Zustand store structure
 6. **App.tsx** - Full routing configuration
+
+**圖片上傳（`src/services/uploadService.ts` → `workers/upload` → R2）**：前端先把圖縮到最長邊 1920 再轉 WebP。Safari（iOS 上所有瀏覽器）不支援 canvas 編碼 WebP，`toBlob` 會默默改回 PNG，照片轉成 PNG 動輒超過 worker 的 5MB 上限（`FILE_TOO_LARGE`），所以拿到的 blob 不是 WebP 就改用 JPEG，檔名／type 依實際格式。Worker 只看宣告的 `file.type`（jpeg/png/webp/gif），`FIREBASE_API_KEY` 是 Worker secret，不在 wrangler.toml。
